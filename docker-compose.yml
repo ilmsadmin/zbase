@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: zbase-app
+    ports:
+      - '3001:3001'
+    depends_on:
+      - postgres
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=postgres
+    env_file: .env
+    volumes:
+      - ./src/public/uploads:/app/src/public/uploads
+    networks:
+      - zbase-network
+      
+  postgres:
+    image: postgres:latest
+    container_name: zbase
+    restart: unless-stopped
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/zbase.sql:/docker-entrypoint-initdb.d/zbase.sql
+    networks:
+      - zbase-network
+
+volumes:
+  postgres_data:
+    name: zbase-postgres-data
+
+networks:
+  zbase-network:
+    name: zbase-network

@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site Management - ZBase</title>    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/static/css/admin.css">
+    <style>
+        .view-site-btn { color: #0dcaf0; }
+        .view-site-btn:hover { color: #fff; background-color: #0dcaf0; }
+        
+        .card-header { background-color: #f8f9fa; }
+        #test-wp-connection-result { min-height: 60px; }
+        
+        @media (max-width: 767px) {
+            .modal-dialog.modal-lg {
+                max-width: 95%;
+                margin: 0.5rem auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Navbar -->
+    <%- include('../partials/navbar', {activePage: 'sites'}) %>
+
+    <div class="container-fluid">
+        <!-- Main content -->
+        <main class="px-md-4 py-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+                <h1 class="h2">Site Management</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <button type="button" class="btn btn-sm btn-outline-secondary me-2" id="refresh-btn">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addSiteModal">
+                        <i class="bi bi-plus-circle"></i> Add Site
+                    </button>
+                </div>
+            </div>
+
+            <!-- Search and Filter -->
+            <div class="row mb-3">
+                <div class="col-md-8">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="search-input" placeholder="Search by site name or URL...">
+                        <button class="btn btn-outline-secondary" type="button" id="search-btn">
+                            <i class="bi bi-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <select class="form-select" id="sort-by">
+                        <option value="id">Sort by ID</option>
+                        <option value="name">Sort by Name</option>
+                        <option value="url">Sort by URL</option>
+                        <option value="created">Sort by Created Date</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Sites Table -->
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th scope="col">ID</th>
+                            <th scope="col">Name</th>
+                            <th scope="col">URL</th>
+                            <th scope="col">API Key</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Posts</th>
+                            <th scope="col">Created At</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sites-table-body">
+                        <!-- Sites will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <div>
+                    <span id="showing-info">Showing 0 of 0 sites</span>
+                </div>
+                <nav aria-label="Page navigation">
+                    <ul class="pagination" id="pagination">
+                        <!-- Pagination will be populated by JavaScript -->
+                    </ul>
+                </nav>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Site Modal -->
+    <div class="modal fade" id="addSiteModal" tabindex="-1" aria-labelledby="addSiteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addSiteModalLabel">Add New Site</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-site-form">                        <div class="mb-3">
+                            <label for="site-name" class="form-label">Site Name</label>
+                            <input type="text" class="form-control" id="site-name" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="site-url" class="form-label">WordPress URL</label>
+                            <input type="url" class="form-control" id="site-url" name="wp_url" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="site-user" class="form-label">WordPress User</label>
+                            <input type="text" class="form-control" id="site-user" name="wp_user" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="site-app-password" class="form-label">Application Password</label>
+                            <input type="password" class="form-control" id="site-app-password" name="app_password" required>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="site-has-woocommerce" name="has_woocommerce">
+                            <label class="form-check-label" for="site-has-woocommerce">Has WooCommerce</label>
+                        </div>
+                        <div class="woocommerce-fields" style="display: none;">
+                            <div class="mb-3">
+                                <label for="site-wc-key" class="form-label">WooCommerce Key</label>
+                                <input type="text" class="form-control" id="site-wc-key" name="wc_key">
+                            </div>
+                            <div class="mb-3">
+                                <label for="site-wc-secret" class="form-label">WooCommerce Secret</label>
+                                <input type="password" class="form-control" id="site-wc-secret" name="wc_secret">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="site-status" class="form-label">Status</label>
+                            <select class="form-select" id="site-status" name="active" required>
+                                <option value="true">Active</option>
+                                <option value="false">Inactive</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="save-site-btn">Save Site</button>
+                </div>
+            </div>
+        </div>
+    </div>    <!-- Site Details Modal -->
+    <div class="modal fade" id="viewSiteModal" tabindex="-1" aria-labelledby="viewSiteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="viewSiteModalLabel">Site Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Basic Information</h5>
+                                </div>
+                                <div class="card-body">
+                                    <dl class="row">
+                                        <dt class="col-sm-4">Site ID:</dt>
+                                        <dd class="col-sm-8" id="view-site-id">-</dd>
+                                        
+                                        <dt class="col-sm-4">Name:</dt>
+                                        <dd class="col-sm-8" id="view-site-name">-</dd>
+                                        
+                                        <dt class="col-sm-4">WordPress URL:</dt>
+                                        <dd class="col-sm-8"><a id="view-site-url" href="#" target="_blank">-</a></dd>
+                                        
+                                        <dt class="col-sm-4">WordPress User:</dt>
+                                        <dd class="col-sm-8" id="view-site-user">-</dd>
+                                        
+                                        <dt class="col-sm-4">Status:</dt>
+                                        <dd class="col-sm-8" id="view-site-status">-</dd>
+                                        
+                                        <dt class="col-sm-4">Created:</dt>
+                                        <dd class="col-sm-8" id="view-site-created">-</dd>
+                                        
+                                        <dt class="col-sm-4">Last Updated:</dt>
+                                        <dd class="col-sm-8" id="view-site-updated">-</dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">WooCommerce</h5>
+                                </div>
+                                <div class="card-body">
+                                    <dl class="row">
+                                        <dt class="col-sm-6">WooCommerce Enabled:</dt>
+                                        <dd class="col-sm-6" id="view-site-has-woocommerce">-</dd>
+                                        
+                                        <dt class="col-sm-6">WooCommerce Key:</dt>
+                                        <dd class="col-sm-6" id="view-site-wc-key">-</dd>
+                                    </dl>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Connection Test</h5>
+                                </div>                                <div class="card-body">
+                                    <button id="test-wp-connection-btn" class="btn btn-primary mb-2" type="button">
+                                        <span class="normal-state">
+                                            <i class="bi bi-hdd-network"></i> Test WordPress Connection
+                                        </span>
+                                        <span class="loading-state d-none">
+                                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                            Testing...
+                                        </span>
+                                    </button>
+                                    <div id="test-wp-connection-result" class="mt-2"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Statistics</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row text-center">
+                                        <div class="col-md-4">
+                                            <h4 id="view-site-posts-count">0</h4>
+                                            <p class="text-muted">Posts</p>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <h4 id="view-site-products-count">0</h4>
+                                            <p class="text-muted">Products</p>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <h4 id="view-site-last-sync">Never</h4>
+                                            <p class="text-muted">Last Sync</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button id="edit-from-view-btn" type="button" class="btn btn-primary">Edit Site</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Site Modal -->
+    <div class="modal fade" id="editSiteModal" tabindex="-1" aria-labelledby="editSiteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editSiteModalLabel">Edit Site</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="edit-site-form">
+                        <input type="hidden" id="edit-site-id" name="id">                        <div class="mb-3">
+                            <label for="edit-site-name" class="form-label">Site Name</label>
+                            <input type="text" class="form-control" id="edit-site-name" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-site-url" class="form-label">WordPress URL</label>
+                            <input type="url" class="form-control" id="edit-site-url" name="wp_url" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-site-user" class="form-label">WordPress User</label>
+                            <input type="text" class="form-control" id="edit-site-user" name="wp_user" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-site-app-password" class="form-label">Application Password</label>
+                            <input type="password" class="form-control" id="edit-site-app-password" name="app_password" placeholder="Leave blank to keep current password">
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="edit-site-has-woocommerce" name="has_woocommerce">
+                            <label class="form-check-label" for="edit-site-has-woocommerce">Has WooCommerce</label>
+                        </div>
+                        <div class="edit-woocommerce-fields">
+                            <div class="mb-3">
+                                <label for="edit-site-wc-key" class="form-label">WooCommerce Key</label>
+                                <input type="text" class="form-control" id="edit-site-wc-key" name="wc_key">
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit-site-wc-secret" class="form-label">WooCommerce Secret</label>
+                                <input type="password" class="form-control" id="edit-site-wc-secret" name="wc_secret" placeholder="Leave blank to keep current secret">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-site-status" class="form-label">Status</label>
+                            <select class="form-select" id="edit-site-status" name="active" required>
+                                <option value="true">Active</option>
+                                <option value="false">Inactive</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="update-site-btn">Update Site</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check auth
+            checkAuth();
+            
+            // Refresh button functionality
+            document.getElementById('refresh-btn').addEventListener('click', function() {
+                loadSites();
+            });
+            
+            // Search functionality
+            document.getElementById('search-btn').addEventListener('click', function() {
+                loadSites(1);
+            });
+            
+            document.getElementById('search-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    loadSites(1);
+                }
+            });
+            
+            // Sort by change event
+            document.getElementById('sort-by').addEventListener('change', function() {
+                loadSites(1);
+            });
+            
+            // Add site form submission
+            document.getElementById('save-site-btn').addEventListener('click', function() {
+                saveSite();
+            });
+            
+            // Edit site form submission
+            document.getElementById('update-site-btn').addEventListener('click', function() {
+                updateSite();
+            });
+            
+            // Toggle WooCommerce fields
+            document.getElementById('site-has-woocommerce').addEventListener('change', function() {
+                const wooFields = document.querySelector('.woocommerce-fields');
+                wooFields.style.display = this.checked ? 'block' : 'none';
+            });
+              document.getElementById('edit-site-has-woocommerce').addEventListener('change', function() {
+                const wooFields = document.querySelector('.edit-woocommerce-fields');
+                wooFields.style.display = this.checked ? 'block' : 'none';
+            });
+            
+            // Test WordPress connection button
+            document.getElementById('test-wp-connection-btn').addEventListener('click', function() {
+                const siteId = document.getElementById('view-site-id').textContent;
+                testWordPressConnection(siteId);
+            });
+            
+            // Edit from view button
+            document.getElementById('edit-from-view-btn').addEventListener('click', function() {
+                const siteId = document.getElementById('view-site-id').textContent;
+                bootstrap.Modal.getInstance(document.getElementById('viewSiteModal')).hide();
+                editSite(siteId);
+            });
+            
+            // Load sites on page load
+            loadSites();
+            
+            function checkAuth() {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    window.location.href = '/login';
+                    return;
+                }
+                
+                const userData = localStorage.getItem('user');
+                if (!userData) {
+                    window.location.href = '/login';
+                    return;
+                }
+                
+                try {
+                    const user = JSON.parse(userData);
+                    if (!user.roles.includes('admin')) {
+                        alert('You do not have permission to access this page');
+                        window.location.href = '/dashboard';
+                    } else {
+                        document.getElementById('user-name').textContent = user.name;
+                    }
+                } catch (e) {
+                    console.error('Error parsing user data:', e);
+                    window.location.href = '/login';
+                }
+            }
+            
+            async function loadSites(page = 1) {
+                try {
+                    const token = localStorage.getItem('token');
+                    const searchQuery = document.getElementById('search-input').value;
+                    const sortBy = document.getElementById('sort-by').value;
+                      const url = `/sites?page=${page}&limit=10&search=${encodeURIComponent(searchQuery)}&sortBy=${sortBy}`;
+                    
+                    const response = await fetch(url, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });                    if (!response.ok) {
+                        console.error('Response status:', response.status);
+                        const errorText = await response.text();
+                        console.error('Response body:', errorText);
+                        
+                        let errorMessage = 'Failed to load sites';
+                        try {
+                            const errorData = JSON.parse(errorText);
+                            if (errorData && errorData.message) {
+                                errorMessage = errorData.message;
+                            }
+                        } catch (e) {
+                            console.error('Error parsing JSON response:', e);
+                        }
+                        
+                        throw new Error(errorMessage);
+                    }
+                    
+                    const data = await response.json();
+                    displaySites(data.items, data.meta);
+                } catch (error) {
+                    console.error('Error loading sites:', error);
+                    alert('Failed to load sites: ' + error.message);
+                }
+            }
+            
+            function displaySites(sites, meta) {
+                const tableBody = document.getElementById('sites-table-body');
+                const paginationElement = document.getElementById('pagination');
+                const showingInfo = document.getElementById('showing-info');
+                
+                tableBody.innerHTML = '';
+                
+                if (!sites || sites.length === 0) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="8" class="text-center">No sites found</td>
+                        </tr>
+                    `;
+                    showingInfo.textContent = 'Showing 0 sites';
+                    paginationElement.innerHTML = '';
+                    return;
+                }
+                
+                sites.forEach(site => {
+                    const row = document.createElement('tr');
+                      const formattedDate = new Date(site.created_at).toLocaleDateString();
+                    const wcKeyDisplay = site.wc_key ? site.wc_key.substring(0, 8) + '...' : 'N/A';
+                    
+                    row.innerHTML = `
+                        <td>${site.id}</td>
+                        <td>${site.name}</td>
+                        <td><a href="${site.wp_url}" target="_blank">${site.wp_url}</a></td>
+                        <td>${wcKeyDisplay}</td>
+                        <td><span class="badge rounded-pill ${site.active ? 'bg-success' : 'bg-secondary'}">${site.active ? 'active' : 'inactive'}</span></td>
+                        <td>${site.posts ? site.posts.length : 0}</td>
+                        <td>${formattedDate}</td>                        <td>
+                            <button class="btn btn-sm btn-outline-info me-1 view-site-btn" data-id="${site.id}" title="View Details">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary me-1 edit-site-btn" data-id="${site.id}" title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger delete-site-btn" data-id="${site.id}" title="Delete">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    
+                    tableBody.appendChild(row);
+                });
+                  // Setup view details buttons
+                document.querySelectorAll('.view-site-btn').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const siteId = this.getAttribute('data-id');
+                        viewSiteDetails(siteId);
+                    });
+                });
+                
+                // Setup edit buttons
+                document.querySelectorAll('.edit-site-btn').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const siteId = this.getAttribute('data-id');
+                        editSite(siteId);
+                    });
+                });
+                
+                // Setup delete buttons
+                document.querySelectorAll('.delete-site-btn').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const siteId = this.getAttribute('data-id');
+                        deleteSite(siteId);
+                    });
+                });
+                
+                // Update showing info
+                showingInfo.textContent = `Showing ${sites.length} of ${meta.totalItems} sites`;
+                
+                // Set up pagination
+                setupPagination(meta);
+            }
+            
+            function setupPagination(meta) {
+                const paginationElement = document.getElementById('pagination');
+                paginationElement.innerHTML = '';
+                
+                if (meta.totalPages <= 1) {
+                    return;
+                }
+                
+                // Previous page button
+                const prevLi = document.createElement('li');
+                prevLi.classList.add('page-item');
+                if (meta.currentPage === 1) {
+                    prevLi.classList.add('disabled');
+                }
+                prevLi.innerHTML = `<a class="page-link" href="#" data-page="${meta.currentPage - 1}">Previous</a>`;
+                paginationElement.appendChild(prevLi);
+                
+                // Page number buttons
+                for (let i = 1; i <= meta.totalPages; i++) {
+                    const pageLi = document.createElement('li');
+                    pageLi.classList.add('page-item');
+                    if (i === meta.currentPage) {
+                        pageLi.classList.add('active');
+                    }
+                    pageLi.innerHTML = `<a class="page-link" href="#" data-page="${i}">${i}</a>`;
+                    paginationElement.appendChild(pageLi);
+                }
+                
+                // Next page button
+                const nextLi = document.createElement('li');
+                nextLi.classList.add('page-item');
+                if (meta.currentPage === meta.totalPages) {
+                    nextLi.classList.add('disabled');
+                }
+                nextLi.innerHTML = `<a class="page-link" href="#" data-page="${meta.currentPage + 1}">Next</a>`;
+                paginationElement.appendChild(nextLi);
+                
+                // Add event listeners to pagination buttons
+                document.querySelectorAll('#pagination .page-link').forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const page = parseInt(this.getAttribute('data-page'));
+                        if (!isNaN(page)) {
+                            loadSites(page);
+                        }
+                    });
+                });
+            }
+              async function saveSite() {
+                try {
+                    const form = document.getElementById('add-site-form');
+                    const formData = new FormData(form);
+                    const token = localStorage.getItem('token');
+                      // Debug form data
+                    console.log('Form data wp_url value:', formData.get('wp_url'));
+                    
+                    const site = {
+                        name: formData.get('name'),
+                        wp_url: formData.get('wp_url'),
+                        wp_user: formData.get('wp_user'),
+                        app_password: formData.get('app_password'),
+                        active: formData.get('active') === 'true'
+                    };
+                      // Debug site object
+                    console.log('Site object being sent:', site);
+                    
+                    // Validate required fields, especially wp_url
+                    if (!site.name || !site.wp_url || !site.wp_user) {
+                        const missingFields = [];
+                        if (!site.name) missingFields.push('Site Name');
+                        if (!site.wp_url) missingFields.push('WordPress URL');
+                        if (!site.wp_user) missingFields.push('WordPress User');
+                        
+                        throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+                    }
+                    
+                    // Make sure WP URL is properly formatted
+                    try {
+                        const url = new URL(site.wp_url);
+                        if (!url.protocol.startsWith('http')) {
+                            throw new Error('WordPress URL must start with http:// or https://');
+                        }
+                    } catch (urlError) {
+                        console.error('Invalid URL:', urlError);
+                        throw new Error('Please enter a valid WordPress URL (e.g., https://example.com)');
+                    }
+                    
+                    // Add WooCommerce fields if applicable
+                    if (formData.get('has_woocommerce') === 'on') {
+                        site.has_woocommerce = true;
+                        site.wc_key = formData.get('wc_key');
+                        site.wc_secret = formData.get('wc_secret');
+                    } else {
+                        site.has_woocommerce = false;
+                    }
+                    
+                    // Final debug check before submission
+                    console.log('Final site data being sent to server:', JSON.stringify(site));const response = await fetch('/sites', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(site)
+                    });
+                    
+                    console.log('Raw response received:', response.status, response.statusText);
+                    
+                    // Read the response once and store
+                    const responseText = await response.text();
+                    console.log('Response text:', responseText);
+                    
+                    if (!response.ok) {
+                        let errorMessage = 'Failed to create site';
+                        try {
+                            const errorData = JSON.parse(responseText);
+                            if (errorData && errorData.message) {
+                                errorMessage = errorData.message;
+                            }
+                        } catch (parseError) {
+                            console.error('Error parsing error response:', parseError);
+                        }
+                        throw new Error(errorMessage);
+                    }
+                    
+                    // Parse the response text to get the data
+                    let responseData;
+                    try {
+                        responseData = JSON.parse(responseText);
+                        console.log('Parsed response data:', responseData);
+                    } catch (parseError) {
+                        console.error('Error parsing success response:', parseError);
+                    }
+                    
+                    // Close modal and refresh sites
+                    bootstrap.Modal.getInstance(document.getElementById('addSiteModal')).hide();
+                    form.reset();
+                    loadSites();
+                    
+                } catch (error) {
+                    console.error('Error saving site:', error);
+                    alert('Failed to create site: ' + error.message);
+                }
+            }
+            
+            async function editSite(id) {
+                try {
+                    const token = localStorage.getItem('token');
+                      const response = await fetch(`/sites/${id}`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                      if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+                        throw new Error(errorData.message || 'Failed to fetch site details');
+                    }
+                      const site = await response.json();
+                    
+                    // Debug output
+                    console.log('Site data received from server:', site);
+                    
+                    // Populate edit form
+                    document.getElementById('edit-site-id').value = site.id;
+                    document.getElementById('edit-site-name').value = site.name;
+                    document.getElementById('edit-site-url').value = site.wp_url;
+                    document.getElementById('edit-site-user').value = site.wp_user || '';
+                    document.getElementById('edit-site-has-woocommerce').checked = site.has_woocommerce;
+                    document.getElementById('edit-site-status').value = site.active.toString();
+                    
+                    // Open edit modal
+                    const editModal = new bootstrap.Modal(document.getElementById('editSiteModal'));
+                    editModal.show();
+                } catch (error) {
+                    console.error('Error fetching site details:', error);
+                    alert('Failed to load site details: ' + error.message);
+                }
+            }
+              async function updateSite() {
+                try {
+                    const form = document.getElementById('edit-site-form');
+                    const formData = new FormData(form);
+                    const token = localStorage.getItem('token');
+                    const id = formData.get('id');
+                      // Debug form data for update
+                    console.log('Update form data - wp_url value:', formData.get('wp_url'));
+                    
+                    const siteUpdate = {
+                        name: formData.get('name'),
+                        wp_url: formData.get('wp_url'),
+                        wp_user: formData.get('wp_user'),
+                        active: formData.get('active') === 'true',
+                        has_woocommerce: formData.get('has_woocommerce') === 'on'
+                    };                    
+                    console.log('Site update object being sent:', siteUpdate);
+                    
+                    // Validate required fields, especially wp_url
+                    if (!siteUpdate.name || !siteUpdate.wp_url || !siteUpdate.wp_user) {
+                        const missingFields = [];
+                        if (!siteUpdate.name) missingFields.push('Site Name');
+                        if (!siteUpdate.wp_url) missingFields.push('WordPress URL');
+                        if (!siteUpdate.wp_user) missingFields.push('WordPress User');
+                        
+                        throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+                    }
+                    
+                    // Make sure WP URL is properly formatted
+                    try {
+                        const url = new URL(siteUpdate.wp_url);
+                        if (!url.protocol.startsWith('http')) {
+                            throw new Error('WordPress URL must start with http:// or https://');
+                        }
+                    } catch (urlError) {
+                        console.error('Invalid URL:', urlError);
+                        throw new Error('Please enter a valid WordPress URL (e.g., https://example.com)');
+                    }
+                    
+                    // Only include passwords if they're not empty
+                    const appPassword = formData.get('app_password');
+                    if (appPassword) {
+                        siteUpdate.app_password = appPassword;
+                    }
+                    
+                    // Final debug check before submission
+                    console.log('Final update data being sent to server:', JSON.stringify(siteUpdate));
+                    
+                    // Add WooCommerce fields if applicable
+                    if (siteUpdate.has_woocommerce) {
+                        const wcKey = formData.get('wc_key');
+                        if (wcKey) {
+                            siteUpdate.wc_key = wcKey;
+                        }
+                        
+                        const wcSecret = formData.get('wc_secret');
+                        if (wcSecret) {
+                            siteUpdate.wc_secret = wcSecret;
+                        }
+                    }                      const response = await fetch(`/sites/${id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(siteUpdate)
+                    });
+                    
+                    console.log('Raw update response received:', response.status, response.statusText);
+                    
+                    // Read the response once and store
+                    const responseText = await response.text();
+                    console.log('Update response text:', responseText);
+                    
+                    if (!response.ok) {
+                        let errorMessage = 'Failed to update site';
+                        try {
+                            const errorData = JSON.parse(responseText);
+                            if (errorData && errorData.message) {
+                                errorMessage = errorData.message;
+                            }
+                        } catch (parseError) {
+                            console.error('Error parsing update error response:', parseError);
+                        }
+                        throw new Error(errorMessage);
+                    }
+                    
+                    // Parse the response text to get the data
+                    let responseData;
+                    try {
+                        responseData = JSON.parse(responseText);
+                        console.log('Parsed update response data:', responseData);
+                    } catch (parseError) {
+                        console.error('Error parsing update success response:', parseError);
+                    }
+                    
+                    // Close modal and refresh sites
+                    bootstrap.Modal.getInstance(document.getElementById('editSiteModal')).hide();
+                    loadSites();
+                    
+                } catch (error) {
+                    console.error('Error updating site:', error);
+                    alert('Failed to update site: ' + error.message);
+                }
+            }
+              async function deleteSite(id) {
+                if (!confirm('Are you sure you want to delete this site? This action cannot be undone.')) {
+                    return;
+                }
+                
+                try {
+                    const token = localStorage.getItem('token');
+                      const response = await fetch(`/sites/${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                      if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+                        throw new Error(errorData.message || 'Failed to delete site');
+                    }
+                    
+                    // Refresh sites
+                    loadSites();
+                    
+                } catch (error) {
+                    console.error('Error deleting site:', error);
+                    alert('Failed to delete site: ' + error.message);
+                }
+            }
+            
+            // View site details
+            async function viewSiteDetails(id) {
+                try {
+                    const token = localStorage.getItem('token');
+                    const response = await fetch(`/sites/${id}`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+                        throw new Error(errorData.message || 'Failed to fetch site details');
+                    }
+                    
+                    const site = await response.json();
+                    console.log('Site details received:', site);
+                    
+                    // Format dates
+                    const createdDate = new Date(site.created_at).toLocaleString();
+                    const updatedDate = new Date(site.updated_at).toLocaleString();
+                    
+                    // Populate site details
+                    document.getElementById('view-site-id').textContent = site.id;
+                    document.getElementById('view-site-name').textContent = site.name;
+                    
+                    // URL with link
+                    const urlElement = document.getElementById('view-site-url');
+                    urlElement.href = site.wp_url;
+                    urlElement.textContent = site.wp_url;
+                    
+                    document.getElementById('view-site-user').textContent = site.wp_user || 'Not specified';
+                    document.getElementById('view-site-status').textContent = site.active ? 'Active' : 'Inactive';
+                    document.getElementById('view-site-created').textContent = createdDate;
+                    document.getElementById('view-site-updated').textContent = updatedDate;
+                    
+                    // WooCommerce info
+                    document.getElementById('view-site-has-woocommerce').textContent = site.has_woocommerce ? 'Yes' : 'No';
+                    document.getElementById('view-site-wc-key').textContent = site.wc_key ? 
+                        site.wc_key.substring(0, 8) + '...' : 'Not configured';
+                    
+                    // Statistics
+                    document.getElementById('view-site-posts-count').textContent = site.posts ? site.posts.length : 0;
+                    document.getElementById('view-site-products-count').textContent = 0; // Default to 0, update as needed
+                    document.getElementById('view-site-last-sync').textContent = 'Never'; // Update as needed
+                    
+                    // Reset connection test result
+                    document.getElementById('test-wp-connection-result').innerHTML = '';
+                    
+                    // Load site statistics
+                    loadSiteStatistics(id);
+                    
+                    // Open the modal
+                    const viewModal = new bootstrap.Modal(document.getElementById('viewSiteModal'));
+                    viewModal.show();
+                    
+                } catch (error) {
+                    console.error('Error fetching site details:', error);
+                    alert('Failed to load site details: ' + error.message);
+                }
+            }
+            
+            async function loadSiteStatistics(siteId) {
+                try {
+                    const response = await fetch(`/sites/${siteId}/statistics`, {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+                    
+                    if (!response.ok) throw new Error('Failed to load statistics');
+                    
+                    const stats = await response.json();
+                    
+                    document.getElementById('view-site-posts-count').textContent = stats.posts_count;
+                    document.getElementById('view-site-products-count').textContent = stats.products_count;
+                    document.getElementById('view-site-last-sync').textContent = 
+                        stats.last_sync ? new Date(stats.last_sync).toLocaleString() : 'Never';
+                } catch (error) {
+                    console.error('Error loading site statistics:', error);
+                }
+            }
+            
+              // Test WordPress connection
+            async function testWordPressConnection(id) {
+                try {
+                    const resultElement = document.getElementById('test-wp-connection-result');
+                    const testButton = document.getElementById('test-wp-connection-btn');
+                    const normalState = testButton.querySelector('.normal-state');
+                    const loadingState = testButton.querySelector('.loading-state');
+                    
+                    // Show loading state
+                    normalState.classList.add('d-none');
+                    loadingState.classList.remove('d-none');
+                    testButton.disabled = true;
+                    
+                    resultElement.innerHTML = `
+                        <div class="alert alert-info">
+                            <div class="d-flex align-items-center">
+                                <span>Testing connection to WordPress site...</span>
+                            </div>
+                        </div>
+                    `;
+                    
+                    const token = localStorage.getItem('token');
+                    const response = await fetch(`/sites/${id}/test-connection`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    // Get response text first
+                    const responseText = await response.text();
+                    let responseData;
+                    
+                    try {
+                        responseData = JSON.parse(responseText);
+                        console.log('Connection test response:', responseData);
+                    } catch (e) {
+                        console.error('Error parsing response:', e, responseText);
+                    }
+                      if (response.ok) {
+                        // Format site details
+                        const details = responseData?.details || {};
+                        
+                        // Build a more comprehensive details display
+                        let detailsHtml = '';
+                        
+                        if (Object.keys(details).length > 0) {
+                            detailsHtml = `
+                                <div class="mt-2">
+                                    <strong>Site Name:</strong> ${details.name || 'Not available'}<br>
+                                    <strong>Description:</strong> ${details.description || 'Not available'}<br>
+                                    <strong>Site URL:</strong> <a href="${details.url || '#'}" target="_blank">${details.url || 'Not available'}</a>
+                                </div>
+                            `;
+                            
+                            // Show authenticated user if available (added in our enhanced API)
+                            if (details.authenticatedUser) {
+                                detailsHtml += `
+                                    <div class="mt-2">
+                                        <strong>Authenticated as:</strong> ${details.authenticatedUser}
+                                        <span class="badge bg-success ms-2">Verified</span>
+                                    </div>
+                                `;
+                            }
+                        }
+                        
+                        resultElement.innerHTML = `
+                            <div class="alert alert-success">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="bi bi-check-circle-fill me-2"></i>
+                                    <strong>Connection successful!</strong>
+                                </div>
+                                <div>WordPress version: <span class="badge bg-info">${responseData?.version || 'Unknown'}</span></div>
+                                ${detailsHtml}
+                            </div>
+                        `;                    } else {
+                        const errorMsg = responseData?.message || 'Connection failed';
+                        
+                        // Create more detailed error message
+                        let errorDetails = '';
+                        
+                        // Check for specific types of errors
+                        if (errorMsg.includes('Authentication failed')) {
+                            errorDetails = `
+                                <div class="mt-2">
+                                    <strong>Possible causes:</strong>
+                                    <ul class="mb-0 mt-1">
+                                        <li>Username or application password is incorrect</li>
+                                        <li>Application passwords may not be enabled on the site</li>
+                                        <li>The user account may not have proper permissions</li>
+                                    </ul>
+                                </div>
+                            `;
+                        } else if (errorMsg.includes('ECONNREFUSED') || errorMsg.includes('ENOTFOUND')) {
+                            errorDetails = `
+                                <div class="mt-2">
+                                    <strong>Possible causes:</strong>
+                                    <ul class="mb-0 mt-1">
+                                        <li>The site URL is incorrect</li>
+                                        <li>The WordPress site is offline or unreachable</li>
+                                        <li>There might be network connectivity issues</li>
+                                    </ul>
+                                </div>
+                            `;
+                        }
+                        
+                        resultElement.innerHTML = `
+                            <div class="alert alert-danger">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                    <strong>Connection failed:</strong> ${errorMsg}
+                                </div>
+                                ${errorDetails}
+                            </div>
+                        `;
+                    }
+                    
+                } catch (error) {
+                    console.error('Error testing WordPress connection:', error);
+                    document.getElementById('test-wp-connection-result').innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            <strong>Error:</strong> ${error.message || 'An error occurred while testing the connection'}
+                        </div>
+                    `;
+                } finally {
+                    // Restore button state
+                    const testButton = document.getElementById('test-wp-connection-btn');
+                    const normalState = testButton.querySelector('.normal-state');
+                    const loadingState = testButton.querySelector('.loading-state');
+                    
+                    normalState.classList.remove('d-none');
+                    loadingState.classList.add('d-none');
+                    testButton.disabled = false;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Management - ZBase</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/static/css/admin.css">
+    <link rel="stylesheet" href="/static/css/admin-products.css">
+</head>
+<body>
+    <!-- Top Navbar -->
+    <%- include('../partials/navbar', {activePage: 'products'}) %>
+
+    <div class="container-fluid">
+        <!-- Main content -->
+        <main class="px-md-4 py-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+                <h1 class="h2">Product Management</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <button type="button" class="btn btn-sm btn-outline-secondary me-2" id="refresh-btn">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                        <i class="bi bi-plus-circle"></i> Add Product
+                    </button>
+                    <div class="btn-group ms-2">
+                        <button type="button" class="btn btn-sm btn-success" id="sync-products-btn">
+                            <i class="bi bi-arrow-repeat"></i> Sync Products
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Site Selection Banner -->
+            <div class="card mb-3">
+                <div class="card-body bg-light">
+                    <div class="row align-items-center">
+                        <div class="col-md-2">
+                            <label for="site-filter" class="form-label mb-0">Filter by Site:</label>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select form-select-sm" id="site-filter">
+                                <option value="">All Sites</option>
+                                <!-- Site options will be loaded here -->
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-center">
+                            <div class="form-check form-switch ms-3">
+                                <input class="form-check-input" type="checkbox" id="default-site-switch">
+                                <label class="form-check-label" for="default-site-switch">Set as default</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="site-indicator d-none">
+                                <span class="badge bg-primary">
+                                    <i class="bi bi-globe"></i>
+                                    Currently viewing: <span id="current-site-name">Site Name</span>
+                                </span>
+                                <button class="btn btn-sm btn-outline-primary ms-2" id="add-to-current-site-btn">
+                                    <i class="bi bi-plus-circle"></i> Add to this site
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Product Filter Options -->
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search products..." id="search-input">
+                        <button class="btn btn-outline-secondary" type="button" id="search-btn">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select" id="featured-filter">
+                        <option value="">All Products</option>
+                        <option value="true">Featured Only</option>
+                        <option value="false">Non-Featured Only</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="sort-by">
+                        <option value="id">Default</option>
+                        <option value="price_asc">Price: Low to High</option>
+                        <option value="price_desc">Price: High to Low</option>
+                        <option value="name_asc">Name: A to Z</option>
+                        <option value="name_desc">Name: Z to A</option>
+                        <option value="newest">Newest First</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <div class="d-flex">
+                        <button class="btn btn-outline-secondary me-2" id="clear-filters-btn">
+                            <i class="bi bi-x-circle"></i> Clear Filters
+                        </button>
+                        <button class="btn btn-primary" id="apply-filters-btn">
+                            <i class="bi bi-funnel"></i> Apply Filters
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Products Table -->
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th width="5%">ID</th>
+                            <th width="10%">Image</th>
+                            <th width="20%">Name</th>
+                            <th width="10%">Price</th>
+                            <th width="10%">Stock</th>
+                            <th width="10%">Status</th>
+                            <th width="15%">Site</th>
+                            <th width="10%">WC ID</th>
+                            <th width="10%">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="products-table-body">
+                        <!-- Products will be loaded here -->
+                        <tr>
+                            <td colspan="9" class="text-center">Loading products...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            <nav aria-label="Product pagination" class="d-flex justify-content-between align-items-center mt-3">
+                <div>
+                    <span class="text-muted">Showing <span id="showing-records">0-0</span> of <span id="total-records">0</span> products</span>
+                </div>
+                <ul class="pagination" id="pagination">
+                    <!-- Pagination will be generated here -->
+                </ul>
+            </nav>
+        </main>
+    </div>
+    
+    <!-- Add Product Modal -->
+    <div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addProductModalLabel">Add New Product</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-product-form">
+                        <div class="alert alert-danger d-none" id="add-product-error"></div>
+                        
+                        <div class="mb-3">
+                            <label for="product-site" class="form-label">Site *</label>
+                            <select class="form-select" id="product-site" required>
+                                <option value="">Select a site</option>
+                                <!-- Site options will be loaded here -->
+                            </select>
+                            <div class="form-text">Select the site to add this product to.</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="product-name" class="form-label">Product Name *</label>
+                            <input type="text" class="form-control" id="product-name" required>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="product-price" class="form-label">Price *</label>
+                                    <input type="number" class="form-control" id="product-price" min="0" step="0.01" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="product-regular-price" class="form-label">Regular Price</label>
+                                    <input type="number" class="form-control" id="product-regular-price" min="0" step="0.01">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="product-sale-price" class="form-label">Sale Price</label>
+                                    <input type="number" class="form-control" id="product-sale-price" min="0" step="0.01">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="product-stock" class="form-label">Stock</label>
+                                    <input type="number" class="form-control" id="product-stock" min="0" step="1" value="0">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="product-stock-status" class="form-label">Stock Status</label>
+                                    <select class="form-select" id="product-stock-status">
+                                        <option value="instock">In Stock</option>
+                                        <option value="outofstock">Out of Stock</option>
+                                        <option value="onbackorder">On Backorder</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="product-short-description" class="form-label">Short Description</label>
+                            <textarea class="form-control" id="product-short-description" rows="2"></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="product-description" class="form-label">Description</label>
+                            <textarea class="form-control" id="product-description" rows="4"></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Product Images</label>
+                            <div class="input-group mb-2">
+                                <input type="text" class="form-control" placeholder="Image URL" id="product-image-url">
+                                <input type="text" class="form-control" placeholder="Image Name" id="product-image-name">
+                                <button class="btn btn-outline-secondary" type="button" id="add-image-btn">Add</button>
+                            </div>
+                            <div id="product-images-container" class="d-flex flex-wrap gap-2">
+                                <!-- Image previews will be added here -->
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Categories</label>
+                            <div class="input-group mb-2">
+                                <input type="text" class="form-control" placeholder="Category name" id="product-category-name">
+                                <button class="btn btn-outline-secondary" type="button" id="add-category-btn">Add</button>
+                            </div>
+                            <div id="product-categories-container" class="d-flex flex-wrap gap-2">
+                                <!-- Categories will be added here -->
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="product-featured">
+                            <label class="form-check-label" for="product-featured">Featured Product</label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="save-product-btn">Save Product</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Edit Product Modal -->
+    <div class="modal fade" id="editProductModal" tabindex="-1" aria-labelledby="editProductModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editProductModalLabel">Edit Product</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="edit-product-form">
+                        <div class="alert alert-danger d-none" id="edit-product-error"></div>
+                        <input type="hidden" id="edit-product-id">
+                        
+                        <div class="mb-3">
+                            <label for="edit-product-site" class="form-label">Site *</label>
+                            <select class="form-select" id="edit-product-site" required>
+                                <option value="">Select a site</option>
+                                <!-- Site options will be loaded here -->
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="edit-product-name" class="form-label">Product Name *</label>
+                            <input type="text" class="form-control" id="edit-product-name" required>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="edit-product-price" class="form-label">Price *</label>
+                                    <input type="number" class="form-control" id="edit-product-price" min="0" step="0.01" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="edit-product-regular-price" class="form-label">Regular Price</label>
+                                    <input type="number" class="form-control" id="edit-product-regular-price" min="0" step="0.01">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="edit-product-sale-price" class="form-label">Sale Price</label>
+                                    <input type="number" class="form-control" id="edit-product-sale-price" min="0" step="0.01">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="edit-product-stock" class="form-label">Stock</label>
+                                    <input type="number" class="form-control" id="edit-product-stock" min="0" step="1">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="edit-product-stock-status" class="form-label">Stock Status</label>
+                                    <select class="form-select" id="edit-product-stock-status">
+                                        <option value="instock">In Stock</option>
+                                        <option value="outofstock">Out of Stock</option>
+                                        <option value="onbackorder">On Backorder</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="edit-product-short-description" class="form-label">Short Description</label>
+                            <textarea class="form-control" id="edit-product-short-description" rows="2"></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="edit-product-description" class="form-label">Description</label>
+                            <textarea class="form-control" id="edit-product-description" rows="4"></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Product Images</label>
+                            <div class="input-group mb-2">
+                                <input type="text" class="form-control" placeholder="Image URL" id="edit-product-image-url">
+                                <input type="text" class="form-control" placeholder="Image Name" id="edit-product-image-name">
+                                <button class="btn btn-outline-secondary" type="button" id="edit-add-image-btn">Add</button>
+                            </div>
+                            <div id="edit-product-images-container" class="d-flex flex-wrap gap-2">
+                                <!-- Image previews will be added here -->
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Categories</label>
+                            <div class="input-group mb-2">
+                                <input type="text" class="form-control" placeholder="Category name" id="edit-product-category-name">
+                                <button class="btn btn-outline-secondary" type="button" id="edit-add-category-btn">Add</button>
+                            </div>
+                            <div id="edit-product-categories-container" class="d-flex flex-wrap gap-2">
+                                <!-- Categories will be added here -->
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="edit-product-featured">
+                            <label class="form-check-label" for="edit-product-featured">Featured Product</label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="update-product-btn">Update Product</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Delete Product Confirmation Modal -->
+    <div class="modal fade" id="deleteProductModal" tabindex="-1" aria-labelledby="deleteProductModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="deleteProductModalLabel">Confirm Delete</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete this product? This action will remove the product from WooCommerce as well.</p>
+                    <p class="fw-bold">Product: <span id="delete-product-name"></span></p>
+                    <input type="hidden" id="delete-product-id">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirm-delete-btn">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sync Products Modal -->
+    <div class="modal fade" id="syncProductsModal" tabindex="-1" aria-labelledby="syncProductsModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="syncProductsModalLabel">Sync Products from WooCommerce</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        This will sync products from WooCommerce to this system. Select the site you want to sync from.
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="sync-site-select" class="form-label">Site</label>
+                        <select class="form-select" id="sync-site-select">
+                            <option value="">Select a site</option>
+                            <!-- Site options will be loaded here -->
+                        </select>
+                    </div>
+                    
+                    <div id="sync-status" class="d-none">
+                        <div class="progress mb-3">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" id="sync-progress" role="progressbar" style="width: 0%"></div>
+                        </div>
+                        <div class="text-center" id="sync-message">Preparing to sync...</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="start-sync-btn">Start Sync</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/admin-common.js"></script>
+    <script src="/static/js/product-management.js"></script>
+    <script src="/static/js/site-management.js"></script>
+</body>
+</html>

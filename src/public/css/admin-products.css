@@ -1,0 +1,94 @@
+/* 
+ * Style cho trang quản lý sản phẩm
+ * filepath: d:\www\zbase\src\public\css\admin-products.css
+ */
+
+/* Định dạng cho thumbnail sản phẩm */
+.product-thumbnail {
+    max-width: 50px;
+    max-height: 50px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+/* Định dạng cho các item trong bảng */
+.product-image-item {
+    position: relative;
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+.product-category-item {
+    margin-right: 5px;
+    margin-bottom: 5px;
+}
+
+/* Định dạng cho các sản phẩm của các site khác nhau */
+.site-group-even {
+    border-left: 4px solid #0d6efd;
+}
+
+.site-group-odd {
+    border-left: 4px solid #198754;
+}
+
+/* Highlight sản phẩm của site mặc định */
+.default-site-product {
+    background-color: #fff3cd !important;
+}
+
+/* Hiệu ứng hover cho các nút */
+.filter-site-btn:hover {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.set-default-site-btn:hover {
+    background-color: #198754;
+    color: white;
+}
+
+/* Định dạng cho số lượng tồn kho */
+.stock-badge {
+    min-width: 80px;
+    text-align: center;
+}
+
+/* Định dạng cho phần hiển thị thuộc tính sản phẩm */
+.product-attributes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.attribute-badge {
+    font-size: 0.8rem;
+}
+
+/* Định dạng cho giá sản phẩm */
+.product-price {
+    font-weight: bold;
+}
+
+.product-regular-price {
+    text-decoration: line-through;
+    color: #6c757d;
+    font-size: 0.9em;
+}
+
+/* Định dạng cho các modal */
+.modal-lg {
+    max-width: 900px;
+}
+
+/* Responsive cho màn hình nhỏ */
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.85rem;
+    }
+    
+    .btn-sm {
+        padding: 0.25rem 0.4rem;
+        font-size: 0.75rem;
+    }
+}

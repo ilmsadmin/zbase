@@ -1,0 +1,86 @@
+/* Custom styles for admin posts page */
+
+/* Site header styles */
+.site-header-row {
+    background-color: #e8f4ff !important;
+    border-left: 4px solid #0d6efd;
+}
+
+.site-header-row td {
+    padding: 0.75rem 1rem;
+}
+
+/* Site indicator banner */
+.site-indicator {
+    border-left: 4px solid #0dcaf0;
+    transition: all 0.3s ease-in-out;
+    animation: fadeIn 0.5s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Highlight posts from default site */
+.default-site-post {
+    background-color: rgba(13, 202, 240, 0.05);
+}
+
+/* Improve filter display */
+#site-filter.form-select-lg {
+    font-weight: 500;
+}
+
+/* Post action buttons */
+.table td .btn-group .btn {
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.table tr:hover td .btn-group .btn {
+    opacity: 1;
+}
+
+/* Improved filter buttons */
+.filter-site-btn, .set-default-site-btn {
+    transition: all 0.2s ease;
+}
+
+.filter-site-btn:hover {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.set-default-site-btn:hover {
+    background-color: #198754;
+    color: white;
+}
+
+/* Enhanced site grouping styles */
+.site-group-even {
+    border-left: 2px solid rgba(13, 110, 253, 0.2);
+}
+
+.site-group-odd {
+    border-left: 2px solid rgba(25, 135, 84, 0.2);
+}
+
+/* Add subtle alternating backgrounds for different sites */
+tr.site-group-even {
+    background-color: rgba(13, 110, 253, 0.01);
+}
+
+tr.site-group-odd {
+    background-color: rgba(25, 135, 84, 0.01);
+}
+
+/* Add animation for new posts added to current site */
+.new-site-post {
+    animation: highlightNew 2s;
+}
+
+@keyframes highlightNew {
+    0% { background-color: rgba(25, 135, 84, 0.2); }
+    100% { background-color: transparent; }
+}

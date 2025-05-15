@@ -1,0 +1,1515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post Management - ZBase</title>    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/static/css/admin.css">
+    <link rel="stylesheet" href="/static/css/admin-posts.css">
+</head>
+<body>
+    <!-- Top Navbar -->
+    <%- include('../partials/navbar', {activePage: 'posts'}) %>
+
+    <div class="container-fluid">
+        <!-- Main content -->
+        <main class="px-md-4 py-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+                <h1 class="h2">Post Management</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <button type="button" class="btn btn-sm btn-outline-secondary me-2" id="refresh-btn">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addPostModal">
+                        <i class="bi bi-plus-circle"></i> Add Post
+                    </button>
+                    <div class="btn-group ms-2">
+                        <button type="button" class="btn btn-sm btn-success" id="sync-posts-btn">
+                            <i class="bi bi-arrow-repeat"></i> Sync Posts
+                        </button>
+                        <button type="button" class="btn btn-sm btn-info text-white" id="push-posts-btn">
+                            <i class="bi bi-cloud-upload"></i> Push Posts
+                        </button>
+                    </div>
+                </div>            </div>
+            
+            <!-- Site Selection Banner -->
+            <div class="card mb-3">
+                <div class="card-body bg-light">
+                    <div class="row align-items-center">
+                        <div class="col-md-2">
+                            <label for="site-filter" class="form-label fw-bold mb-0">
+                                <i class="bi bi-globe2"></i> Site:
+                            </label>
+                        </div>
+                        <div class="col-md-6">
+                            <select class="form-select form-select-lg" id="site-filter">
+                                <option value="">All Sites</option>
+                                <!-- Will be populated dynamically -->
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="default-site-switch">
+                                <label class="form-check-label" for="default-site-switch">Set as default site</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Site Indicator (visible when a site is filtered) -->
+            <div class="alert alert-info d-none site-indicator mb-3">                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        <span>Viewing posts from: <strong id="current-site-name"></strong></span>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-success" id="add-to-current-site-btn">
+                        <i class="bi bi-plus-circle"></i> Add Post to This Site
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Search and Filter -->
+            <div class="row mb-3">
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="search-input" placeholder="Search by title or content...">
+                        <button class="btn btn-outline-secondary" type="button" id="search-btn">
+                            <i class="bi bi-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="status-filter">
+                        <option value="">All Status</option>
+                        <option value="published">Published</option>
+                        <option value="draft">Draft</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <select class="form-select" id="sort-by">
+                        <option value="createdAt">Sort by Created</option>
+                        <option value="updatedAt">Sort by Updated</option>
+                        <option value="title">Sort by Title</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Posts Table -->
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="select-all-posts">
+                                </div>
+                            </th>
+                            <th scope="col">ID</th>
+                            <th scope="col">Title</th>
+                            <th scope="col">Site</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Author</th>
+                            <th scope="col">Created</th>
+                            <th scope="col">Updated</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="posts-table-body">
+                        <!-- Posts will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <div>
+                    <span id="showing-info">Showing 0 of 0 posts</span>
+                </div>
+                <nav aria-label="Page navigation">
+                    <ul class="pagination" id="pagination">
+                        <!-- Pagination will be populated by JavaScript -->
+                    </ul>
+                </nav>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Post Modal -->
+    <div class="modal fade" id="addPostModal" tabindex="-1" aria-labelledby="addPostModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">                <div class="modal-header">
+                    <h5 class="modal-title" id="addPostModalLabel">Add New Post</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="clearErrorMessage('add-post-form')"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-post-form">
+                        <div class="mb-3">
+                            <label for="post-title" class="form-label">Title</label>
+                            <input type="text" class="form-control" id="post-title" name="title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="post-content" class="form-label">Content</label>
+                            <textarea class="form-control" id="post-content" name="content" rows="10" required></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="post-site" class="form-label">Site</label>
+                                    <select class="form-select" id="post-site" name="siteId" required>
+                                        <option value="">Select Site</option>
+                                        <!-- Will be populated dynamically -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="post-status" class="form-label">Status</label>
+                                    <select class="form-select" id="post-status" name="status" required>
+                                        <option value="draft">Draft</option>
+                                        <option value="published">Published</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="post-excerpt" class="form-label">Excerpt</label>
+                            <textarea class="form-control" id="post-excerpt" name="excerpt" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="save-post-btn">Save Post</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Post Modal -->
+    <div class="modal fade" id="editPostModal" tabindex="-1" aria-labelledby="editPostModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editPostModalLabel">Edit Post</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="edit-post-form">
+                        <input type="hidden" id="edit-post-id" name="id">
+                        <div class="mb-3">
+                            <label for="edit-post-title" class="form-label">Title</label>
+                            <input type="text" class="form-control" id="edit-post-title" name="title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-post-content" class="form-label">Content</label>
+                            <textarea class="form-control" id="edit-post-content" name="content" rows="10" required></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="edit-post-site" class="form-label">Site</label>
+                                    <select class="form-select" id="edit-post-site" name="siteId" required>
+                                        <option value="">Select Site</option>
+                                        <!-- Will be populated dynamically -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="edit-post-status" class="form-label">Status</label>
+                                    <select class="form-select" id="edit-post-status" name="status" required>
+                                        <option value="draft">Draft</option>
+                                        <option value="published">Published</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-post-excerpt" class="form-label">Excerpt</label>
+                            <textarea class="form-control" id="edit-post-excerpt" name="excerpt" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="update-post-btn">Update Post</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sync Posts Modal -->
+    <div class="modal fade" id="syncPostsModal" tabindex="-1" aria-labelledby="syncPostsModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="syncPostsModalLabel">Sync Posts from Sites</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Select the sites you want to sync posts from:</p>
+                    <form id="sync-posts-form">
+                        <div id="sync-sites-checkboxes" class="mb-3">
+                            <!-- Will be populated dynamically -->
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirm-sync-btn">Sync Posts</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Push Posts Modal -->
+    <div class="modal fade" id="pushPostsModal" tabindex="-1" aria-labelledby="pushPostsModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="pushPostsModalLabel">Push Selected Posts to Sites</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="selected-posts-count">0 posts selected for pushing.</p>
+                    <div class="alert alert-info">
+                        <small>Posts will be pushed to their assigned sites.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirm-push-btn">Push Posts</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Helper function to show error messages in the UI
+        function showErrorMessage(formId, message) {
+            console.log('Showing error message:', message);
+            
+            // First check if an error container already exists
+            let errorContainer = document.getElementById(`${formId}-error`);
+            
+            // If not, create one
+            if (!errorContainer) {
+                errorContainer = document.createElement('div');
+                errorContainer.id = `${formId}-error`;
+                errorContainer.className = 'alert alert-danger mt-3';
+                errorContainer.role = 'alert';
+                
+                // Insert at the top of the form
+                const form = document.getElementById(formId);
+                if (form) {
+                    form.prepend(errorContainer);
+                } else {
+                    console.error(`Form with ID ${formId} not found`);
+                    return;
+                }
+            }
+            
+            // Process error message to make it user-friendly
+            let displayMessage = message;
+            
+            // If the message contains specific patterns that indicate technical details, simplify it
+            if (message.includes('slug')) {
+                displayMessage = 'There was an error creating the post. Please try again.';
+            }
+            
+            if (message.includes('ER_NO_DEFAULT_FOR_FIELD')) {
+                displayMessage = 'A required field is missing. Please fill in all required fields and try again.';
+            }
+            
+            // Set the error message
+            errorContainer.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <span>${displayMessage}</span>
+                </div>
+                <button type="button" class="btn-close float-end" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            // Make the element visible
+            errorContainer.style.display = 'block';
+            
+            // Scroll to the error
+            errorContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+            // Auto dismiss after 10 seconds
+            setTimeout(() => {
+                if (errorContainer) {
+                    errorContainer.style.display = 'none';
+                }
+            }, 10000);
+        }
+          // Helper function to clear error messages
+        function clearErrorMessage(formId) {
+            const errorContainer = document.getElementById(`${formId}-error`);
+            if (errorContainer) {
+                errorContainer.style.display = 'none';
+            }
+        }
+        
+        // Helper function to show success messages
+        function showSuccessMessage(message) {
+            // Create a success message container if it doesn't exist
+            let successContainer = document.getElementById('global-success-message');
+            
+            if (!successContainer) {
+                successContainer = document.createElement('div');
+                successContainer.id = 'global-success-message';
+                successContainer.className = 'alert alert-success position-fixed top-0 end-0 m-3';
+                successContainer.style.zIndex = '9999';
+                successContainer.role = 'alert';
+                document.body.appendChild(successContainer);
+            }
+            
+            // Set the success message
+            successContainer.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-check-circle-fill me-2"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            // Make the element visible with fade-in effect
+            successContainer.style.display = 'block';
+            successContainer.style.opacity = '0';
+            
+            setTimeout(() => {
+                successContainer.style.transition = 'opacity 0.5s ease-in-out';
+                successContainer.style.opacity = '1';
+            }, 10);
+            
+            // Auto dismiss after 3 seconds
+            setTimeout(() => {
+                if (successContainer) {
+                    successContainer.style.opacity = '0';
+                    setTimeout(() => {
+                        successContainer.style.display = 'none';
+                    }, 500);
+                }
+            }, 3000);
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {// Check auth
+            checkAuth();
+            
+            // Check if redirected from view page for editing
+            const editPostId = sessionStorage.getItem('editPostId');
+            if (editPostId) {
+                sessionStorage.removeItem('editPostId');
+                editPost(editPostId);
+            }
+            
+            // Load default site from localStorage if available
+            const defaultSiteId = localStorage.getItem('defaultSiteId');
+            if (defaultSiteId) {
+                document.getElementById('default-site-switch').checked = true;
+            }
+            
+            // Reset forms when modals are hidden
+            document.getElementById('addPostModal').addEventListener('hidden.bs.modal', function() {
+                document.getElementById('add-post-form').reset();
+                clearErrorMessage('add-post-form');
+            });
+            
+            document.getElementById('editPostModal').addEventListener('hidden.bs.modal', function() {
+                document.getElementById('edit-post-form').reset();
+                clearErrorMessage('edit-post-form');
+            });
+            
+            // Refresh button functionality
+            document.getElementById('refresh-btn').addEventListener('click', function() {
+                loadPosts();
+            });
+            
+            // Search functionality
+            document.getElementById('search-btn').addEventListener('click', function() {
+                loadPosts(1);
+            });
+            
+            document.getElementById('search-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    loadPosts(1);
+                }
+            });            // Filter change events
+            document.getElementById('site-filter').addEventListener('change', function() {
+                const selectedSiteId = this.value;
+                
+                // The UI update is now handled by site-management.js
+                // We just need to load posts when filter changes
+                loadPosts(1);
+            });
+              // Default site switch is handled in site-management.js
+            
+            document.getElementById('status-filter').addEventListener('change', function() {
+                loadPosts(1);
+            });
+              // Sort by change event
+            document.getElementById('sort-by').addEventListener('change', function() {
+                loadPosts(1);
+            });            // Add post to current site button is handled in site-management.js
+            
+            // Add post form submission
+            document.getElementById('save-post-btn').addEventListener('click', function() {
+                savePost();
+            });
+            
+            // Edit post form submission
+            document.getElementById('update-post-btn').addEventListener('click', function() {
+                updatePost();
+            });
+
+            // Sync posts button
+            document.getElementById('sync-posts-btn').addEventListener('click', function() {
+                openSyncModal();
+            });
+            
+            // Push posts button
+            document.getElementById('push-posts-btn').addEventListener('click', function() {
+                openPushModal();
+            });
+            
+            // Confirm sync button
+            document.getElementById('confirm-sync-btn').addEventListener('click', function() {
+                syncPosts();
+            });
+            
+            // Confirm push button
+            document.getElementById('confirm-push-btn').addEventListener('click', function() {
+                pushSelectedPosts();
+            });
+            
+            // Select all posts checkbox
+            document.getElementById('select-all-posts').addEventListener('change', function() {
+                const isChecked = this.checked;
+                document.querySelectorAll('.post-checkbox').forEach(checkbox => {
+                    checkbox.checked = isChecked;
+                });
+            });
+            
+            // Load sites and posts
+            loadSites();
+            loadPosts();
+            
+            function checkAuth() {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    window.location.href = '/login';
+                    return;
+                }
+                
+                const userData = localStorage.getItem('user');
+                if (!userData) {
+                    window.location.href = '/login';
+                    return;
+                }
+                
+                try {
+                    const user = JSON.parse(userData);
+                    if (!user.roles.includes('admin') && !user.roles.includes('editor')) {
+                        alert('You do not have permission to access this page');
+                        window.location.href = '/dashboard';
+                    } else {
+                        document.getElementById('user-name').textContent = user.name;
+                    }
+                } catch (e) {
+                    console.error('Error parsing user data:', e);
+                    window.location.href = '/login';
+                }
+            }
+            
+            async function loadSites() {
+                try {
+                    const token = localStorage.getItem('token');
+                      const response = await fetch('/sites?limit=100&status=active', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                      if (!response.ok) {
+                        console.error('Response status:', response.status);
+                        const errorText = await response.text();
+                        console.error('Response body:', errorText);
+                        
+                        let errorMessage = 'Failed to load sites';
+                        try {
+                            const errorData = JSON.parse(errorText);
+                            if (errorData && errorData.message) {
+                                errorMessage = errorData.message;
+                            }
+                        } catch (e) {
+                            console.error('Error parsing JSON response:', e);
+                        }
+                        
+                        throw new Error(errorMessage);
+                    }
+                    
+                    const data = await response.json();
+                      // Populate site filter dropdown
+                    const siteFilter = document.getElementById('site-filter');
+                    siteFilter.innerHTML = '<option value="">All Sites</option>';
+                    
+                    // Populate site dropdowns in forms
+                    const postSiteSelect = document.getElementById('post-site');
+                    const editPostSiteSelect = document.getElementById('edit-post-site');
+                    postSiteSelect.innerHTML = '<option value="">Select Site</option>';
+                    editPostSiteSelect.innerHTML = '<option value="">Select Site</option>';
+                    
+                    // Get default site from localStorage
+                    const defaultSiteId = localStorage.getItem('defaultSiteId');
+                    
+                    // Group sites by type if available
+                    const sitesByType = {};
+                    
+                    data.items.forEach(site => {
+                        // Group sites by type
+                        const siteType = site.type || 'Other';
+                        if (!sitesByType[siteType]) {
+                            sitesByType[siteType] = [];
+                        }
+                        sitesByType[siteType].push(site);
+                        
+                        // Add site to filter dropdown
+                        const filterOption = document.createElement('option');
+                        filterOption.value = site.id;
+                        filterOption.textContent = site.name;
+                        
+                        // Mark default site if set
+                        if (defaultSiteId && site.id.toString() === defaultSiteId) {
+                            filterOption.selected = true;
+                        }
+                        
+                        siteFilter.appendChild(filterOption);
+                        
+                        // Add to post form dropdown
+                        const postOption = document.createElement('option');
+                        postOption.value = site.id;
+                        postOption.textContent = site.name;
+                        
+                        // Default site in add form
+                        const postSiteClone = postOption.cloneNode(true);
+                        if (defaultSiteId && site.id.toString() === defaultSiteId) {
+                            postSiteClone.selected = true;
+                        }
+                        postSiteSelect.appendChild(postSiteClone);
+                        
+                        // Add to edit form dropdown
+                        editPostSiteSelect.appendChild(postOption);
+                    });
+                    
+                } catch (error) {
+                    console.error('Error loading sites:', error);
+                    alert('Failed to load sites: ' + error.message);
+                }
+            }
+              async function loadPosts(page = 1) {
+                try {                    
+                    const token = localStorage.getItem('token');
+                    const searchQuery = document.getElementById('search-input').value;
+                    let siteId = document.getElementById('site-filter').value;
+                    const status = document.getElementById('status-filter').value;
+                    const sortBy = document.getElementById('sort-by').value;
+                    
+                    // If no site is selected and we have a default site, use it
+                    if (!siteId && !page === 1) {
+                        const defaultSiteId = localStorage.getItem('defaultSiteId');
+                        if (defaultSiteId) {
+                            siteId = defaultSiteId;
+                            document.getElementById('site-filter').value = defaultSiteId;
+                            
+                            // Show indicator that default site was used
+                            showSuccessMessage('Loaded posts from your default site');
+                        }
+                    }
+                    
+                    console.log('Loading posts with token:', token ? 'Present' : 'Missing');
+                    console.log('Selected site ID:', siteId || 'All sites');
+                      
+                    let url = `/posts?page=${page}&limit=20&sortBy=${sortBy}`;
+                    console.log('API URL:', url);
+                    
+                    if (searchQuery) {
+                        url += `&search=${encodeURIComponent(searchQuery)}`;
+                    }
+                    
+                    if (siteId) {
+                        url += `&siteId=${siteId}`;
+                    }
+                    
+                    if (status) {
+                        url += `&status=${status}`;
+                    }
+                    
+                    const response = await fetch(url, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                      
+                    if (!response.ok) {
+                        console.error('Response status:', response.status);
+                        const errorText = await response.text();
+                        console.error('Response body:', errorText);
+                        
+                        let errorMessage = 'Failed to load posts';
+                        try {
+                            const errorData = JSON.parse(errorText);
+                            if (errorData && errorData.message) {
+                                errorMessage = errorData.message;
+                            }
+                        } catch (e) {
+                            console.error('Error parsing JSON response:', e);
+                        }
+                        
+                        throw new Error(errorMessage);
+                    }
+                      
+                    const data = await response.json();
+                    console.log('API response data:', data);
+                    
+                    // Kiểm tra xem dữ liệu trả về là mảng hay đối tượng có cấu trúc items/meta
+                    if (Array.isArray(data)) {
+                        console.log('Posts received (array format):', data.length);
+                        // API trả về mảng các bài đăng trực tiếp
+                        const posts = data;
+                        const meta = {
+                            currentPage: page,
+                            totalItems: posts.length,
+                            totalPages: 1 // Giả sử chỉ có 1 trang nếu API không trả về thông tin phân trang
+                        };
+                        displayPosts(posts, meta);
+                    } else {
+                        // API trả về đối tượng có cấu trúc items/meta
+                        console.log('Posts received:', data.items);
+                        console.log('Meta information:', data.meta);
+                        displayPosts(data.items, data.meta);
+                    }
+                } catch (error) {
+                    console.error('Error loading posts:', error);
+                    alert('Failed to load posts: ' + error.message);
+                }
+            }
+              function displayPosts(posts, meta) {
+                const tableBody = document.getElementById('posts-table-body');
+                const paginationElement = document.getElementById('pagination');
+                const showingInfo = document.getElementById('showing-info');
+                const siteIndicator = document.querySelector('.site-indicator');
+                const currentSiteName = document.getElementById('current-site-name');
+                
+                // Make displayPosts available globally for site-management.js
+                window.displayPosts = displayPosts;
+                
+                tableBody.innerHTML = '';
+                
+                if (!posts || posts.length === 0) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="9" class="text-center">No posts found</td>
+                        </tr>
+                    `;
+                    showingInfo.textContent = 'Showing 0 posts';
+                    paginationElement.innerHTML = '';
+                    return;
+                }
+                  // Check if we're viewing all sites or a specific site
+                const siteFilter = document.getElementById('site-filter');
+                const siteId = siteFilter.value;
+                const isSiteFiltered = !!siteId;
+                
+                // Update site indicator
+                if (isSiteFiltered) {
+                    const siteName = siteFilter.options[siteFilter.selectedIndex].text;
+                    currentSiteName.textContent = siteName;
+                    siteIndicator.classList.remove('d-none');
+                    
+                    // Show count of posts for this site
+                    showingInfo.textContent = `Showing ${posts.length} of ${meta.totalItems} posts from ${siteName}`;
+                } else {
+                    siteIndicator.classList.add('d-none');
+                    showingInfo.textContent = `Showing ${posts.length} of ${meta.totalItems} posts across all sites`;
+                }
+                
+                // If not filtered by site, group posts by site
+                if (!isSiteFiltered) {
+                    // Group posts by site
+                    const postsBySite = {};
+                    posts.forEach(post => {
+                        const siteName = post.site ? post.site.name : 'Unknown Site';
+                        const siteId = post.site ? post.site.id : 'unknown';
+                        if (!postsBySite[siteId]) {
+                            postsBySite[siteId] = {
+                                name: siteName,
+                                id: post.site ? post.site.id : null,
+                                posts: []
+                            };
+                        }
+                        postsBySite[siteId].posts.push(post);
+                    });
+                    
+                    // Sort sites by name
+                    const sortedSiteIds = Object.keys(postsBySite).sort((a, b) => {
+                        return postsBySite[a].name.localeCompare(postsBySite[b].name);
+                    });
+                    
+                    // Display posts grouped by site
+                    let sitesCount = 0;
+                    sortedSiteIds.forEach(siteId => {
+                        const site = postsBySite[siteId];
+                        sitesCount++;
+                        
+                        // Add site header row
+                        const siteHeaderRow = document.createElement('tr');
+                        siteHeaderRow.className = 'site-header-row table-primary';
+                        siteHeaderRow.innerHTML = `
+                            <td colspan="9" class="fw-bold">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <i class="bi bi-globe me-2"></i>
+                                        ${site.name} 
+                                        <span class="badge bg-secondary ms-2">${site.posts.length} posts</span>
+                                    </div>
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-outline-primary filter-site-btn" data-site-id="${siteId}">
+                                            <i class="bi bi-funnel-fill"></i> Filter to this site
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-success set-default-site-btn" data-site-id="${siteId}" data-site-name="${site.name}">
+                                            <i class="bi bi-star"></i> Set as default
+                                        </button>
+                                    </div>
+                                </div>
+                            </td>
+                        `;
+                        tableBody.appendChild(siteHeaderRow);
+                        
+                        // Add posts for this site
+                        site.posts.forEach(post => {
+                            addPostRow(post, tableBody);
+                        });
+                    });
+                    
+                    showingInfo.textContent = `Showing ${posts.length} posts from ${sitesCount} sites`;
+                } else {
+                    // Normal display without grouping
+                    posts.forEach(post => {
+                        addPostRow(post, tableBody);
+                    });
+                }
+                
+                // Add site filter button event listeners
+                document.querySelectorAll('.filter-site-btn').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const siteId = this.getAttribute('data-site-id');
+                        document.getElementById('site-filter').value = siteId;
+                        loadPosts(1);
+                    });
+                });
+                
+                // Add set default site button event listeners
+                document.querySelectorAll('.set-default-site-btn').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const siteId = this.getAttribute('data-site-id');
+                        const siteName = this.getAttribute('data-site-name');
+                        
+                        // Save default site
+                        localStorage.setItem('defaultSiteId', siteId);
+                        localStorage.setItem('defaultSiteName', siteName);
+                        
+                        // Check the switch
+                        document.getElementById('default-site-switch').checked = true;
+                        
+                        // Show success message
+                        showSuccessMessage(`${siteName} set as default site`);
+                        
+                        // Update filter to this site
+                        document.getElementById('site-filter').value = siteId;
+                        loadPosts(1);
+                    });
+                });
+                
+                function addPostRow(post, container) {
+                    const row = document.createElement('tr');
+                    
+                    const createdDate = new Date(post.created_at || post.createdAt).toLocaleString();
+                    const updatedDate = new Date(post.updated_at || post.updatedAt).toLocaleString();
+                    const statusClass = post.status === 'published' ? 'bg-success' : 'bg-secondary';
+                    row.innerHTML = `
+                        <td>
+                            <div class="form-check">
+                                <input class="form-check-input post-checkbox" type="checkbox" value="${post.id}">
+                            </div>
+                        </td>
+                        <td>${post.id}</td>
+                        <td>${post.title}</td>
+                        <td>${post.site ? post.site.name : 'N/A'}</td>
+                        <td><span class="badge rounded-pill ${statusClass}">${post.status}</span></td>
+                        <td>${post.author || 'System'}</td>
+                        <td>${createdDate}</td>
+                        <td>${updatedDate}</td>                        <td>
+                            <button class="btn btn-sm btn-outline-info me-1 view-post-btn" data-id="${post.id}">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary me-1 edit-post-btn" data-id="${post.id}">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger delete-post-btn" data-id="${post.id}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    
+                    tableBody.appendChild(row);
+                }
+                
+                // Setup edit buttons
+                document.querySelectorAll('.edit-post-btn').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const postId = this.getAttribute('data-id');
+                        editPost(postId);
+                    });
+                });
+                  // Setup delete buttons
+                document.querySelectorAll('.delete-post-btn').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const postId = this.getAttribute('data-id');
+                        deletePost(postId);
+                    });
+                });
+                  // Setup view buttons
+                document.querySelectorAll('.view-post-btn').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const postId = this.getAttribute('data-id');
+                        window.location.href = `/admin/posts/view/${postId}`;
+                    });
+                });
+                
+                // Set up pagination
+                setupPagination(meta);
+            }
+            
+            function setupPagination(meta) {
+                const paginationElement = document.getElementById('pagination');
+                paginationElement.innerHTML = '';
+                
+                if (meta.totalPages <= 1) {
+                    return;
+                }
+                
+                // Previous page button
+                const prevLi = document.createElement('li');
+                prevLi.classList.add('page-item');
+                if (meta.currentPage === 1) {
+                    prevLi.classList.add('disabled');
+                }
+                prevLi.innerHTML = `<a class="page-link" href="#" data-page="${meta.currentPage - 1}">Previous</a>`;
+                paginationElement.appendChild(prevLi);
+                
+                // Page number buttons
+                for (let i = 1; i <= meta.totalPages; i++) {
+                    const pageLi = document.createElement('li');
+                    pageLi.classList.add('page-item');
+                    if (i === meta.currentPage) {
+                        pageLi.classList.add('active');
+                    }
+                    pageLi.innerHTML = `<a class="page-link" href="#" data-page="${i}">${i}</a>`;
+                    paginationElement.appendChild(pageLi);
+                }
+                
+                // Next page button
+                const nextLi = document.createElement('li');
+                nextLi.classList.add('page-item');
+                if (meta.currentPage === meta.totalPages) {
+                    nextLi.classList.add('disabled');
+                }
+                nextLi.innerHTML = `<a class="page-link" href="#" data-page="${meta.currentPage + 1}">Next</a>`;
+                paginationElement.appendChild(nextLi);
+                
+                // Add event listeners to pagination buttons
+                document.querySelectorAll('#pagination .page-link').forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const page = parseInt(this.getAttribute('data-page'));
+                        if (!isNaN(page)) {
+                            loadPosts(page);
+                        }
+                    });
+                });
+            }
+            
+            async function savePost() {
+                try {
+                    const form = document.getElementById('add-post-form');
+                    const formData = new FormData(form);
+                    const token = localStorage.getItem('token');
+                      // Debug form data values
+                    console.log('Form data values:');
+                    for (const [key, value] of formData.entries()) {
+                        console.log(`${key}: ${value}`);
+                    }
+                    
+                    // Get site ID from the form
+                    const siteIdValue = formData.get('siteId');
+                    console.log('Raw siteId value:', siteIdValue);
+                      // Create post object with validation
+                    const post = {
+                        title: formData.get('title'),
+                        content: formData.get('content'),
+                        excerpt: formData.get('excerpt'),
+                        siteId: siteIdValue ? parseInt(siteIdValue) : null,
+                        status: formData.get('status') || 'draft'
+                    };
+                    
+                    // Validate required fields
+                    if (!post.title) {
+                        throw new Error('Post title is required');
+                    }
+                    
+                    if (!post.siteId) {
+                        throw new Error('Please select a site for this post');
+                    }
+                    
+                    // Generate a slug from the title
+                    post.slug = post.title
+                        .toLowerCase()
+                        .replace(/[^\w\s-]/g, '') // Remove special chars
+                        .replace(/\s+/g, '-')     // Replace spaces with dashes
+                        .replace(/-+/g, '-')      // Replace multiple dashes with single dash
+                        .trim();
+                    
+                    console.log('Post object to be sent:', post);
+                    console.log('Sending request to create post...');
+                    
+                    const response = await fetch('/posts', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(post)
+                    });
+                    
+                    console.log('Response received:', response.status, response.statusText);
+                    
+                    if (!response.ok) {
+                        console.error('Response status:', response.status);
+                        const errorText = await response.text();
+                        console.error('Response body:', errorText);
+                        
+                        let errorMessage = 'Failed to create post';
+                        try {
+                            const errorData = JSON.parse(errorText);
+                            console.log('Parsed error data:', errorData);
+                            
+                            if (errorData && errorData.message) {
+                                // Check if the error message is a string or an object/array
+                                if (typeof errorData.message === 'string') {
+                                    errorMessage = errorData.message;
+                                } else if (Array.isArray(errorData.message)) {
+                                    // Join array of error messages
+                                    errorMessage = errorData.message.join('. ');
+                                } else if (typeof errorData.message === 'object') {
+                                    // Extract nested error messages
+                                    const messages = [];
+                                    for (const key in errorData.message) {
+                                        if (Array.isArray(errorData.message[key])) {
+                                            messages.push(`${key}: ${errorData.message[key].join(', ')}`);
+                                        } else {
+                                            messages.push(`${key}: ${errorData.message[key]}`);
+                                        }
+                                    }
+                                    errorMessage = messages.join('. ');
+                                }
+                            } else if (errorData && errorData.error) {
+                                errorMessage = errorData.error;
+                            }
+                        } catch (e) {
+                            console.error('Error parsing JSON response:', e);
+                            // If parsing fails, try to use the raw error text if it's not too long
+                            if (errorText && errorText.length < 100) {
+                                errorMessage = errorText;
+                            }
+                        }
+                        
+                        throw new Error(errorMessage);
+                    }
+                    
+                    const postData = await response.json();
+                    
+                    // If the post is created as published, push it immediately to WordPress
+                    if (post.status === 'published' && postData && postData.id) {
+                        try {
+                            const pushResponse = await fetch('/posts/push', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${token}`
+                                },
+                                body: JSON.stringify([postData.id])
+                            });
+                            
+                            if (pushResponse.ok) {
+                                console.log('Post pushed to WordPress successfully');
+                            } else {
+                                console.error('Failed to push post to WordPress:', await pushResponse.text());
+                            }
+                        } catch (pushError) {
+                            console.error('Error pushing post to WordPress:', pushError);
+                        }
+                    }
+                      
+                    // Clear any error messages
+                    clearErrorMessage('add-post-form');
+                    
+                    // Close modal and refresh posts
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('addPostModal'));
+                    if (modal) {
+                        modal.hide();
+                    }
+                    
+                    // Reset form
+                    form.reset();
+                    
+                    // Show success message
+                    showSuccessMessage('Post created successfully');
+                    
+                    // Reload the posts list
+                    loadPosts();
+                } catch (error) {
+                    console.error('Error saving post:', error);
+                    showErrorMessage('add-post-form', 'Failed to create post: ' + error.message);
+                }
+            }
+            
+            async function editPost(id) {
+                try {
+                    const token = localStorage.getItem('token');
+                      const response = await fetch(`/posts/${id}`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                      if (!response.ok) {
+                        console.error('Response status:', response.status);
+                        const errorText = await response.text();
+                        console.error('Response body:', errorText);
+                        
+                        let errorMessage = 'Failed to fetch post details';
+                        try {
+                            const errorData = JSON.parse(errorText);
+                            if (errorData && errorData.message) {
+                                errorMessage = errorData.message;
+                            }
+                        } catch (e) {
+                            console.error('Error parsing JSON response:', e);
+                        }
+                        
+                        throw new Error(errorMessage);
+                    }
+                    
+                    const post = await response.json();
+                    
+                    // Populate edit form
+                    document.getElementById('edit-post-id').value = post.id;
+                    document.getElementById('edit-post-title').value = post.title;
+                    document.getElementById('edit-post-content').value = post.content;
+                    document.getElementById('edit-post-excerpt').value = post.excerpt || '';
+                    document.getElementById('edit-post-site').value = post.siteId;
+                    document.getElementById('edit-post-status').value = post.status;
+                    
+                    // Open edit modal
+                    const editModal = new bootstrap.Modal(document.getElementById('editPostModal'));
+                    editModal.show();
+                } catch (error) {
+                    console.error('Error fetching post details:', error);
+                    alert('Failed to load post details: ' + error.message);
+                }
+            }
+            
+            async function updatePost() {
+                try {
+                    const form = document.getElementById('edit-post-form');
+                    const formData = new FormData(form);
+                    const token = localStorage.getItem('token');
+                    const id = formData.get('id');
+                      
+                    // Debug form data values for update
+                    console.log('Update form data values:');
+                    for (const [key, value] of formData.entries()) {
+                        console.log(`${key}: ${value}`);
+                    }
+                    
+                    // Get site ID from the form
+                    const siteIdValue = formData.get('siteId');
+                    console.log('Raw siteId value for update:', siteIdValue);
+                      
+                    // Create post update object with validation
+                    const postUpdate = {
+                        title: formData.get('title'),
+                        content: formData.get('content'),
+                        excerpt: formData.get('excerpt'),
+                        siteId: siteIdValue ? parseInt(siteIdValue) : null,
+                        status: formData.get('status') || 'draft'
+                    };
+                    
+                    // Validate required fields
+                    if (!postUpdate.title) {
+                        throw new Error('Post title is required');
+                    }
+                    
+                    if (!postUpdate.siteId) {
+                        throw new Error('Please select a site for this post');
+                    }
+                    
+                    // Generate a slug from the title if title changed
+                    postUpdate.slug = postUpdate.title
+                        .toLowerCase()
+                        .replace(/[^\w\s-]/g, '') // Remove special chars
+                        .replace(/\s+/g, '-')     // Replace spaces with dashes
+                        .replace(/-+/g, '-')      // Replace multiple dashes with single dash
+                        .trim();
+                    
+                    console.log('Post update object to be sent:', postUpdate);
+                      
+                    const response = await fetch(`/posts/${id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(postUpdate)
+                    });
+                    
+                    if (!response.ok) {
+                        console.error('Response status:', response.status);
+                        const errorText = await response.text();
+                        console.error('Response body:', errorText);
+                        
+                        let errorMessage = 'Failed to update post';
+                        try {
+                            const errorData = JSON.parse(errorText);
+                            console.log('Parsed error data for update:', errorData);
+                            
+                            if (errorData && errorData.message) {
+                                // Check if the error message is a string or an object/array
+                                if (typeof errorData.message === 'string') {
+                                    errorMessage = errorData.message;
+                                } else if (Array.isArray(errorData.message)) {
+                                    // Join array of error messages
+                                    errorMessage = errorData.message.join('. ');
+                                } else if (typeof errorData.message === 'object') {
+                                    // Extract nested error messages
+                                    const messages = [];
+                                    for (const key in errorData.message) {
+                                        if (Array.isArray(errorData.message[key])) {
+                                            messages.push(`${key}: ${errorData.message[key].join(', ')}`);
+                                        } else {
+                                            messages.push(`${key}: ${errorData.message[key]}`);
+                                        }
+                                    }
+                                    errorMessage = messages.join('. ');
+                                }
+                            } else if (errorData && errorData.error) {
+                                errorMessage = errorData.error;
+                            }
+                        } catch (e) {
+                            console.error('Error parsing JSON response for update:', e);
+                            // If parsing fails, try to use the raw error text if it's not too long
+                            if (errorText && errorText.length < 100) {
+                                errorMessage = errorText;
+                            }
+                        }
+                        
+                        throw new Error(errorMessage);
+                    }
+                    
+                    const postData = await response.json();
+                    
+                    // If the post is updated to published status, push it immediately to WordPress
+                    if (postUpdate.status === 'published' && id) {
+                        try {
+                            const pushResponse = await fetch('/posts/push', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${token}`
+                                },
+                                body: JSON.stringify([parseInt(id)])
+                            });
+                            
+                            if (pushResponse.ok) {
+                                console.log('Post pushed to WordPress successfully');
+                            } else {
+                                console.error('Failed to push post to WordPress:', await pushResponse.text());
+                            }
+                        } catch (pushError) {
+                            console.error('Error pushing post to WordPress:', pushError);
+                        }
+                    }
+                      
+                    // Clear any error messages
+                    clearErrorMessage('edit-post-form');
+                    
+                    // Close modal and refresh posts
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('editPostModal'));
+                    if (modal) {
+                        modal.hide();
+                    }
+                    
+                    // Show success message
+                    showSuccessMessage('Post updated successfully');
+                    
+                    // Reload the posts list
+                    loadPosts();
+                } catch (error) {
+                    console.error('Error updating post:', error);
+                    showErrorMessage('edit-post-form', 'Failed to update post: ' + error.message);
+                }
+            }
+            
+            async function deletePost(id) {
+                if (!confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+                    return;
+                }
+                
+                try {
+                    const token = localStorage.getItem('token');
+                      const response = await fetch(`/posts/${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                      if (!response.ok) {
+                        console.error('Response status:', response.status);
+                        const errorText = await response.text();
+                        console.error('Response body:', errorText);
+                        
+                        let errorMessage = 'Failed to delete post';
+                        try {
+                            const errorData = JSON.parse(errorText);
+                            if (errorData && errorData.message) {
+                                errorMessage = errorData.message;
+                            }
+                        } catch (e) {
+                            console.error('Error parsing JSON response:', e);
+                        }
+                        
+                        throw new Error(errorMessage);
+                    }
+                    
+                    // Refresh posts
+                    loadPosts();
+                    
+                } catch (error) {
+                    console.error('Error deleting post:', error);
+                    alert('Failed to delete post: ' + error.message);
+                }
+            }
+            
+            async function openSyncModal() {
+                try {
+                    const token = localStorage.getItem('token');
+                    const response = await fetch('/sites?status=active', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        console.error('Response status:', response.status);
+                        const errorText = await response.text();
+                        console.error('Response body:', errorText);
+                        
+                        let errorMessage = 'Failed to load sites';
+                        try {
+                            const errorData = JSON.parse(errorText);
+                            if (errorData && errorData.message) {
+                                errorMessage = errorData.message;
+                            }
+                        } catch (e) {
+                            console.error('Error parsing JSON response:', e);
+                        }
+                        
+                        throw new Error(errorMessage);
+                    }
+                    
+                    const data = await response.json();
+                    const sitesContainer = document.getElementById('sync-sites-checkboxes');
+                    sitesContainer.innerHTML = '';
+                    
+                    if (!data.items || data.items.length === 0) {
+                        sitesContainer.innerHTML = '<div class="alert alert-warning">No active sites available for sync</div>';
+                    } else {
+                        data.items.forEach(site => {
+                            const checkboxDiv = document.createElement('div');
+                            checkboxDiv.className = 'form-check mb-2';
+                            checkboxDiv.innerHTML = `
+                                <input class="form-check-input site-sync-checkbox" type="checkbox" value="${site.id}" id="site-${site.id}">
+                                <label class="form-check-label" for="site-${site.id}">
+                                    ${site.name} <small class="text-muted">(${site.wp_url})</small>
+                                </label>
+                            `;
+                            sitesContainer.appendChild(checkboxDiv);
+                        });
+                    }
+                    
+                    // Open sync modal
+                    const syncModal = new bootstrap.Modal(document.getElementById('syncPostsModal'));
+                    syncModal.show();
+                    
+                } catch (error) {
+                    console.error('Error preparing sync modal:', error);
+                    alert('Failed to prepare sync: ' + error.message);
+                }
+            }
+            
+            async function syncPosts() {
+                try {
+                    const siteIds = Array.from(document.querySelectorAll('.site-sync-checkbox:checked')).map(cb => parseInt(cb.value));
+                    
+                    if (siteIds.length === 0) {
+                        alert('Please select at least one site to sync from');
+                        return;
+                    }
+                    
+                    const token = localStorage.getItem('token');
+                    const response = await fetch('/posts/sync', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(siteIds)
+                    });
+                    
+                    if (!response.ok) {
+                        console.error('Response status:', response.status);
+                        const errorText = await response.text();
+                        console.error('Response body:', errorText);
+                        
+                        let errorMessage = 'Failed to sync posts';
+                        try {
+                            const errorData = JSON.parse(errorText);
+                            if (errorData && errorData.message) {
+                                errorMessage = errorData.message;
+                            }
+                        } catch (e) {
+                            console.error('Error parsing JSON response:', e);
+                        }
+                        
+                        throw new Error(errorMessage);
+                    }
+                    
+                    const result = await response.json();
+                    
+                    // Close modal and refresh posts
+                    bootstrap.Modal.getInstance(document.getElementById('syncPostsModal')).hide();
+                    loadPosts();
+                    
+                    alert(`Successfully synced posts! Added: ${result.added || 0}, Updated: ${result.updated || 0}`);
+                    
+                } catch (error) {
+                    console.error('Error syncing posts:', error);
+                    alert('Failed to sync posts: ' + error.message);
+                }
+            }
+            
+            function openPushModal() {
+                const selectedPosts = Array.from(document.querySelectorAll('.post-checkbox:checked')).map(cb => parseInt(cb.value));
+                
+                document.getElementById('selected-posts-count').textContent = `${selectedPosts.length} posts selected for pushing.`;
+                
+                if (selectedPosts.length === 0) {
+                    alert('Please select at least one post to push');
+                    return;
+                }
+                
+                // Open push modal
+                const pushModal = new bootstrap.Modal(document.getElementById('pushPostsModal'));
+                pushModal.show();
+            }
+              async function pushSelectedPosts() {
+                try {
+                    const postIds = Array.from(document.querySelectorAll('.post-checkbox:checked')).map(cb => parseInt(cb.value));
+                    
+                    console.log('Selected post IDs for push:', postIds);
+                    
+                    if (postIds.length === 0) {
+                        alert('Please select at least one post to push');
+                        return;
+                    }
+                    
+                    const token = localStorage.getItem('token');
+                    console.log('Using token:', token ? 'Present' : 'Missing');
+                    
+                    const payload = JSON.stringify(postIds);
+                    console.log('Sending request to /posts/push with payload:', payload);
+                    
+                    // Debug thông tin request gửi đi
+                    console.log('Request details:', {
+                        url: '/posts/push',
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token.substring(0, 10)}...` // Chỉ hiển thị một phần token để bảo mật
+                        },
+                        body: payload
+                    });
+                    
+                    const response = await fetch('/posts/push', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: payload
+                    });
+                    
+                    console.log('Push response status:', response.status, response.statusText);
+                    
+                    if (!response.ok) {
+                        console.error('Response status:', response.status);
+                        const errorText = await response.text();
+                        console.error('Response body:', errorText);
+                        
+                        let errorMessage = 'Failed to push posts';
+                        try {
+                            const errorData = JSON.parse(errorText);
+                            console.log('Parsed error data:', errorData);
+                            
+                            if (errorData && errorData.message) {
+                                errorMessage = errorData.message;
+                            }
+                        } catch (e) {
+                            console.error('Error parsing JSON response:', e);
+                        }
+                        
+                        throw new Error(errorMessage);
+                    }
+                    
+                    const result = await response.json();
+                    console.log('Push result:', result);
+                    
+                    // Close modal and refresh posts
+                    bootstrap.Modal.getInstance(document.getElementById('pushPostsModal')).hide();
+                    loadPosts();
+                      alert(`Successfully pushed ${result.pushed || 0} posts! ${result.failed ? `Failed: ${result.failed}` : ''}`);
+                    
+                } catch (error) {
+                    console.error('Error pushing posts:', error);
+                    alert('Failed to push posts: ' + error.message);
+                }
+            }
+        });
+    </script>
+    
+    <!-- Site Management Scripts -->
+    <script src="/static/js/site-management.js"></script>
+</body>
+</html>
