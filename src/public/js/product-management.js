@@ -83,7 +83,7 @@ function setupEventListeners() {
     const saveProductBtn = document.getElementById('save-product-btn');
     if (saveProductBtn) {
         saveProductBtn.addEventListener('click', function() {
-            saveProduct();
+            saveProductWithDebug();
         });
     }
     
@@ -136,6 +136,23 @@ function setupEventListeners() {
         });
     }
     
+    // Retry sync failed products button
+    const retrySyncBtn = document.getElementById('retry-sync-btn');
+    if (retrySyncBtn) {
+        retrySyncBtn.addEventListener('click', function() {
+            const retrySyncModal = new bootstrap.Modal(document.getElementById('retrySyncModal'));
+            retrySyncModal.show();
+        });
+    }
+    
+    // Start retry sync button
+    const startRetrySyncBtn = document.getElementById('start-retry-sync-btn');
+    if (startRetrySyncBtn) {
+        startRetrySyncBtn.addEventListener('click', function() {
+            startRetrySyncFailedProducts();
+        });
+    }
+    
     // Start sync button
     const startSyncBtn = document.getElementById('start-sync-btn');
     if (startSyncBtn) {
@@ -178,46 +195,28 @@ function loadProducts(page = 1) {
     if (!tableBody) return;
     
     // Show loading indicator
-    tableBody.innerHTML = '<tr><td colspan="9" class="text-center">Loading products...</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="10" class="text-center">Loading products...</td></tr>';
     
     // Get filter values
     const searchQuery = document.getElementById('search-input').value;
     const siteId = document.getElementById('site-filter').value;
     const featured = document.getElementById('featured-filter').value;
-    const sortBy = document.getElementById('sort-by').value;
+    const sortBy = document.getElementById('sort-by').value;    // Build filters object for the API
+    const filters = {
+        search: searchQuery,
+        siteId: siteId || undefined,
+        featured: featured || undefined,
+        sortBy: sortBy || undefined
+    };
     
-    // Construct API URL with query parameters
-    let apiUrl = `/api/products?page=${page}&limit=10`;
-    
-    if (searchQuery) {
-        apiUrl += `&search=${encodeURIComponent(searchQuery)}`;
-    }
-    
-    if (siteId) {
-        apiUrl += `&siteId=${siteId}`;
-    }
-    
-    if (featured) {
-        apiUrl += `&featured=${featured}`;
-    }
-    
-    if (sortBy) {
-        apiUrl += `&sortBy=${sortBy}`;
-    }
-    
-    fetch(apiUrl)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
+    // Use the ProductAPI.getProducts function
+    ProductAPI.getProducts(page, filters)
         .then(data => {
             displayProducts(data.products, data.totalItems, data.totalPages, page);
         })
         .catch(error => {
             console.error('Error loading products:', error);
-            tableBody.innerHTML = '<tr><td colspan="9" class="text-center text-danger">Error loading products. Please try again.</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="10" class="text-center text-danger">Error loading products. Please try again.</td></tr>';
         });
 }
 
@@ -236,9 +235,8 @@ function displayProducts(products, totalItems, totalPages, currentPage) {
     
     // Clear table body
     tableBody.innerHTML = '';
-    
-    if (products.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="9" class="text-center">No products found</td></tr>';
+      if (products.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="10" class="text-center">No products found</td></tr>';
         pagination.innerHTML = '';
         document.getElementById('showing-records').textContent = `0-0`;
         document.getElementById('total-records').textContent = '0';
@@ -285,10 +283,17 @@ function displayProducts(products, totalItems, totalPages, currentPage) {
             <td>${product.site ? product.site.name : 'N/A'}</td>
             <td>${product.wc_product_id || 'N/A'}</td>
             <td>
+                ${formatSyncStatus(product.wc_sync_status, product.wc_error, product.wc_last_sync_attempt)}
+            </td>
+            <td>
                 <div class="btn-group">
                     <button class="btn btn-sm btn-outline-primary edit-product-btn" data-product-id="${product.id}">
                         <i class="bi bi-pencil"></i>
                     </button>
+                    ${product.wc_sync_status === 'failed' ? 
+                      `<button class="btn btn-sm btn-outline-warning retry-single-sync-btn" title="Retry sync" data-product-id="${product.id}">
+                        <i class="bi bi-cloud-upload"></i>
+                       </button>` : ''}
                     <button class="btn btn-sm btn-outline-danger delete-product-btn" data-product-id="${product.id}" 
                         data-product-name="${product.name}">
                         <i class="bi bi-trash"></i>
@@ -318,6 +323,14 @@ function displayProducts(products, totalItems, totalPages, currentPage) {
             
             const deleteModal = new bootstrap.Modal(document.getElementById('deleteProductModal'));
             deleteModal.show();
+        });
+    });
+    
+    // Add event listeners for individual product retry sync
+    document.querySelectorAll('.retry-single-sync-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const productId = this.getAttribute('data-product-id');
+            retryProductSync(productId);
         });
     });
     
@@ -381,19 +394,15 @@ function generatePagination(totalPages, currentPage) {
  * Load sites for dropdown selects
  */
 function loadSitesForDropdown() {
-    fetch('/api/sites?has_woocommerce=true')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
+    ProductAPI.getWooCommerceSites()
         .then(data => {
             // Populate dropdowns
-            populateSiteDropdown('site-filter', data.sites, true);
-            populateSiteDropdown('product-site', data.sites, false);
-            populateSiteDropdown('edit-product-site', data.sites, false);
-            populateSiteDropdown('sync-site-select', data.sites, false);
+            const sites = data.items || data.sites || [];
+            populateSiteDropdown('site-filter', sites, true);
+            populateSiteDropdown('product-site', sites, false);
+            populateSiteDropdown('edit-product-site', sites, false);
+            populateSiteDropdown('sync-site-select', sites, false);
+            populateSiteDropdown('retry-sync-site-select', sites, true);
         })
         .catch(error => {
             console.error('Error loading sites:', error);
@@ -419,31 +428,82 @@ function populateSiteDropdown(elementId, sites, includeAll = false) {
     }
     
     // Add site options
-    sites.forEach(site => {
-        if (site.has_woocommerce) {
+    if (sites && sites.length > 0) {
+        sites.forEach(site => {
             const option = document.createElement('option');
             option.value = site.id;
             option.textContent = site.name;
             dropdown.appendChild(option);
-        }
-    });
+        });
+    } else {
+        // No sites found - add a message option
+        const option = document.createElement('option');
+        option.disabled = true;
+        option.textContent = 'No WooCommerce sites found';
+        dropdown.appendChild(option);
+    }
 }
 
 /**
- * Save a new product
+ * Improved error handling for product creation
+ * Using the product-api.js helper
  */
-function saveProduct() {
-    // Get form values
+function saveProductWithDebug() {
+    // Clear previous error messages
+    showErrorMessage('add-product-error', '');
+    
+    // Get site ID
+    const siteId = document.getElementById('product-site').value;
+    if (!siteId) {
+        showErrorMessage('add-product-error', 'Please select a site.');
+        return;
+    }
+      // First, check if the site has WooCommerce enabled
+    // Using the ProductAPI.getSite function from product-api.js
+    ProductAPI.getSite(siteId)
+        .then(site => {
+            console.log('Site data:', site);
+            
+            if (!site.has_woocommerce) {
+                showErrorMessage('add-product-error', 
+                    'This site does not have WooCommerce enabled. Please enable WooCommerce in site settings first.');
+                return;
+            }
+            
+            // Continue with product creation
+            proceedWithProductCreation();
+        })
+        .catch(error => {
+            console.error('Error checking site:', error);
+            showErrorMessage('add-product-error', 'Error checking site: ' + error.message);
+        });
+}
+
+/**
+ * Proceed with product creation after site validation
+ */
+function proceedWithProductCreation() {    // Get form values
     const siteId = document.getElementById('product-site').value;
     const name = document.getElementById('product-name').value;
     const price = document.getElementById('product-price').value;
     const regularPrice = document.getElementById('product-regular-price').value || price;
-    const salePrice = document.getElementById('product-sale-price').value || null;
+    const salePrice = document.getElementById('product-sale-price').value || '';
     const stock = document.getElementById('product-stock').value;
     const stockStatus = document.getElementById('product-stock-status').value;
     const shortDescription = document.getElementById('product-short-description').value;
     const description = document.getElementById('product-description').value;
     const featured = document.getElementById('product-featured').checked;
+    
+    // Validate required fields
+    if (!name) {
+        showErrorMessage('add-product-error', 'Please enter a product name.');
+        return;
+    }
+    
+    if (!price || isNaN(parseFloat(price))) {
+        showErrorMessage('add-product-error', 'Please enter a valid price.');
+        return;
+    }
     
     // Collect images
     const imageElements = document.querySelectorAll('#product-images-container .product-image-item');
@@ -462,46 +522,29 @@ function saveProduct() {
     categoryElements.forEach(element => {
         categories.push(element.getAttribute('data-category'));
     });
-    
-    // Validate required fields
-    if (!siteId || !name || !price) {
-        showErrorMessage('add-product-error', 'Please fill in all required fields.');
-        return;
-    }
-    
-    // Create product object
+      // Create product object
     const productData = {
         siteId: parseInt(siteId),
         name,
         price: parseFloat(price),
         regular_price: parseFloat(regularPrice),
-        sale_price: salePrice ? parseFloat(salePrice) : null,
-        stock: parseInt(stock),
-        stock_status: stockStatus,
+        sale_price: salePrice ? parseFloat(salePrice) : undefined, // Sử dụng undefined thay vì null
+        stock: parseInt(stock) || 0,
+        stock_status: stockStatus || 'instock',
         short_description: shortDescription,
         description,
         featured,
         images,
-        categories
-    };
+        categories    };
     
-    // Send request to create product
-    fetch('/api/products', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(productData)
-    })
-    .then(response => {
-        if (!response.ok) {
-            return response.json().then(err => {
-                throw new Error(err.message || 'Error creating product');
-            });
-        }
-        return response.json();
-    })
+    console.log('Sending product data:', JSON.stringify(productData, null, 2));
+    
+    // Send request to create product using the ProductAPI.createProduct function
+    // Authentication is now handled automatically in ProductAPI.request
+    ProductAPI.createProduct(productData)
     .then(data => {
+        console.log('Product created successfully:', data);
+        
         // Close modal
         const modal = bootstrap.Modal.getInstance(document.getElementById('addProductModal'));
         modal.hide();
@@ -511,13 +554,20 @@ function saveProduct() {
         document.getElementById('product-images-container').innerHTML = '';
         document.getElementById('product-categories-container').innerHTML = '';
         
-        // Show success message
-        showToast('success', 'Product created successfully');
+        // Kiểm tra xem có lỗi WooCommerce không
+        if (data.woocommerce_error) {
+            // Hiển thị thông báo thành công nhưng có cảnh báo về WooCommerce
+            showToast('warning', 'Product saved to database but sync with WooCommerce failed. It will be retried later.');
+        } else {
+            // Hiển thị thông báo thành công
+            showToast('success', 'Product created successfully');
+        }
         
         // Reload products list
         loadProducts(1);
     })
     .catch(error => {
+        console.error('Error creating product:', error);
         showErrorMessage('add-product-error', error.message);
     });
 }
@@ -526,15 +576,9 @@ function saveProduct() {
  * Load product data for editing
  * @param {number} productId ID of the product to edit
  */
-function loadProductForEditing(productId) {
-    // Fetch product data
-    fetch(`/api/products/${productId}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Product not found');
-            }
-            return response.json();
-        })
+function loadProductForEditing(productId) {    
+    // Use the ProductAPI.request to fetch a single product
+    ProductAPI.request(`/products/${productId}`)
         .then(product => {
             // Fill form with product data
             document.getElementById('edit-product-id').value = product.id;
@@ -590,7 +634,7 @@ function updateProduct() {
     const name = document.getElementById('edit-product-name').value;
     const price = document.getElementById('edit-product-price').value;
     const regularPrice = document.getElementById('edit-product-regular-price').value || price;
-    const salePrice = document.getElementById('edit-product-sale-price').value || null;
+    const salePrice = document.getElementById('edit-product-sale-price').value || '';
     const stock = document.getElementById('edit-product-stock').value;
     const stockStatus = document.getElementById('edit-product-stock-status').value;
     const shortDescription = document.getElementById('edit-product-short-description').value;
@@ -620,51 +664,45 @@ function updateProduct() {
         showErrorMessage('edit-product-error', 'Please fill in all required fields.');
         return;
     }
-    
-    // Create update data object
+      // Create update data object
     const updateData = {
         siteId: parseInt(siteId),
         name,
         price: parseFloat(price),
         regular_price: parseFloat(regularPrice),
-        sale_price: salePrice ? parseFloat(salePrice) : null,
+        sale_price: salePrice ? parseFloat(salePrice) : undefined, // Sử dụng undefined thay vì null để tránh lỗi validation
         stock: parseInt(stock),
         stock_status: stockStatus,
         short_description: shortDescription,
         description,
-        featured,
-        images,
+        featured,        images,
         categories
     };
+      // Send request to update product using ProductAPI.updateProduct
+    console.log('Updating product with ID:', productId, 'Data:', updateData);
     
-    // Send request to update product
-    fetch(`/api/products/${productId}`, {
-        method: 'PATCH',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updateData)
-    })
-    .then(response => {
-        if (!response.ok) {
-            return response.json().then(err => {
-                throw new Error(err.message || 'Error updating product');
-            });
-        }
-        return response.json();
-    })
+    ProductAPI.updateProduct(productId, updateData)
     .then(data => {
+        console.log('Product update response:', data);
+        
         // Close modal
         const modal = bootstrap.Modal.getInstance(document.getElementById('editProductModal'));
         modal.hide();
         
-        // Show success message
-        showToast('success', 'Product updated successfully');
-        
-        // Reload products list
+        // Kiểm tra xem có lỗi WooCommerce không
+        if (data.woocommerce_error) {
+            // Hiển thị thông báo thành công nhưng có cảnh báo về WooCommerce
+            showToast('warning', 'Product updated in database but sync with WooCommerce failed. It will be retried later.');
+            console.warn('WooCommerce error:', data.woocommerce_error);
+        } else {
+            // Hiển thị thông báo thành công
+            showToast('success', 'Product updated successfully');
+        }
+          // Reload products list
         loadProducts(getCurrentPage());
     })
     .catch(error => {
+        console.error('Error updating product:', error);
         showErrorMessage('edit-product-error', error.message);
     });
 }
@@ -675,17 +713,8 @@ function updateProduct() {
 function deleteProduct() {
     const productId = document.getElementById('delete-product-id').value;
     
-    fetch(`/api/products/${productId}`, {
-        method: 'DELETE'
-    })
-    .then(response => {
-        if (!response.ok) {
-            return response.json().then(err => {
-                throw new Error(err.message || 'Error deleting product');
-            });
-        }
-        return response.json();
-    })
+    // Use the ProductAPI.deleteProduct function
+    ProductAPI.deleteProduct(productId)
     .then(data => {
         // Close modal
         const modal = bootstrap.Modal.getInstance(document.getElementById('deleteProductModal'));
@@ -727,19 +756,8 @@ function startProductSync() {
     
     // Disable start button
     document.getElementById('start-sync-btn').disabled = true;
-    
-    // Send sync request
-    fetch(`/api/products/sync/${siteId}`, {
-        method: 'POST'
-    })
-    .then(response => {
-        if (!response.ok) {
-            return response.json().then(err => {
-                throw new Error(err.message || 'Sync failed');
-            });
-        }
-        return response.json();
-    })
+      // Send sync request using ProductAPI.syncProducts
+    ProductAPI.syncProducts(siteId)
     .then(data => {
         // Show completion
         progressBar.style.width = '100%';
@@ -781,6 +799,77 @@ function startProductSync() {
         // Show toast
         showToast('error', 'Sync failed: ' + error.message);
     });
+}
+
+/**
+ * Start retry syncing failed products to WooCommerce
+ */
+function startRetrySyncFailedProducts() {
+    const siteId = document.getElementById('retry-sync-site-select').value;
+    
+    // Show progress container
+    const syncStatus = document.getElementById('retry-sync-status');
+    syncStatus.classList.remove('d-none');
+    
+    // Update progress bar and message
+    const progressBar = document.getElementById('retry-sync-progress');
+    const syncMessage = document.getElementById('retry-sync-message');
+    
+    progressBar.style.width = '0%';
+    syncMessage.textContent = 'Starting retry sync...';
+    
+    // Disable start button
+    document.getElementById('start-retry-sync-btn').disabled = true;
+    
+    // Build the request URL
+    let url = '/products/retry-sync';
+    if (siteId) {
+        url += `?siteId=${siteId}`;
+    }
+    
+    // Send retry sync request
+    ProductAPI.request(url, { method: 'POST' })
+        .then(data => {
+            // Show completion
+            progressBar.style.width = '100%';
+            syncMessage.innerHTML = `
+                <div class="alert alert-success mb-0">
+                    Retry sync completed!<br>
+                    Successful: ${data.success} products<br>
+                    Failed: ${data.failed} products<br>
+                    Total attempted: ${data.total} products
+                </div>
+            `;
+            
+            // Enable start button
+            document.getElementById('start-retry-sync-btn').disabled = false;
+            
+            // Show toast
+            showToast('success', `Retry sync completed! Success: ${data.success}, Failed: ${data.failed}`);
+            
+            // Reload products
+            setTimeout(() => {
+                loadProducts(1);
+            }, 1000);
+        })
+        .catch(error => {
+            // Show error
+            progressBar.style.width = '100%';
+            progressBar.classList.remove('bg-primary');
+            progressBar.classList.add('bg-danger');
+            
+            syncMessage.innerHTML = `
+                <div class="alert alert-danger mb-0">
+                    Retry sync failed: ${error.message}
+                </div>
+            `;
+            
+            // Enable start button
+            document.getElementById('start-retry-sync-btn').disabled = false;
+            
+            // Show toast
+            showToast('error', 'Retry sync failed: ' + error.message);
+        });
 }
 
 /**
@@ -1059,4 +1148,86 @@ function showToast(type, message, duration = 3000) {
     toastElement.addEventListener('hidden.bs.toast', function() {
         this.remove();
     });
+}
+
+/**
+ * Helper function for making API requests
+ * @param {string} url The URL to make the request to
+ * @param {Object} options The fetch options
+ * @returns {Promise<any>} The parsed response data
+ */
+function apiRequest(url, options = {}) {
+    // Use the ProductAPI.request function defined in product-api.js
+    return ProductAPI.request(url, options);
+}
+
+/**
+ * Format WooCommerce sync status
+ * @param {string} status Sync status ('synced', 'pending', 'failed')
+ * @param {string} error Error message if status is 'failed'
+ * @param {Date} lastAttempt Last sync attempt date
+ * @returns {string} Formatted HTML for sync status
+ */
+function formatSyncStatus(status, error, lastAttempt) {
+    if (!status) {
+        return '<span class="badge bg-secondary">Not synced</span>';
+    }
+
+    let badgeClass = 'bg-secondary';
+    let icon = 'question-circle';
+    let tooltip = '';
+    
+    switch(status) {
+        case 'synced':
+            badgeClass = 'bg-success';
+            icon = 'cloud-check';
+            tooltip = lastAttempt ? `Last synced: ${new Date(lastAttempt).toLocaleString()}` : '';
+            break;
+        case 'pending':
+            badgeClass = 'bg-info';
+            icon = 'cloud-upload';
+            tooltip = 'Pending synchronization';
+            break;
+        case 'failed':
+            badgeClass = 'bg-danger';
+            icon = 'exclamation-triangle';
+            tooltip = error || 'Sync failed';
+            break;
+    }
+    
+    return `<span class="badge ${badgeClass}" title="${tooltip}">
+        <i class="bi bi-${icon} me-1"></i>${status.toUpperCase()}
+    </span>`;
+}
+
+/**
+ * Retry sync for a single product
+ * @param {number} productId ID of the product to retry
+ */
+function retryProductSync(productId) {
+    // Show spinner on the button
+    const button = document.querySelector(`.retry-single-sync-btn[data-product-id="${productId}"]`);
+    if (button) {
+        const originalContent = button.innerHTML;
+        button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+        button.disabled = true;
+        
+        // Call the API to retry sync for this specific product
+        ProductAPI.request(`/products/retry-sync?productId=${productId}`, { method: 'POST' })
+            .then(data => {
+                // Show success message
+                showToast('success', `Sync retry ${data.success > 0 ? 'successful' : 'failed'}`);
+                
+                // Reload products to update the status
+                loadProducts(getCurrentPage());
+            })
+            .catch(error => {
+                // Show error message
+                showToast('error', `Sync retry failed: ${error.message}`);
+                
+                // Restore button
+                button.innerHTML = originalContent;
+                button.disabled = false;
+            });
+    }
 }

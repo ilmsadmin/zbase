@@ -15,6 +15,8 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../auth/guards/permissions.guard';
+import { RequirePermissions } from '../auth/decorators/require-permissions.decorator';
 
 @ApiTags('products')
 @Controller('products')
@@ -98,5 +100,14 @@ export class ProductsController {
   syncFromWooCommerce(@Param('siteId') siteId: string) {
     this.logger.log(`Syncing products from WooCommerce for site ID: ${siteId}`);
     return this.productsService.syncFromWooCommerce(+siteId);
+  }
+
+  @Post('retry-sync')
+  @ApiOperation({ summary: 'Retry synchronization of failed or pending products with WooCommerce' })
+  @ApiResponse({ status: 200, description: 'Products sync retry initiated.' })
+  @ApiQuery({ name: 'siteId', required: false, type: Number, description: 'Optional site ID to filter products' })
+  retrySyncFailedProducts(@Query('siteId') siteId?: string) {
+    this.logger.log(`Retrying sync for failed or pending products${siteId ? ` for site ID: ${siteId}` : ''}`);
+    return this.productsService.retrySyncFailedProducts(siteId ? +siteId : undefined);
   }
 }

@@ -47,9 +47,8 @@ function logout() {
 function updateCurrentUser() {
     const userNameElement = document.getElementById('user-name');
     
-    if (!userNameElement) return;
-    
-    fetch('/api/auth/me', {
+    if (!userNameElement) return;    
+    fetch('/api/auth/profile', {
         credentials: 'include'
     })
     .then(response => {

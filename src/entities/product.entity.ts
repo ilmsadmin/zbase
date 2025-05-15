@@ -50,6 +50,15 @@ export class Product {
   
   @Column({ default: false })
   featured: boolean;
+  
+  @Column({ default: 'pending' })
+  wc_sync_status: string;
+  
+  @Column({ type: 'text', nullable: true })
+  wc_error: string;
+  
+  @Column({ nullable: true })
+  wc_last_sync_attempt: Date;
 
   @CreateDateColumn()
   created_at: Date;

@@ -33,6 +33,7 @@ export class SitesController {
     @Query('search') search: string = '',
     @Query('sortBy') sortBy: string = 'id',
     @Query('status') status: string = '',
+    @Query('has_woocommerce') hasWoocommerce?: boolean,
   ) {
     this.logger.log('Getting all sites with pagination');
     const { sites, totalItems, totalPages } = await this.sitesService.findAllWithPagination(
@@ -40,7 +41,8 @@ export class SitesController {
       limit, 
       search,
       sortBy,
-      status
+      status,
+      hasWoocommerce
     );
     
     return {

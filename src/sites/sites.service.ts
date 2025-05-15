@@ -23,13 +23,13 @@ export class SitesService {  private readonly logger = new Logger(SitesService.n
     this.logger.log('Finding all sites');
     return this.siteRepository.find();
   }
-  
-  async findAllWithPagination(
+    async findAllWithPagination(
     page: number = 1, 
     limit: number = 10,
     search: string = '',
     sortBy: string = 'id',
-    status: string = ''
+    status: string = '',
+    hasWoocommerce?: boolean
   ): Promise<{sites: Site[], totalItems: number, totalPages: number}> {
     this.logger.log(`Finding sites with pagination: page=${page}, limit=${limit}, search=${search}`);
     
@@ -41,14 +41,18 @@ export class SitesService {  private readonly logger = new Logger(SitesService.n
       queryBuilder.andWhere('(site.name LIKE :search OR site.wp_url LIKE :search)', 
         { search: `%${search}%` });
     }
-    
-    // Apply status filter
+      // Apply status filter
     if (status) {
       if (status === 'active') {
         queryBuilder.andWhere('site.active = :active', { active: true });
       } else if (status === 'inactive') {
         queryBuilder.andWhere('site.active = :active', { active: false });
       }
+    }
+    
+    // Filter by WooCommerce availability if specified
+    if (hasWoocommerce !== undefined) {
+      queryBuilder.andWhere('site.has_woocommerce = :hasWoocommerce', { hasWoocommerce });
     }
     
     // Apply sorting

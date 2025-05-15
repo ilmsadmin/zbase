@@ -89,15 +89,15 @@ export class SiteHelpers {
    * @param key WooCommerce consumer key
    * @param secret WooCommerce consumer secret
    * @returns true if connection is successful
-   */
-  static async testWooCommerceConnection(url: string, key: string, secret: string): Promise<boolean> {
+   */  static async testWooCommerceConnection(url: string, key: string, secret: string): Promise<boolean> {
     try {
-      const wcUrl = `${url}/wp-json/wc/v3/products?per_page=1`;
+      const wcUrl = `${url}/wp-json/wc/v3/products`;
       
       await axios.get(wcUrl, {
         params: {
           consumer_key: key,
-          consumer_secret: secret
+          consumer_secret: secret,
+          per_page: 1
         }
       });
       this.logger.debug(`WooCommerce connection test successful for ${url}`);
