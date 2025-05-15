@@ -33,11 +33,11 @@ export class ProductSyncHelper {
         stock_status: productData.stock_status || 'instock',
       };
       
-      // Manage price in proper format for WooCommerce
+      // Quản lý giá cả đúng định dạng cho WooCommerce
       if (productData.regular_price !== undefined && productData.regular_price !== null) {
         wcProductData.regular_price = productData.regular_price.toString();
       } 
-      // If there's no regular_price but price exists, use price as regular_price
+      // Nếu không có regular_price nhưng có price, dùng price làm regular_price
       else if (productData.price !== undefined && productData.price !== null) {
         wcProductData.regular_price = productData.price.toString();
       }
@@ -48,12 +48,12 @@ export class ProductSyncHelper {
         wcProductData.sale_price = productData.sale_price.toString();
       }
       
-      // Handle stock quantity
+      // Quản lý số lượng tồn kho
       if (productData.stock !== undefined && productData.stock !== null) {
         wcProductData.stock_quantity = productData.stock;
       }
       
-      // Handle images and categories
+      // Xử lý hình ảnh và danh mục
       if (Array.isArray(productData.images) && productData.images.length > 0) {
         wcProductData.images = productData.images;
       }
@@ -84,7 +84,7 @@ export class ProductSyncHelper {
         this.logger.debug(`WooCommerce response: ${JSON.stringify(response.data)}`);
         return response.data;
       } catch (error: any) {
-        // More detailed error from WooCommerce
+        // Chi tiết hơn về lỗi từ WooCommerce
         if (error.response) {
           this.logger.error(`WooCommerce API Error: ${JSON.stringify({
             status: error.response.status,
@@ -126,23 +126,23 @@ export class ProductSyncHelper {
         attributes: productData.attributes,
       };
       
-      // Manage price in proper format for WooCommerce
+      // Quản lý giá cả đúng định dạng cho WooCommerce
       if (productData.regular_price !== undefined && productData.regular_price !== null) {
         wcProductData.regular_price = productData.regular_price.toString();
       } 
-      // If there's no regular_price but price exists, use price as regular_price
+      // Nếu không có regular_price nhưng có price, dùng price làm regular_price
       else if (productData.price !== undefined && productData.price !== null) {
         wcProductData.regular_price = productData.price.toString();
       }
       
-      // Handle sale price
+      // Xử lý sale price
       if (productData.sale_price !== undefined && 
           productData.sale_price !== null && 
           productData.sale_price > 0) {
         wcProductData.sale_price = productData.sale_price.toString();
       }
       
-      // Handle stock quantity
+      // Quản lý số lượng tồn kho
       if (productData.stock !== undefined && productData.stock !== null) {
         wcProductData.stock_quantity = productData.stock;
       }
@@ -171,7 +171,7 @@ export class ProductSyncHelper {
     } catch (error: any) {
       this.logger.error(`Error updating product on ${site.name}: ${error.message}`);
       
-      // More detailed error from WooCommerce
+      // Chi tiết hơn về lỗi từ WooCommerce
       if (error.response) {
         this.logger.error(`WooCommerce API Error: ${JSON.stringify({
           status: error.response.status,
@@ -256,19 +256,8 @@ export class ProductSyncHelper {
           if (totalProducts && totalPages) {
             this.logger.log(`WooCommerce reports ${totalProducts} total products across ${totalPages} pages`);
           }
-        } catch (testError: any) {
+        } catch (testError) {
           this.logger.error(`WooCommerce test request failed: ${testError.message}`);
-          if (testError.response) {
-            this.logger.error(`WooCommerce API Error Status: ${testError.response.status}`);
-            this.logger.error(`WooCommerce API Error Status Text: ${testError.response.statusText}`);
-            
-            if (testError.response.data) {
-              const errorData = typeof testError.response.data === 'string' 
-                ? testError.response.data.substring(0, 200) 
-                : JSON.stringify(testError.response.data).substring(0, 200);
-              this.logger.error(`WooCommerce API Error Data: ${errorData}...`);
-            }
-          }
           throw testError;
         }
       }
