@@ -1,0 +1,45 @@
+version: '3.8'
+
+# Cấu hình dịch vụ cơ sở dữ liệu cho ZBase
+# Sử dụng: docker-compose up -d
+# Dừng: docker-compose down
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: zbase-postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: zbase
+      POSTGRES_PASSWORD: zbasepassword
+      POSTGRES_DB: zbase
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  mongodb:
+    image: mongo:6
+    container_name: zbase-mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: zbase
+      MONGO_INITDB_ROOT_PASSWORD: zbasepassword
+    volumes:
+      - mongodb-data:/data/db
+
+  redis:
+    image: redis:7
+    container_name: zbase-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+volumes:
+  postgres-data:
+  mongodb-data:
+  redis-data:

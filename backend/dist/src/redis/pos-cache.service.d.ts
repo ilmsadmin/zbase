@@ -1,0 +1,37 @@
+import { RedisService } from './redis.service';
+export declare class PosCacheService {
+    private readonly redisService;
+    private readonly PRODUCT_KEY_PREFIX;
+    private readonly PRODUCTS_BY_WAREHOUSE_KEY_PREFIX;
+    private readonly CATEGORY_KEY_PREFIX;
+    private readonly CATEGORIES_KEY;
+    private readonly JWT_KEY_PREFIX;
+    private readonly INVENTORY_KEY_PREFIX;
+    private readonly PRODUCT_TTL;
+    private readonly CATEGORY_TTL;
+    private readonly INVENTORY_TTL;
+    private readonly JWT_TTL;
+    constructor(redisService: RedisService);
+    storeJwtToken(userId: number, token: string, expiresIn: number): Promise<void>;
+    getJwtToken(userId: number): Promise<string | null>;
+    invalidateJwtToken(userId: number): Promise<void>;
+    cacheProduct(productId: number, productData: object, ttl?: number): Promise<void>;
+    getProductFromCache(productId: number): Promise<object | null>;
+    invalidateProductCache(productId: number): Promise<void>;
+    cacheWarehouseProducts(warehouseId: number, products: object[], ttl?: number): Promise<void>;
+    getWarehouseProductsFromCache(warehouseId: number): Promise<object[] | null>;
+    invalidateWarehouseProducts(warehouseId: number): Promise<void>;
+    invalidateAllWarehouseProducts(): Promise<void>;
+    cacheCategory(categoryId: number, categoryData: object, ttl?: number): Promise<void>;
+    getCategoryFromCache(categoryId: number): Promise<object | null>;
+    invalidateCategoryCache(categoryId: number): Promise<void>;
+    cacheCategoriesList(categories: object[], ttl?: number): Promise<void>;
+    getCategoriesListFromCache(): Promise<object[] | null>;
+    invalidateCategoriesList(): Promise<void>;
+    cacheInventory(warehouseId: number, productId: number, inventoryData: object, ttl?: number): Promise<void>;
+    getInventoryFromCache(warehouseId: number, productId: number): Promise<object | null>;
+    invalidateInventoryCache(warehouseId: number, productId: number): Promise<void>;
+    invalidateWarehouseInventory(warehouseId: number): Promise<void>;
+    handleProductUpdated(productId: number): Promise<void>;
+    handleInventoryUpdated(warehouseId: number, productId: number): Promise<void>;
+}
