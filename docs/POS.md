@@ -98,83 +98,195 @@ Hệ thống quản lý bán hàng được xây dựng trên nền tảng base 
    - Truy cập `/pos/warranties`, kiểm tra bảo hành (mã hóa đơn/sản phẩm).
    - Tạo yêu cầu bảo hành, gửi lên admin.
 
-## 4. Thiết Kế Database
+## 4. Thiết Kế Cơ Sở Dữ Liệu
 
-### 4.1. PostgreSQL
-1. **warehouses**: Kho hàng
-   - `id` (SERIAL, PK), `name` (VARCHAR), `address` (TEXT), `manager_id` (INTEGER, FK → users.id), `created_at` (TIMESTAMP), `updated_at` (TIMESTAMP).
-2. **products**: Sản phẩm
-   - `id` (SERIAL, PK), `code` (VARCHAR, UNIQUE), `name` (VARCHAR), `category_id` (INTEGER, FK → categories.id), `price` (DECIMAL), `attributes` (JSONB), `created_at` (TIMESTAMP).
-3. **categories**: Danh mục sản phẩm
-   - `id` (SERIAL, PK), `name` (VARCHAR), `description` (TEXT).
-4. **inventory**: Tồn kho
-   - `id` (SERIAL, PK), `product_id` (INTEGER, FK → products.id), `warehouse_id` (INTEGER, FK → warehouses.id), `quantity` (INTEGER), `last_updated` (TIMESTAMP).
-5. **customers**: Khách hàng
-   - `id` (SERIAL, PK), `name` (VARCHAR), `phone` (VARCHAR), `email` (VARCHAR, UNIQUE), `address` (TEXT), `debt` (DECIMAL), `created_at` (TIMESTAMP).
-6. **partners**: Đối tác (nhà cung cấp/khách buôn)
-   - `id` (SERIAL, PK), `name` (VARCHAR), `type` (ENUM: 'supplier', 'wholesaler'), `contact` (JSONB), `debt` (DECIMAL), `created_at` (TIMESTAMP).
-7. **invoices**: Hóa đơn bán hàng
-   - `id` (SERIAL, PK), `customer_id` (INTEGER, FK → customers.id), `warehouse_id` (INTEGER, FK → warehouses.id), `employee_id` (INTEGER, FK → users.id), `total_amount` (DECIMAL), `status` (ENUM: 'pending', 'paid', 'cancelled'), `created_at` (TIMESTAMP).
-8. **invoice_details**: Chi tiết hóa đơn
-   - `id` (SERIAL, PK), `invoice_id` (INTEGER, FK → invoices.id), `product_id` (INTEGER, FK → products.id), `quantity` (INTEGER), `unit_price` (DECIMAL), `discount` (DECIMAL).
-9. **transactions**: Phiếu thu/chi
-   - `id` (SERIAL, PK), `type` (ENUM: 'receipt', 'payment'), `customer_id` (INTEGER, FK → customers.id, NULLABLE), `partner_id` (INTEGER, FK → partners.id, NULLABLE), `amount` (DECIMAL), `description` (TEXT), `created_at` (TIMESTAMP).
-10. **warranties**: Bảo hành
-    - `id` (SERIAL, PK), `invoice_id` (INTEGER, FK → invoices.id), `product_id` (INTEGER, FK → products.id), `customer_id` (INTEGER, FK → customers.id), `start_date` (TIMESTAMP), `end_date` (TIMESTAMP), `status` (ENUM: 'active', 'expired', 'processed').
-11. **shifts**: Ca làm việc
-    - `id` (SERIAL, PK), `employee_id` (INTEGER, FK → users.id), `start_time` (TIMESTAMP), `end_time` (TIMESTAMP, NULLABLE), `initial_cash` (DECIMAL), `final_cash` (DECIMAL, NULLABLE), `revenue` (DECIMAL, NULLABLE).
-12. **inventory_transactions**: Lịch sử xuất/nhập kho
-    - `id` (SERIAL, PK), `type` (ENUM: 'import', 'export'), `product_id` (INTEGER, FK → products.id), `warehouse_id` (INTEGER, FK → warehouses.id), `quantity` (INTEGER), `employee_id` (INTEGER, FK → users.id), `created_at` (TIMESTAMP).
+### 4.1. PostgreSQL Schema
 
-### 4.2. MongoDB
-- **Collection `logs`**: Lưu lịch sử hành động (xuất/nhập kho, bán hàng, bảo hành, ca).
-  - Cấu trúc: `{ _id: ObjectId, user_id: Number, action: String, details: Object, timestamp: ISODate }`.
-  - Ví dụ: `{ action: "create_sale", details: { invoice_id: 123, total: 500000 }, timestamp: ISODate }`.
+#### 4.1.1. User & Permissions (từ RBAC)
+- **User**: Thông tin người dùng (id, email, password, name, phone, status, createdAt, updatedAt)
+- **Role**: Vai trò người dùng (id, name, description, createdAt)
+- **Permission**: Quyền hạn (id, action, description, createdAt)
+- **UserRole**: Liên kết User-Role (userId, roleId)
+- **RolePermission**: Liên kết Role-Permission (roleId, permissionId)
 
-### 4.3. Redis
-- **Session**: `session:<user_id>` → `{ token: String, expires_at: Number }`, TTL: 24 giờ.
-- **Cache**:
-  - `products:<warehouse_id>`: Danh sách sản phẩm và tồn kho (JSON).
-  - `categories`: Danh sách danh mục.
-  - TTL: 1 giờ, cập nhật khi dữ liệu thay đổi.
+#### 4.1.2. Warehouse & Inventory
+- **Warehouse**: Thông tin kho (id, name, address, description, managerId, status, createdAt, updatedAt)
+- **Category**: Danh mục sản phẩm (id, name, description, parentId, createdAt, updatedAt)
+- **Product**: Sản phẩm (id, sku, barcode, name, description, categoryId, costPrice, sellingPrice, discountPrice, unit, taxRate, status, warrantyMonths, createdAt, updatedAt)
+- **ProductAttribute**: Thuộc tính sản phẩm (id, productId, key, value, createdAt)
+- **ProductVariant**: Biến thể sản phẩm (id, productId, sku, barcode, attributesJson, costPrice, sellingPrice, createdAt, updatedAt)
+- **Inventory**: Tồn kho (id, warehouseId, productId, variantId, quantity, minQuantity, lastStockTakeAt, updatedAt)
 
-## 5. Tích Hợp Xác Thực/Phân Quyền
-- **Vai trò**:
-  - **Admin**: `manage_warehouse`, `manage_product`, `manage_customer`, `manage_partner`, `manage_invoice`, `manage_transaction`, `manage_warranty`, `view_report`, `manage_employee`.
-  - **POS**: `manage_shift`, `create_sale`, `manage_warranty`.
-- **Tự động load actions**:
-  - Quét routes (`/warehouses`, `/products`, `/sales`) để tạo permissions (`view_warehouses`, `create_sale`).
-  - Lưu vào PostgreSQL, gán cho roles qua giao diện admin.
-- **Xác thực**:
-  - Sử dụng JWT, kiểm tra session trong Redis.
-  - Guard kiểm tra permissions cho mỗi API.
+#### 4.1.3. Customer & Partner
+- **Customer**: Khách hàng (id, code, name, phone, email, address, taxCode, type, birthdate, points, balanceDue, createdAt, updatedAt)
+- **Partner**: Đối tác (id, code, name, type, contactName, contactPhone, contactEmail, address, taxCode, balanceDue, terms, createdAt, updatedAt)
 
-## 6. Tích Hợp Docker
-- **Backend**: Thêm modules (`WarehouseModule`, `ProductModule`, `InvoiceModule`, v.v.) vào NestJS.
-- **Frontend**: Thêm trang admin (`/admin/warehouses`, `/admin/products`) và POS (`/pos/sales`, `/pos/shifts`) với Tailwind CSS.
-- **Docker Compose**: Tận dụng cấu hình hiện có, không cần container mới.
+#### 4.1.4. Sales & Transaction
+- **Shift**: Ca làm việc (id, userId, warehouseId, startTime, endTime, startCash, endCash, expectedCash, cashDifference, note, status, createdAt, updatedAt)
+- **Invoice**: Hóa đơn (id, code, shiftId, warehouseId, customerId, userId, subtotal, taxAmount, discountAmount, total, paidAmount, changeAmount, paymentMethod, paymentDetails, status, note, createdAt, updatedAt)
+- **InvoiceItem**: Chi tiết hóa đơn (id, invoiceId, productId, variantId, quantity, unitPrice, originalPrice, discountAmount, taxRate, taxAmount, subtotal, createdAt)
+- **StockTransaction**: Giao dịch kho (id, code, type, warehouseFromId, warehouseToId, partnerId, invoiceId, userId, totalValue, status, note, createdAt, updatedAt)
+- **StockTransactionItem**: Chi tiết giao dịch kho (id, transactionId, productId, variantId, quantity, unitCost, subtotal, createdAt)
+- **FinancialTransaction**: Giao dịch tài chính (id, code, type, amount, customerId, partnerId, invoiceId, userId, paymentMethod, reference, note, createdAt, updatedAt)
+- **Warranty**: Bảo hành (id, code, customerId, invoiceId, productId, variantId, serialNumber, issue, solution, warrantyStart, warrantyEnd, status, receivedById, resolvedById, note, createdAt, updatedAt)
 
-## 7. Báo Cáo (Admin)
-- **Loại báo cáo**:
-  - Doanh thu: Theo ngày, tuần, tháng, nhân viên, kho.
-  - Tồn kho: Sản phẩm, kho, cảnh báo tồn thấp.
-  - Công nợ: Khách hàng, đối tác.
-  - Hiệu suất nhân viên: Doanh thu ca, số hóa đơn.
-- **Triển khai**:
-  - Backend: API `/reports` tổng hợp từ PostgreSQL, cache trong Redis.
-  - Frontend: Hiển thị biểu đồ (Chart.js) và bảng, hỗ trợ tải PDF/Excel.
+### 4.2. MongoDB Collections
 
-## 8. Lưu Ý Triển Khai
-- **Bảo mật**:
-  - Mã hóa mật khẩu (bcrypt).
-  - Sử dụng HTTPS cho API.
-  - Giới hạn quyền POS để tránh truy cập dữ liệu admin.
-- **Hiệu suất**:
-  - Cache sản phẩm/tồn kho trong Redis.
-  - Dùng MongoDB để lưu logs, giảm tải cho PostgreSQL.
-- **Mở rộng**:
-  - Hỗ trợ thêm thanh toán (QR code, ví điện tử).
-  - Sẵn sàng tích hợp API Gateway (Kong) nếu cần microservices.
+#### 4.2.1. inventoryLogs
+```json
+{
+  "_id": ObjectId,
+  "timestamp": ISODate,
+  "warehouseId": Number,
+  "productId": Number,
+  "variantId": Number,
+  "quantityBefore": Number,
+  "quantityAfter": Number,
+  "differenceQuantity": Number,
+  "transactionId": Number,
+  "userId": Number,
+  "type": String,
+  "reference": {
+    "type": String,
+    "id": Number
+  },
+  "note": String
+}
+```
 
-## 9. Kết Luận
-Hệ thống quản lý bán hàng tích hợp mượt mà với nền tảng base, hỗ trợ hai tầng Admin và POS. PostgreSQL đảm bảo dữ liệu có cấu trúc, MongoDB lưu logs, Redis tăng hiệu suất. RBAC và tự động load actions đảm bảo phân quyền chặt chẽ. Thiết kế linh hoạt, dễ mở rộng với microservices hoặc API Gateway trong tương lai.
+#### 4.2.2. salesLogs
+```json
+{
+  "_id": ObjectId,
+  "timestamp": ISODate,
+  "invoiceId": Number,
+  "invoiceCode": String,
+  "shiftId": Number,
+  "userId": Number,
+  "userName": String,
+  "warehouseId": Number,
+  "warehouseName": String,
+  "customerId": Number,
+  "customerName": String,
+  "items": [
+    {
+      "productId": Number,
+      "productName": String,
+      "variantId": Number,
+      "variantAttributes": Object,
+      "quantity": Number,
+      "unitPrice": Number,
+      "subtotal": Number
+    }
+  ],
+  "subtotal": Number,
+  "taxAmount": Number,
+  "discountAmount": Number,
+  "total": Number,
+  "paymentMethod": String,
+  "status": String
+}
+```
+
+#### 4.2.3. warrantyLogs
+```json
+{
+  "_id": ObjectId,
+  "timestamp": ISODate,
+  "warrantyId": Number,
+  "warrantyCode": String,
+  "customerId": Number,
+  "customerName": String,
+  "productId": Number,
+  "productName": String,
+  "serialNumber": String,
+  "status": String,
+  "issue": String,
+  "solution": String,
+  "receivedBy": {
+    "userId": Number,
+    "userName": String
+  },
+  "resolvedBy": {
+    "userId": Number,
+    "userName": String
+  },
+  "note": String
+}
+```
+
+#### 4.2.4. activityLogs
+```json
+{
+  "_id": ObjectId,
+  "timestamp": ISODate,
+  "userId": Number,
+  "userName": String,
+  "action": String,
+  "entity": String,
+  "entityId": Number,
+  "details": Object,
+  "ipAddress": String,
+  "userAgent": String
+}
+```
+
+### 4.3. Redis Cache
+
+#### 4.3.1. Sessions và Tokens
+- Key: `session:{userId}` (String)
+- Value: JSON chứa `{ token: <JWT>, expires: <timestamp> }`
+- TTL: 24 giờ
+
+#### 4.3.2. Cache Sản Phẩm và Tồn Kho
+- Products: `products:all` (Hash), `product:{productId}` (Hash)
+- Inventory: `inventory:{warehouseId}` (Hash)
+- Top Sellers: `products:bestsellers:{warehouseId}` (Sorted Set)
+
+## 5. Triển Khai Công Nghệ
+
+### 5.1. Prisma ORM
+- Schema định nghĩa trong `schema.prisma` với đầy đủ models và relations
+- Middleware để tự động cập nhật trường `updatedAt`
+- Migrations tự động tạo và cập nhật database schema
+
+### 5.2. MongoDB Integration
+- Sử dụng `@nestjs/mongoose` để định nghĩa schemas
+- Service chuyên biệt để ghi logs vào MongoDB
+- Middleware tự động ghi log mỗi khi có thao tác inventory/sales
+
+### 5.3. Redis Cache
+- Sử dụng `ioredis` để tương tác với Redis
+- Cache sản phẩm và tồn kho để tăng hiệu suất POS
+- Tự động invalidate cache khi có thay đổi dữ liệu
+
+### 5.4. Docker và Containerization
+- Các services được đóng gói trong containers
+- Docker Compose để khởi chạy toàn bộ stack
+- Volume để lưu trữ dữ liệu bền vững
+
+## 6. Những Lưu Ý Triển Khai
+
+### 6.1. Hiệu Suất
+- Index phù hợp cho các trường thường được query
+- Cache Redis cho dữ liệu thường xuyên đọc
+- MongoDB để lưu logs thay vì PostgreSQL
+- Phân trang kết quả truy vấn lớn
+
+### 6.2. Bảo Mật
+- Hash password với bcrypt
+- JWT rotation và invalidation
+- Phân quyền chi tiết với RBAC
+- HTTPS cho tất cả kết nối
+
+### 6.3. Backup và DR
+- Backup PostgreSQL định kỳ
+- Replication MongoDB
+- Redis persistence
+- Chiến lược khôi phục sau sự cố
+
+### 6.4. Khả Năng Mở Rộng
+- Microservices architecture
+- Horizontal scaling cho các services
+- Database sharding nếu cần
+

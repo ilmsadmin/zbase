@@ -1,3 +1,6 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,283 +10,418 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Core User and Authentication Models (Existing from RBAC system)
 model User {
-  id                Int                    @id @default(autoincrement())
-  email             String                 @unique
+  id                Int                  @id @default(autoincrement())
+  email             String               @unique
   password          String
   name              String
-  createdAt         DateTime               @default(now()) @map("created_at")
-  updatedAt         DateTime               @updatedAt @map("updated_at")
-  comments          Comment[]
-  inventoryActions  InventoryTransaction[]
-  invoices          Invoice[]
-  posts             Post[]
-  shifts            Shift[]
+  phone             String?
+  status            String               @default("active") // "active", "inactive"
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  
+  // Relations
   userRoles         UserRole[]
   managedWarehouses Warehouse[]
-
-  @@map("users")
+  createdInvoices   Invoice[]
+  shifts            Shift[]
+  receivedWarranties Warranty[]          @relation("receivedWarranties")
+  resolvedWarranties Warranty[]          @relation("resolvedWarranties")
+  financialTransactions FinancialTransaction[]
+  stockTransactions  StockTransaction[]
+  posts              Post[]
+  comments           Comment[]
 }
 
 model Role {
-  id              Int              @id @default(autoincrement())
-  name            String           @unique
-  description     String?
-  createdAt       DateTime         @default(now()) @map("created_at")
-  rolePermissions RolePermission[]
-  userRoles       UserRole[]
-
-  @@map("roles")
+  id               Int              @id @default(autoincrement())
+  name             String           @unique
+  description      String?
+  createdAt        DateTime         @default(now())
+  
+  // Relations
+  userRoles        UserRole[]
+  rolePermissions  RolePermission[]
 }
 
 model Permission {
-  id              Int              @id @default(autoincrement())
-  action          String           @unique
-  description     String?
-  createdAt       DateTime         @default(now()) @map("created_at")
-  rolePermissions RolePermission[]
-
-  @@map("permissions")
+  id               Int               @id @default(autoincrement())
+  action           String            @unique
+  description      String?
+  createdAt        DateTime          @default(now())
+  
+  // Relations
+  rolePermissions  RolePermission[]
 }
 
 model UserRole {
-  userId Int  @map("user_id")
-  roleId Int  @map("role_id")
-  role   Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  userId           Int
+  roleId           Int
+  
+  // Relations
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role             Role             @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  
   @@id([userId, roleId])
-  @@map("user_roles")
 }
 
 model RolePermission {
-  roleId       Int        @map("role_id")
-  permissionId Int        @map("permission_id")
-  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
-  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
-
+  roleId           Int
+  permissionId     Int
+  
+  // Relations
+  role             Role             @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission       Permission       @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  
   @@id([roleId, permissionId])
-  @@map("role_permissions")
 }
 
+// Blog Models (Existing)
 model Post {
-  id        Int       @id @default(autoincrement())
-  title     String
-  content   String
-  published Boolean   @default(false)
-  authorId  Int
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  comments  Comment[]
-  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
-
-  @@map("posts")
+  id               Int               @id @default(autoincrement())
+  title            String
+  content          String
+  published        Boolean           @default(false)
+  authorId         Int
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  
+  // Relations
+  author           User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments         Comment[]
 }
 
 model Comment {
-  id        Int      @id @default(autoincrement())
-  content   String
-  postId    Int
-  authorId  Int
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-
-  @@map("comments")
+  id               Int               @id @default(autoincrement())
+  content          String
+  postId           Int
+  authorId         Int
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  
+  // Relations
+  post             Post              @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author           User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
 }
 
+// Warehouse Models
 model Warehouse {
-  id                    Int                    @id @default(autoincrement())
-  name                  String
-  address               String?
-  managerId             Int?                   @map("manager_id")
-  createdAt             DateTime               @default(now()) @map("created_at")
-  updatedAt             DateTime               @updatedAt @map("updated_at")
-  inventory             Inventory[]
-  inventoryTransactions InventoryTransaction[]
-  invoices              Invoice[]
-  manager               User?                  @relation(fields: [managerId], references: [id])
-
-  @@map("warehouses")
+  id               Int                @id @default(autoincrement())
+  name             String
+  address          String?
+  description      String?
+  managerId        Int
+  status           String             @default("active") // "active", "inactive"
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  
+  // Relations
+  manager          User               @relation(fields: [managerId], references: [id])
+  inventory        Inventory[]
+  invoices         Invoice[]
+  shifts           Shift[]
+  stockTransactionsFrom StockTransaction[] @relation("warehouseFrom")
+  stockTransactionsTo   StockTransaction[] @relation("warehouseTo")
 }
 
+// Product Models
 model Category {
-  id          Int       @id @default(autoincrement())
-  name        String
-  description String?
-  products    Product[]
-
-  @@map("categories")
+  id               Int                @id @default(autoincrement())
+  name             String
+  description      String?
+  parentId         Int?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  
+  // Relations
+  parent           Category?          @relation("categoryHierarchy", fields: [parentId], references: [id])
+  children         Category[]         @relation("categoryHierarchy")
+  products         Product[]
 }
 
 model Product {
-  id                    Int                    @id @default(autoincrement())
-  code                  String                 @unique
-  name                  String
-  categoryId            Int?                   @map("category_id")
-  price                 Decimal                @db.Decimal(10, 2)
-  attributes            Json?
-  createdAt             DateTime               @default(now()) @map("created_at")
-  inventory             Inventory[]
-  inventoryTransactions InventoryTransaction[]
-  invoiceDetails        InvoiceDetail[]
-  category              Category?              @relation(fields: [categoryId], references: [id])
-  warranties            Warranty[]
+  id               Int                @id @default(autoincrement())
+  sku              String             @unique
+  barcode          String?
+  name             String
+  description      String?
+  categoryId       Int
+  costPrice        Decimal            @db.Decimal(10, 2)
+  sellingPrice     Decimal            @db.Decimal(10, 2)
+  discountPrice    Decimal?           @db.Decimal(10, 2)
+  unit             String             @default("piece") // "piece", "kg", "box", etc.
+  taxRate          Decimal            @default(0) @db.Decimal(5, 2)
+  status           String             @default("active") // "active", "inactive"
+  warrantyMonths   Int                @default(0)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  
+  // Relations
+  category         Category           @relation(fields: [categoryId], references: [id])
+  attributes       ProductAttribute[]
+  variants         ProductVariant[]
+  inventory        Inventory[]
+  invoiceItems     InvoiceItem[]
+  stockItems       StockTransactionItem[]
+  warranties       Warranty[]
+}
 
-  @@map("products")
+model ProductAttribute {
+  id               Int                @id @default(autoincrement())
+  productId        Int
+  key              String             // "color", "size", etc.
+  value            String
+  createdAt        DateTime           @default(now())
+  
+  // Relations
+  product          Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  @@unique([productId, key, value])
+}
+
+model ProductVariant {
+  id               Int                @id @default(autoincrement())
+  productId        Int
+  sku              String             @unique
+  barcode          String?
+  attributesJson   Json               // { "color": "red", "size": "L" }
+  costPrice        Decimal?           @db.Decimal(10, 2)
+  sellingPrice     Decimal?           @db.Decimal(10, 2)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  
+  // Relations
+  product          Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
+  inventory        Inventory[]
+  invoiceItems     InvoiceItem[]
+  stockItems       StockTransactionItem[]
+  warranties       Warranty[]
 }
 
 model Inventory {
-  id          Int       @id @default(autoincrement())
-  productId   Int       @map("product_id")
-  warehouseId Int       @map("warehouse_id")
-  quantity    Int
-  lastUpdated DateTime  @default(now()) @map("last_updated")
-  product     Product   @relation(fields: [productId], references: [id])
-  warehouse   Warehouse @relation(fields: [warehouseId], references: [id])
-
-  @@unique([productId, warehouseId])
-  @@map("inventory")
+  id               Int                @id @default(autoincrement())
+  warehouseId      Int
+  productId        Int
+  variantId        Int?
+  quantity         Int                @default(0)
+  minQuantity      Int                @default(0)
+  lastStockTakeAt  DateTime?
+  updatedAt        DateTime           @updatedAt
+  
+  // Relations
+  warehouse        Warehouse          @relation(fields: [warehouseId], references: [id])
+  product          Product            @relation(fields: [productId], references: [id])
+  variant          ProductVariant?    @relation(fields: [variantId], references: [id])
+  
+  @@unique([warehouseId, productId, variantId])
 }
 
+// Customer Models
 model Customer {
-  id           Int           @id @default(autoincrement())
-  name         String
-  phone        String?
-  email        String?       @unique
-  address      String?
-  debt         Decimal       @default(0) @db.Decimal(10, 2)
-  createdAt    DateTime      @default(now()) @map("created_at")
-  invoices     Invoice[]
-  transactions Transaction[]
-  warranties   Warranty[]
-
-  @@map("customers")
+  id               Int                @id @default(autoincrement())
+  code             String?            @unique
+  name             String
+  phone            String?
+  email            String?
+  address          String?
+  taxCode          String?
+  type             String             @default("retail") // "retail", "wholesale"
+  birthdate        DateTime?
+  points           Int                @default(0)
+  balanceDue       Decimal            @default(0) @db.Decimal(12, 2)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  
+  // Relations
+  invoices         Invoice[]
+  financialTransactions FinancialTransaction[]
+  warranties       Warranty[]
 }
 
+// Partner Models
 model Partner {
-  id           Int           @id @default(autoincrement())
-  name         String
-  type         PartnerType
-  contact      Json?
-  debt         Decimal       @default(0) @db.Decimal(10, 2)
-  createdAt    DateTime      @default(now()) @map("created_at")
-  transactions Transaction[]
+  id               Int                @id @default(autoincrement())
+  code             String?            @unique
+  name             String
+  type             String             // "supplier", "distributor"
+  contactName      String?
+  contactPhone     String?
+  contactEmail     String?
+  address          String?
+  taxCode          String?
+  balanceDue       Decimal            @default(0) @db.Decimal(12, 2)
+  terms            String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  
+  // Relations
+  financialTransactions FinancialTransaction[]
+  stockTransactions      StockTransaction[]
+}
 
-  @@map("partners")
+// Sales and Shift Models
+model Shift {
+  id               Int                @id @default(autoincrement())
+  userId           Int
+  warehouseId      Int
+  startTime        DateTime           @default(now())
+  endTime          DateTime?
+  startCash        Decimal            @db.Decimal(10, 2)
+  endCash          Decimal?           @db.Decimal(10, 2)
+  expectedCash     Decimal?           @db.Decimal(10, 2)
+  cashDifference   Decimal?           @db.Decimal(10, 2)
+  note             String?
+  status           String             @default("open") // "open", "closed"
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  
+  // Relations
+  user             User               @relation(fields: [userId], references: [id])
+  warehouse        Warehouse          @relation(fields: [warehouseId], references: [id])
+  invoices         Invoice[]
 }
 
 model Invoice {
-  id             Int             @id @default(autoincrement())
-  customerId     Int?            @map("customer_id")
-  warehouseId    Int             @map("warehouse_id")
-  employeeId     Int             @map("employee_id")
-  totalAmount    Decimal         @map("total_amount") @db.Decimal(10, 2)
-  status         InvoiceStatus   @default(PENDING)
-  createdAt      DateTime        @default(now()) @map("created_at")
-  invoiceDetails InvoiceDetail[]
-  customer       Customer?       @relation(fields: [customerId], references: [id])
-  employee       User            @relation(fields: [employeeId], references: [id])
-  warehouse      Warehouse       @relation(fields: [warehouseId], references: [id])
-  warranties     Warranty[]
-
-  @@map("invoices")
+  id               Int                @id @default(autoincrement())
+  code             String             @unique
+  shiftId          Int?
+  warehouseId      Int
+  customerId       Int?
+  userId           Int
+  subtotal         Decimal            @db.Decimal(12, 2)
+  taxAmount        Decimal            @db.Decimal(10, 2)
+  discountAmount   Decimal            @default(0) @db.Decimal(10, 2)
+  total            Decimal            @db.Decimal(12, 2)
+  paidAmount       Decimal            @db.Decimal(12, 2)
+  changeAmount     Decimal            @default(0) @db.Decimal(10, 2)
+  paymentMethod    String             // "cash", "card", "transfer", "mixed"
+  paymentDetails   Json?              // Additional payment details
+  status           String             @default("draft") // "draft", "completed", "cancelled"
+  note             String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  
+  // Relations
+  shift            Shift?             @relation(fields: [shiftId], references: [id])
+  warehouse        Warehouse          @relation(fields: [warehouseId], references: [id])
+  customer         Customer?          @relation(fields: [customerId], references: [id])
+  user             User               @relation(fields: [userId], references: [id])
+  items            InvoiceItem[]
+  financialTransactions FinancialTransaction[]
+  stockTransactions      StockTransaction[]
+  warranties        Warranty[]
 }
 
-model InvoiceDetail {
-  id        Int     @id @default(autoincrement())
-  invoiceId Int     @map("invoice_id")
-  productId Int     @map("product_id")
-  quantity  Int
-  unitPrice Decimal @map("unit_price") @db.Decimal(10, 2)
-  discount  Decimal @default(0) @db.Decimal(10, 2)
-  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-  product   Product @relation(fields: [productId], references: [id])
-
-  @@map("invoice_details")
+model InvoiceItem {
+  id               Int                @id @default(autoincrement())
+  invoiceId        Int
+  productId        Int
+  variantId        Int?
+  quantity         Decimal            @db.Decimal(8, 2)
+  unitPrice        Decimal            @db.Decimal(10, 2)
+  originalPrice    Decimal            @db.Decimal(10, 2)
+  discountAmount   Decimal            @default(0) @db.Decimal(10, 2)
+  taxRate          Decimal            @default(0) @db.Decimal(5, 2)
+  taxAmount        Decimal            @default(0) @db.Decimal(10, 2)
+  subtotal         Decimal            @db.Decimal(12, 2)
+  createdAt        DateTime           @default(now())
+  
+  // Relations
+  invoice          Invoice            @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  product          Product            @relation(fields: [productId], references: [id])
+  variant          ProductVariant?    @relation(fields: [variantId], references: [id])
 }
 
-model Transaction {
-  id          Int             @id @default(autoincrement())
-  type        TransactionType
-  customerId  Int?            @map("customer_id")
-  partnerId   Int?            @map("partner_id")
-  amount      Decimal         @db.Decimal(10, 2)
-  description String?
-  createdAt   DateTime        @default(now()) @map("created_at")
-  customer    Customer?       @relation(fields: [customerId], references: [id])
-  partner     Partner?        @relation(fields: [partnerId], references: [id])
-
-  @@map("transactions")
+// Stock Transaction Models
+model StockTransaction {
+  id               Int                @id @default(autoincrement())
+  code             String             @unique
+  type             String             // "import", "export", "return", "adjustment"
+  warehouseFromId  Int?
+  warehouseToId    Int?
+  partnerId        Int?
+  invoiceId        Int?
+  userId           Int
+  totalValue       Decimal            @db.Decimal(12, 2)
+  status           String             @default("draft") // "draft", "completed", "cancelled"
+  note             String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  
+  // Relations
+  warehouseFrom    Warehouse?         @relation("warehouseFrom", fields: [warehouseFromId], references: [id])
+  warehouseTo      Warehouse?         @relation("warehouseTo", fields: [warehouseToId], references: [id])
+  partner          Partner?           @relation(fields: [partnerId], references: [id])
+  invoice          Invoice?           @relation(fields: [invoiceId], references: [id])
+  user             User               @relation(fields: [userId], references: [id])
+  items            StockTransactionItem[]
 }
 
+model StockTransactionItem {
+  id               Int                @id @default(autoincrement())
+  transactionId    Int
+  productId        Int
+  variantId        Int?
+  quantity         Decimal            @db.Decimal(8, 2)
+  unitCost         Decimal            @db.Decimal(10, 2)
+  subtotal         Decimal            @db.Decimal(12, 2)
+  createdAt        DateTime           @default(now())
+  
+  // Relations
+  transaction      StockTransaction   @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  product          Product            @relation(fields: [productId], references: [id])
+  variant          ProductVariant?    @relation(fields: [variantId], references: [id])
+}
+
+// Financial Transaction Models
+model FinancialTransaction {
+  id               Int                @id @default(autoincrement())
+  code             String             @unique
+  type             String             // "receipt", "payment"
+  amount           Decimal            @db.Decimal(12, 2)
+  customerId       Int?
+  partnerId        Int?
+  invoiceId        Int?
+  userId           Int
+  paymentMethod    String
+  reference        String?
+  note             String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  
+  // Relations
+  customer         Customer?          @relation(fields: [customerId], references: [id])
+  partner          Partner?           @relation(fields: [partnerId], references: [id])
+  invoice          Invoice?           @relation(fields: [invoiceId], references: [id])
+  user             User               @relation(fields: [userId], references: [id])
+}
+
+// Warranty Models
 model Warranty {
-  id         Int            @id @default(autoincrement())
-  invoiceId  Int            @map("invoice_id")
-  productId  Int            @map("product_id")
-  customerId Int            @map("customer_id")
-  startDate  DateTime       @map("start_date")
-  endDate    DateTime       @map("end_date")
-  status     WarrantyStatus
-  customer   Customer       @relation(fields: [customerId], references: [id])
-  invoice    Invoice        @relation(fields: [invoiceId], references: [id])
-  product    Product        @relation(fields: [productId], references: [id])
-
-  @@map("warranties")
-}
-
-model Shift {
-  id          Int       @id @default(autoincrement())
-  employeeId  Int       @map("employee_id")
-  startTime   DateTime  @map("start_time")
-  endTime     DateTime? @map("end_time")
-  initialCash Decimal   @map("initial_cash") @db.Decimal(10, 2)
-  finalCash   Decimal?  @map("final_cash") @db.Decimal(10, 2)
-  revenue     Decimal?  @db.Decimal(10, 2)
-  employee    User      @relation(fields: [employeeId], references: [id])
-
-  @@map("shifts")
-}
-
-model InventoryTransaction {
-  id          Int                      @id @default(autoincrement())
-  type        InventoryTransactionType
-  productId   Int                      @map("product_id")
-  warehouseId Int                      @map("warehouse_id")
-  quantity    Int
-  employeeId  Int                      @map("employee_id")
-  createdAt   DateTime                 @default(now()) @map("created_at")
-  employee    User                     @relation(fields: [employeeId], references: [id])
-  product     Product                  @relation(fields: [productId], references: [id])
-  warehouse   Warehouse                @relation(fields: [warehouseId], references: [id])
-
-  @@map("inventory_transactions")
-}
-
-enum PartnerType {
-  SUPPLIER
-  WHOLESALER
-}
-
-enum InvoiceStatus {
-  PENDING
-  PAID
-  CANCELLED
-}
-
-enum TransactionType {
-  RECEIPT
-  PAYMENT
-}
-
-enum WarrantyStatus {
-  ACTIVE
-  EXPIRED
-  PROCESSED
-}
-
-enum InventoryTransactionType {
-  IMPORT
-  EXPORT
+  id               Int                @id @default(autoincrement())
+  code             String             @unique
+  customerId       Int
+  invoiceId        Int
+  productId        Int
+  variantId        Int?
+  serialNumber     String?
+  issue            String
+  solution         String?
+  warrantyStart    DateTime
+  warrantyEnd      DateTime
+  status           String             @default("pending") // "pending", "processing", "completed", "rejected"
+  receivedById     Int
+  resolvedById     Int?
+  note             String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  
+  // Relations
+  customer         Customer           @relation(fields: [customerId], references: [id])
+  invoice          Invoice            @relation(fields: [invoiceId], references: [id])
+  product          Product            @relation(fields: [productId], references: [id])
+  variant          ProductVariant?    @relation(fields: [variantId], references: [id])
+  receivedBy       User               @relation("receivedWarranties", fields: [receivedById], references: [id])
+  resolvedBy       User?              @relation("resolvedWarranties", fields: [resolvedById], references: [id])
 }
