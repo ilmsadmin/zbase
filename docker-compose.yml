@@ -17,7 +17,6 @@ services:
       POSTGRES_DB: zbase
     volumes:
       - postgres-data:/var/lib/postgresql/data
-
   mongodb:
     image: mongo:6
     container_name: zbase-mongodb
@@ -29,6 +28,7 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: zbasepassword
     volumes:
       - mongodb-data:/data/db
+      - ./mongodb/init-scripts:/docker-entrypoint-initdb.d
 
   redis:
     image: redis:7

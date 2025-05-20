@@ -12,40 +12,41 @@ datasource db {
 
 // Người dùng hệ thống
 model User {
-  id                Int                @id @default(autoincrement())
-  email             String             @unique
-  password          String
-  name              String
-  role              Role?              @relation(fields: [roleId], references: [id])
-  roleId            Int?
-  managedWarehouses Warehouse[]        @relation("WarehouseManager")
-  invoices          Invoice[]
-  shifts            Shift[]
-  createdWarranties Warranty[]         @relation("WarrantyCreator")
-  handledWarranties Warranty[]         @relation("WarrantyTechnician")
-  transactions      Transaction[]
-  reportTemplates   ReportTemplate[]
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
+  id                    Int                    @id @default(autoincrement())
+  email                 String                 @unique
+  password              String
+  name                  String
+  role                  Role?                  @relation(fields: [roleId], references: [id])
+  roleId                Int?
+  managedWarehouses     Warehouse[]            @relation("WarehouseManager")
+  invoices              Invoice[]
+  shifts                Shift[]
+  createdWarranties     Warranty[]             @relation("WarrantyCreator")
+  handledWarranties     Warranty[]             @relation("WarrantyTechnician")
+  transactions          Transaction[]
+  inventoryTransactions InventoryTransaction[]
+  reportTemplates       ReportTemplate[]
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
 }
 
 // Vai trò người dùng
 model Role {
-  id            Int               @id @default(autoincrement())
-  name          String            @unique
-  description   String?
-  users         User[]
+  id              Int              @id @default(autoincrement())
+  name            String           @unique
+  description     String?
+  users           User[]
   rolePermissions RolePermission[]
-  createdAt     DateTime          @default(now())
+  createdAt       DateTime         @default(now())
 }
 
 // Quyền hạn
 model Permission {
-  id              Int               @id @default(autoincrement())
-  action          String            @unique
+  id              Int              @id @default(autoincrement())
+  action          String           @unique
   description     String?
   rolePermissions RolePermission[]
-  createdAt       DateTime          @default(now())
+  createdAt       DateTime         @default(now())
 }
 
 // Quan hệ nhiều-nhiều giữa vai trò và quyền hạn
@@ -62,77 +63,77 @@ model RolePermission {
 
 // Kho hàng
 model Warehouse {
-  id                 Int                  @id @default(autoincrement())
-  name               String
-  address            String?
-  manager            User?                @relation("WarehouseManager", fields: [managerId], references: [id])
-  managerId          Int?
-  locations          WarehouseLocation[]
-  inventory          Inventory[]
+  id                    Int                    @id @default(autoincrement())
+  name                  String
+  address               String?
+  manager               User?                  @relation("WarehouseManager", fields: [managerId], references: [id])
+  managerId             Int?
+  locations             WarehouseLocation[]
+  inventory             Inventory[]
   inventoryTransactions InventoryTransaction[]
-  invoices           Invoice[]
-  shifts             Shift[]
-  createdAt          DateTime             @default(now())
-  updatedAt          DateTime             @updatedAt
+  invoices              Invoice[]
+  shifts                Shift[]
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
 }
 
 // Vị trí lưu trữ trong kho
 model WarehouseLocation {
-  id             Int                   @id @default(autoincrement())
-  warehouse      Warehouse             @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
-  warehouseId    Int
-  zone           String
-  aisle          String
-  rack           String
-  shelf          String
-  position       String
-  description    String?
-  status         String                @default("active") // 'active', 'inactive', 'maintenance'
-  maxCapacity    Decimal?              @db.Decimal(10, 2)
-  inventory      Inventory[]
+  id                    Int                    @id @default(autoincrement())
+  warehouse             Warehouse              @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  warehouseId           Int
+  zone                  String
+  aisle                 String
+  rack                  String
+  shelf                 String
+  position              String
+  description           String?
+  status                String                 @default("active") // 'active', 'inactive', 'maintenance'
+  maxCapacity           Decimal?               @db.Decimal(10, 2)
+  inventory             Inventory[]
   inventoryTransactions InventoryTransaction[]
-  invoiceItems   InvoiceItem[]
-  createdAt      DateTime              @default(now())
-  updatedAt      DateTime              @updatedAt
+  invoiceItems          InvoiceItem[]
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
 
   @@unique([warehouseId, zone, aisle, rack, shelf, position])
 }
 
 // Danh mục sản phẩm
 model ProductCategory {
-  id          Int              @id @default(autoincrement())
-  name        String
-  parent      ProductCategory? @relation("CategoryHierarchy", fields: [parentId], references: [id])
-  parentId    Int?
-  children    ProductCategory[] @relation("CategoryHierarchy")
-  products    Product[]
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  id        Int               @id @default(autoincrement())
+  name      String
+  parent    ProductCategory?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  parentId  Int?
+  children  ProductCategory[] @relation("CategoryHierarchy")
+  products  Product[]
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
 }
 
 // Sản phẩm
 model Product {
-  id               Int                  @id @default(autoincrement())
-  code             String               @unique
-  name             String
-  description      String?
-  category         ProductCategory?     @relation(fields: [categoryId], references: [id])
-  categoryId       Int?
-  basePrice        Decimal              @db.Decimal(15, 2)
-  costPrice        Decimal?             @db.Decimal(15, 2)
-  taxRate          Decimal              @default(0) @db.Decimal(5, 2)
-  barcode          String?
-  unit             String?
-  manufacturer     String?
-  warrantyMonths   Int                  @default(0)
-  attributes       ProductAttribute[]
-  inventory        Inventory[]
+  id                    Int                    @id @default(autoincrement())
+  code                  String                 @unique
+  name                  String
+  description           String?
+  category              ProductCategory?       @relation(fields: [categoryId], references: [id])
+  categoryId            Int?
+  basePrice             Decimal                @db.Decimal(15, 2)
+  costPrice             Decimal?               @db.Decimal(15, 2)
+  taxRate               Decimal                @default(0) @db.Decimal(5, 2)
+  barcode               String?
+  unit                  String?
+  manufacturer          String?
+  warrantyMonths        Int                    @default(0)
+  attributes            ProductAttribute[]
+  inventory             Inventory[]
   inventoryTransactions InventoryTransaction[]
-  invoiceItems     InvoiceItem[]
-  priceListItems   PriceListItem[]
-  warranties       Warranty[]
-  createdAt        DateTime             @default(now())
-  updatedAt        DateTime             @updatedAt
+  invoiceItems          InvoiceItem[]
+  priceListItems        PriceListItem[]
+  warranties            Warranty[]
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
 }
 
 // Thuộc tính sản phẩm
@@ -150,23 +151,23 @@ model ProductAttribute {
 
 // Nhóm khách hàng
 model CustomerGroup {
-  id           Int          @id @default(autoincrement())
+  id           Int         @id @default(autoincrement())
   name         String
   description  String?
-  discountRate Decimal      @default(0) @db.Decimal(5, 2)
-  creditLimit  Decimal?     @db.Decimal(15, 2)
-  paymentTerms Int?         // Số ngày được phép trả chậm
-  priority     Int          @default(0)
+  discountRate Decimal     @default(0) @db.Decimal(5, 2)
+  creditLimit  Decimal?    @db.Decimal(15, 2)
+  paymentTerms Int? // Số ngày được phép trả chậm
+  priority     Int         @default(0)
   customers    Customer[]
   priceLists   PriceList[]
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 }
 
 // Khách hàng
 model Customer {
-  id            Int           @id @default(autoincrement())
-  code          String?       @unique
+  id            Int            @id @default(autoincrement())
+  code          String?        @unique
   name          String
   phone         String?
   email         String?
@@ -174,12 +175,12 @@ model Customer {
   taxCode       String?
   group         CustomerGroup? @relation(fields: [groupId], references: [id])
   groupId       Int?
-  creditBalance Decimal       @default(0) @db.Decimal(15, 2)
+  creditBalance Decimal        @default(0) @db.Decimal(15, 2)
   invoices      Invoice[]
   transactions  Transaction[]
   warranties    Warranty[]
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 }
 
 // Đối tác/nhà cung cấp
@@ -192,7 +193,7 @@ model Partner {
   email         String?
   address       String?
   taxCode       String?
-  paymentTerms  Int?          // Số ngày trả chậm mặc định
+  paymentTerms  Int? // Số ngày trả chậm mặc định
   creditBalance Decimal       @default(0) @db.Decimal(15, 2)
   transactions  Transaction[]
   createdAt     DateTime      @default(now())
@@ -201,37 +202,37 @@ model Partner {
 
 // Ca làm việc
 model Shift {
-  id          Int           @id @default(autoincrement())
-  user        User          @relation(fields: [userId], references: [id])
-  userId      Int
-  warehouse   Warehouse     @relation(fields: [warehouseId], references: [id])
-  warehouseId Int
-  startTime   DateTime
-  endTime     DateTime?
-  startAmount Decimal       @db.Decimal(15, 2)
-  endAmount   Decimal?      @db.Decimal(15, 2)
-  status      String        @default("open") // 'open', 'closed'
-  notes       String?
-  invoices    Invoice[]
+  id           Int           @id @default(autoincrement())
+  user         User          @relation(fields: [userId], references: [id])
+  userId       Int
+  warehouse    Warehouse     @relation(fields: [warehouseId], references: [id])
+  warehouseId  Int
+  startTime    DateTime
+  endTime      DateTime?
+  startAmount  Decimal       @db.Decimal(15, 2)
+  endAmount    Decimal?      @db.Decimal(15, 2)
+  status       String        @default("open") // 'open', 'closed'
+  notes        String?
+  invoices     Invoice[]
   transactions Transaction[]
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 }
 
 // Tồn kho
 model Inventory {
-  id            Int               @id @default(autoincrement())
-  product       Product           @relation(fields: [productId], references: [id])
+  id            Int                @id @default(autoincrement())
+  product       Product            @relation(fields: [productId], references: [id])
   productId     Int
-  warehouse     Warehouse         @relation(fields: [warehouseId], references: [id])
+  warehouse     Warehouse          @relation(fields: [warehouseId], references: [id])
   warehouseId   Int
   location      WarehouseLocation? @relation(fields: [locationId], references: [id])
   locationId    Int?
-  quantity      Decimal           @default(0) @db.Decimal(10, 2)
-  minStockLevel Decimal           @default(0) @db.Decimal(10, 2)
-  maxStockLevel Decimal?          @db.Decimal(10, 2)
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
+  quantity      Decimal            @default(0) @db.Decimal(10, 2)
+  minStockLevel Decimal            @default(0) @db.Decimal(10, 2)
+  maxStockLevel Decimal?           @db.Decimal(10, 2)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
 
   @@unique([productId, warehouseId, locationId])
   @@index([warehouseId])
@@ -240,21 +241,21 @@ model Inventory {
 
 // Giao dịch xuất/nhập kho
 model InventoryTransaction {
-  id              Int               @id @default(autoincrement())
-  product         Product           @relation(fields: [productId], references: [id])
+  id              Int                @id @default(autoincrement())
+  product         Product            @relation(fields: [productId], references: [id])
   productId       Int
-  warehouse       Warehouse         @relation(fields: [warehouseId], references: [id])
+  warehouse       Warehouse          @relation(fields: [warehouseId], references: [id])
   warehouseId     Int
   location        WarehouseLocation? @relation(fields: [locationId], references: [id])
   locationId      Int?
-  transactionType String           // 'in', 'out', 'transfer', 'adjustment'
-  quantity        Decimal           @db.Decimal(10, 2)
-  referenceType   String?          // 'order', 'return', 'internal', etc.
+  transactionType String // 'in', 'out', 'transfer', 'adjustment'
+  quantity        Decimal            @db.Decimal(10, 2)
+  referenceType   String? // 'order', 'return', 'internal', etc.
   referenceId     Int?
-  user            User?             @relation(fields: [userId], references: [id])
+  user            User?              @relation(fields: [userId], references: [id])
   userId          Int?
   notes           String?
-  createdAt       DateTime          @default(now())
+  createdAt       DateTime           @default(now())
 
   @@index([productId])
   @@index([warehouseId])
@@ -279,7 +280,7 @@ model Invoice {
   discountAmount Decimal       @default(0) @db.Decimal(15, 2)
   totalAmount    Decimal       @db.Decimal(15, 2)
   paidAmount     Decimal       @default(0) @db.Decimal(15, 2)
-  paymentMethod  String?       // 'cash', 'card', 'bank_transfer', etc.
+  paymentMethod  String? // 'cash', 'card', 'bank_transfer', etc.
   status         String        @default("pending") // 'pending', 'paid', 'canceled'
   notes          String?
   items          InvoiceItem[]
@@ -296,111 +297,156 @@ model Invoice {
 
 // Chi tiết hóa đơn
 model InvoiceItem {
-  id           Int                @id @default(autoincrement())
-  invoice      Invoice            @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-  invoiceId    Int
-  product      Product            @relation(fields: [productId], references: [id])
-  productId    Int
-  quantity     Decimal            @db.Decimal(10, 2)
-  unitPrice    Decimal            @db.Decimal(15, 2)
-  discountRate Decimal            @default(0) @db.Decimal(5, 2)
-  taxRate      Decimal            @default(0) @db.Decimal(5, 2)
-  totalAmount  Decimal            @db.Decimal(15, 2)
-  location     WarehouseLocation? @relation(fields: [locationId], references: [id])
-  locationId   Int?
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
+  id                 Int                @id @default(autoincrement())
+  invoice            Invoice            @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoiceId          Int
+  product            Product            @relation(fields: [productId], references: [id])
+  productId          Int
+  quantity           Decimal            @db.Decimal(10, 2)
+  unitPrice          Decimal            @db.Decimal(15, 2)
+  discountRate       Decimal            @default(0) @db.Decimal(5, 2)
+  discountAmount     Decimal            @default(0) @db.Decimal(15, 2)
+  taxRate            Decimal            @default(0) @db.Decimal(5, 2)
+  taxAmount          Decimal            @default(0) @db.Decimal(15, 2)
+  totalAmount        Decimal            @db.Decimal(15, 2)
+  location           WarehouseLocation? @relation(fields: [locationId], references: [id])
+  locationId         Int?
+  serialNumbers      String? // Có thể lưu dưới dạng JSON string hoặc array
+  serialNumber       String? // Số serial riêng
+  warrantyExpiration DateTime?
+  notes              String?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
 
   @@index([invoiceId])
   @@index([productId])
+  @@index([locationId])
 }
 
 // Bảng giá theo nhóm khách hàng
 model PriceList {
-  id               Int               @id @default(autoincrement())
-  name             String
-  description      String?
-  customerGroup    CustomerGroup     @relation(fields: [customerGroupId], references: [id])
-  customerGroupId  Int
-  startDate        DateTime?
-  endDate          DateTime?
-  status           String            @default("active") // 'active', 'inactive'
-  items            PriceListItem[]
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  id              Int             @id @default(autoincrement())
+  name            String
+  code            String          @unique
+  description     String?
+  customerGroup   CustomerGroup   @relation(fields: [customerGroupId], references: [id])
+  customerGroupId Int
+  startDate       DateTime?
+  endDate         DateTime?
+  priority        Int             @default(0) // Ưu tiên cao sẽ được áp dụng trước
+  discountType    String          @default("percentage") // 'percentage', 'fixed_amount'
+  status          String          @default("active") // 'active', 'inactive', 'expired'
+  applicableOn    String          @default("all") // 'all', 'selected_products', 'product_categories'  applyToAll       Boolean           @default(false)
+  isDefault       Boolean         @default(false)
+  items           PriceListItem[]
+  createdBy       Int? // ID người tạo
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@unique([customerGroupId, isDefault], name: "unique_price_list_default_per_customer_group")
+  @@index([customerGroupId])
+  @@index([status])
 }
 
 // Chi tiết giá sản phẩm trong bảng giá
 model PriceListItem {
-  id           Int       @id @default(autoincrement())
-  priceList    PriceList @relation(fields: [priceListId], references: [id], onDelete: Cascade)
-  priceListId  Int
-  product      Product   @relation(fields: [productId], references: [id])
-  productId    Int
-  price        Decimal   @db.Decimal(15, 2)
-  minQuantity  Decimal   @default(1) @db.Decimal(10, 2)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id                Int       @id @default(autoincrement())
+  priceList         PriceList @relation(fields: [priceListId], references: [id], onDelete: Cascade)
+  priceListId       Int
+  product           Product   @relation(fields: [productId], references: [id])
+  productId         Int
+  price             Decimal   @db.Decimal(15, 2)
+  minQuantity       Decimal   @default(1) @db.Decimal(10, 2)
+  maxQuantity       Decimal?  @db.Decimal(10, 2)
+  discountType      String    @default("percentage") // 'percentage', 'fixed_amount'
+  discountValue     Decimal   @default(0) @db.Decimal(10, 2)
+  discountRate      Decimal   @default(0) @db.Decimal(5, 2)
+  specialConditions String? // Điều kiện đặc biệt áp dụng (JSON string)
+  isActive          Boolean   @default(true)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   @@unique([priceListId, productId, minQuantity])
   @@index([productId])
+  @@index([priceListId])
 }
 
 // Phiếu thu/chi
 model Transaction {
-  id              Int       @id @default(autoincrement())
-  code            String    @unique
-  transactionType String    // 'receipt', 'payment'
-  amount          Decimal   @db.Decimal(15, 2)
-  transactionDate DateTime  @default(now())
-  customer        Customer? @relation(fields: [customerId], references: [id])
-  customerId      Int?
-  partner         Partner?  @relation(fields: [partnerId], references: [id])
-  partnerId       Int?
-  invoice         Invoice?  @relation(fields: [invoiceId], references: [id])
-  invoiceId       Int?
-  user            User      @relation(fields: [userId], references: [id])
-  userId          Int
-  shift           Shift?    @relation(fields: [shiftId], references: [id])
-  shiftId         Int?
-  paymentMethod   String?   // 'cash', 'bank_transfer', etc.
-  notes           String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id                Int       @id @default(autoincrement())
+  code              String    @unique
+  transactionType   String // 'receipt', 'payment'
+  transactionMethod String    @default("cash") // 'cash', 'bank_transfer', 'credit_card', 'e_wallet', etc.
+  amount            Decimal   @db.Decimal(15, 2)
+  transactionDate   DateTime  @default(now())
+  dueDate           DateTime?
+  status            String    @default("completed") // 'pending', 'completed', 'canceled', 'failed'
+  category          String? // 'sale', 'purchase', 'expense', 'income', 'refund', etc.
+  reference         String?
+  customer          Customer? @relation(fields: [customerId], references: [id])
+  customerId        Int?
+  partner           Partner?  @relation(fields: [partnerId], references: [id])
+  partnerId         Int?
+  invoice           Invoice?  @relation(fields: [invoiceId], references: [id])
+  invoiceId         Int?
+  referenceType     String? // 'invoice', 'purchase_order', 'expense', etc.
+  referenceId       Int?
+  user              User      @relation(fields: [userId], references: [id])
+  userId            Int
+  shift             Shift?    @relation(fields: [shiftId], references: [id])
+  shiftId           Int?
+  paymentMethod     String? // 'cash', 'bank_transfer', 'credit_card', etc.
+  accountNumber     String? // Số tài khoản ngân hàng nếu chuyển khoản
+  bankName          String? // Tên ngân hàng nếu chuyển khoản
+  receiptNumber     String? // Số chứng từ
+  attachments       String? // Đường dẫn đến tệp đính kèm (có thể là JSON string)
+  notes             String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   @@index([customerId])
   @@index([partnerId])
   @@index([invoiceId])
   @@index([userId])
   @@index([shiftId])
+  @@index([transactionDate])
+  @@index([status])
+  @@index([category])
+  @@index([referenceType, referenceId])
 }
 
 // Yêu cầu bảo hành
 model Warranty {
-  id                Int       @id @default(autoincrement())
-  code              String    @unique
-  customer          Customer  @relation(fields: [customerId], references: [id])
-  customerId        Int
-  product           Product   @relation(fields: [productId], references: [id])
-  productId         Int
-  invoice           Invoice?  @relation(fields: [invoiceId], references: [id])
-  invoiceId         Int?
-  issueDescription  String?
-  receivedDate      DateTime  @default(now())
+  id                 Int       @id @default(autoincrement())
+  code               String    @unique
+  customer           Customer  @relation(fields: [customerId], references: [id])
+  customerId         Int
+  product            Product   @relation(fields: [productId], references: [id])
+  productId          Int
+  invoice            Invoice?  @relation(fields: [invoiceId], references: [id])
+  invoiceId          Int?
+  serialNumber       String?
+  issueDescription   String?
+  receivedDate       DateTime  @default(now())
   expectedReturnDate DateTime?
-  actualReturnDate  DateTime?
-  status            String    @default("pending") // 'pending', 'processing', 'completed', 'rejected'
-  notes             String?
-  creator           User      @relation("WarrantyCreator", fields: [creatorId], references: [id])
-  creatorId         Int
-  technician        User?     @relation("WarrantyTechnician", fields: [technicianId], references: [id])
-  technicianId      Int?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  actualReturnDate   DateTime?
+  status             String    @default("pending") // 'pending', 'processing', 'completed', 'rejected'
+  diagnosis          String?
+  solution           String?
+  cost               Decimal   @default(0) @db.Decimal(15, 2)
+  charged            Boolean   @default(false)
+  notes              String?
+  creator            User      @relation("WarrantyCreator", fields: [creatorId], references: [id])
+  creatorId          Int
+  technician         User?     @relation("WarrantyTechnician", fields: [technicianId], references: [id])
+  technicianId       Int?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   @@index([customerId])
   @@index([productId])
   @@index([invoiceId])
+  @@index([serialNumber])
 }
 
 // Mẫu báo cáo tùy chỉnh
@@ -408,7 +454,7 @@ model ReportTemplate {
   id            Int      @id @default(autoincrement())
   name          String
   description   String?
-  reportType    String   // 'sales', 'inventory', 'financial', etc.
+  reportType    String // 'sales', 'inventory', 'financial', etc.
   queryTemplate String
   parameters    Json?
   createdBy     User     @relation(fields: [createdById], references: [id])
