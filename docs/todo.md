@@ -86,63 +86,63 @@ Tài liệu này liệt kê các task cần thực hiện để hoàn thiện h�
 - [ ] Cập nhật schema Prisma để phù hợp với module Customers và CustomerGroups
 
 ### 2.6. Module Đối Tác
-- [ ] Tạo Partners module
-  - [ ] Controller
-  - [ ] Service
-  - [ ] DTO
-  - [ ] Tests
+- [x] Tạo Partners module
+  - [x] Controller
+  - [x] Service
+  - [x] DTO
+  - [x] Tests
 
 ### 2.7. Module Bán Hàng
-- [ ] Tạo Invoices module
-  - [ ] Controller
-  - [ ] Service
-  - [ ] DTO
-  - [ ] Tests
-- [ ] Tạo InvoiceItems module (hoặc tích hợp vào Invoices)
+- [x] Tạo Invoices module
+  - [x] Controller
+  - [x] Service
+  - [x] DTO
+  - [x] Tests
+- [x] Tạo InvoiceItems module (đã tích hợp vào Invoices)
 
 ### 2.8. Module POS
-- [ ] Tạo Shifts module
-  - [ ] Controller
-  - [ ] Service
-  - [ ] DTO
-  - [ ] Tests
-- [ ] Tạo POS module tích hợp:
-  - [ ] Quản lý ca làm việc
-  - [ ] Bán hàng nhanh
-  - [ ] Kiểm tra tồn kho real-time
+- [x] Tạo Shifts module
+  - [x] Controller
+  - [x] Service
+  - [x] DTO
+  - [x] Tests
+- [x] Tạo POS module tích hợp:
+  - [x] Quản lý ca làm việc
+  - [x] Bán hàng nhanh
+  - [x] Kiểm tra tồn kho real-time
 
 ### 2.9. Module Giá và Khuyến Mãi
-- [ ] Tạo PriceLists module
-  - [ ] Controller
-  - [ ] Service
-  - [ ] DTO
-  - [ ] Tests
+- [x] Tạo PriceLists module
+  - [x] Controller
+  - [x] Service
+  - [x] DTO
+  - [x] Tests
 
 ### 2.10. Module Thu Chi
-- [ ] Tạo Transactions module
-  - [ ] Controller
-  - [ ] Service
-  - [ ] DTO
-  - [ ] Tests
+- [x] Tạo Transactions module
+  - [x] Controller
+  - [x] Service
+  - [x] DTO
+  - [x] Tests
 
 ### 2.11. Module Bảo Hành
-- [ ] Tạo Warranties module
-  - [ ] Controller
-  - [ ] Service
-  - [ ] DTO
-  - [ ] Tests
+- [x] Tạo Warranties module
+  - [x] Controller
+  - [x] Service
+  - [x] DTO
+  - [x] Tests
 
 ### 2.12. Module Báo Cáo
-- [ ] Tạo Reports module
-  - [ ] Controller
-  - [ ] Service
-  - [ ] Tích hợp với MongoDB cho phân tích nâng cao
-  - [ ] DTO
-  - [ ] Tests
-- [ ] Tạo Report Templates module
-  - [ ] Controller
-  - [ ] Service
-  - [ ] DTO
+- [x] Tạo Reports module
+  - [x] Controller
+  - [x] Service
+  - [x] Tích hợp với MongoDB cho phân tích nâng cao
+  - [x] DTO
+  - [x] Tests
+- [x] Tạo Report Templates module
+  - [x] Controller
+  - [x] Service
+  - [x] DTO
 
 ## 3. Frontend (NextJS)
 

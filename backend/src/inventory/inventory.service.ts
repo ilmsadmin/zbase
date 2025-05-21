@@ -7,6 +7,130 @@ import { Prisma } from '@prisma/client';
 export class InventoryService {
   constructor(private readonly prisma: PrismaService) {}
 
+  // Phương thức để tăng số lượng hàng tồn kho
+  async increaseStock(
+    productId: number,
+    warehouseId: number,
+    locationId: number | null,
+    quantity: number,
+    options?: {
+      referenceType?: string;
+      referenceId?: number;
+      userId?: number;
+      notes?: string;
+    }
+  ) {
+    return this.prisma.$transaction(async (prismaClient) => {
+      // Tìm inventory record
+      const inventory = await prismaClient.inventory.findFirst({
+        where: {
+          productId,
+          warehouseId,
+          locationId,
+        },
+      });
+
+      if (!inventory) {
+        throw new NotFoundException(`Inventory record not found for product ID ${productId} in warehouse ID ${warehouseId}`);
+      }
+
+      // Cập nhật số lượng
+      const updatedInventory = await prismaClient.inventory.update({
+        where: { id: inventory.id },
+        data: { 
+          quantity: {
+            increment: quantity
+          }
+        },
+      });
+
+      // Tạo transaction record
+      const transaction = await prismaClient.inventoryTransaction.create({
+        data: {
+          productId,
+          warehouseId,
+          locationId,
+          transactionType: 'in',
+          quantity: new Prisma.Decimal(quantity),
+          referenceType: options?.referenceType,
+          referenceId: options?.referenceId,
+          userId: options?.userId,
+          notes: options?.notes || 'Tăng số lượng hàng tồn kho',
+        },
+      });
+
+      return {
+        inventory: updatedInventory,
+        transaction,
+      };
+    });
+  }
+
+  // Phương thức để giảm số lượng hàng tồn kho
+  async decreaseStock(
+    productId: number,
+    warehouseId: number,
+    locationId: number | null,
+    quantity: number,
+    options?: {
+      referenceType?: string;
+      referenceId?: number;
+      userId?: number;
+      notes?: string;
+    }
+  ) {
+    return this.prisma.$transaction(async (prismaClient) => {
+      // Tìm inventory record
+      const inventory = await prismaClient.inventory.findFirst({
+        where: {
+          productId,
+          warehouseId,
+          locationId,
+        },
+      });
+
+      if (!inventory) {
+        throw new NotFoundException(`Inventory record not found for product ID ${productId} in warehouse ID ${warehouseId}`);
+      }
+
+      // Chuyển đổi Decimal sang number để so sánh
+      const currentQuantity = Number(inventory.quantity);
+      if (currentQuantity < quantity) {
+        throw new BadRequestException(`Insufficient stock for product ID ${productId}. Available: ${inventory.quantity}, Requested: ${quantity}`);
+      }
+
+      // Cập nhật số lượng
+      const updatedInventory = await prismaClient.inventory.update({
+        where: { id: inventory.id },
+        data: { 
+          quantity: {
+            decrement: quantity
+          }
+        },
+      });
+
+      // Tạo transaction record
+      const transaction = await prismaClient.inventoryTransaction.create({
+        data: {
+          productId,
+          warehouseId,
+          locationId,
+          transactionType: 'out',
+          quantity: new Prisma.Decimal(quantity),
+          referenceType: options?.referenceType,
+          referenceId: options?.referenceId,
+          userId: options?.userId,
+          notes: options?.notes || 'Giảm số lượng hàng tồn kho',
+        },
+      });
+
+      return {
+        inventory: updatedInventory,
+        transaction,
+      };
+    });
+  }
+
   async create(createInventoryDto: CreateInventoryDto) {
     // Verify product exists
     const product = await this.prisma.product.findUnique({

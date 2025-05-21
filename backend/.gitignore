@@ -19,6 +19,10 @@ dist/
 /out/
 
 # production
+
+# reports and uploads
+/uploads
+/generated-reports
 /build
 
 # misc

@@ -19,6 +19,7 @@ const mockPrismaService = {
     createMany: jest.fn(),
     deleteMany: jest.fn(),
   },
+  $queryRaw: jest.fn(),
 };
 
 describe('ProductAttributesService', () => {

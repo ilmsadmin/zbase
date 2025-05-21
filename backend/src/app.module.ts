@@ -17,10 +17,18 @@ import { WarehouseLocationsModule } from './warehouse-locations/warehouse-locati
 import { ProductsModule } from './products/products.module';
 import { ProductCategoriesModule } from './product-categories/product-categories.module';
 import { ProductAttributesModule } from './product-attributes/product-attributes.module';
-// Uncomment after schema update 
-// import { InventoryModule } from './inventory/inventory.module';
-// import { CustomersModule } from './customers/customers.module';
-// import { CustomerGroupsModule } from './customer-groups/customer-groups.module';
+import { InventoryModule } from './inventory/inventory.module';
+import { CustomersModule } from './customers/customers.module';
+import { CustomerGroupsModule } from './customer-groups/customer-groups.module';
+import { PartnersModule } from './partners/partners.module';
+import { InvoicesModule } from './invoices/invoices.module';
+import { ShiftsModule } from './shifts/shifts.module';
+import { PosModule } from './pos/pos.module';
+import { PriceListsModule } from './price-lists/price-lists.module';
+import { TransactionsModule } from './transactions/transactions.module';
+import { WarrantiesModule } from './warranties/warranties.module';
+import { ReportsModule } from './reports/reports.module';
+import { ReportTemplatesModule } from './report-templates/report-templates.module';
 
 @Module({  imports: [
     ConfigModule, 
@@ -38,10 +46,18 @@ import { ProductAttributesModule } from './product-attributes/product-attributes
     ProductsModule,
     ProductCategoriesModule,
     ProductAttributesModule,
-    // Uncomment after schema update
-    // InventoryModule,
-    // CustomersModule,
-    // CustomerGroupsModule,
+    InventoryModule,
+    CustomersModule,
+    CustomerGroupsModule,
+    PartnersModule,
+    InvoicesModule,
+    ShiftsModule,
+    PosModule,
+    PriceListsModule,
+    TransactionsModule,
+    WarrantiesModule,
+    ReportsModule,
+    ReportTemplatesModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService, HealthService],
