@@ -11,17 +11,18 @@ import { RedisModule } from './redis/redis.module';
 import { MongoModule } from './mongo/mongo.module';
 import { PermissionsModule } from './permissions/permissions.module';
 import { RolesModule } from './roles/roles.module';
-// InventoryModule sẽ được uncomment khi module này được tạo
-// import { InventoryModule } from './inventory/inventory.module';
 import { HealthController, HealthService } from './health';
 import { WarehousesModule } from './warehouses/warehouses.module';
 import { WarehouseLocationsModule } from './warehouse-locations/warehouse-locations.module';
 import { ProductsModule } from './products/products.module';
 import { ProductCategoriesModule } from './product-categories/product-categories.module';
 import { ProductAttributesModule } from './product-attributes/product-attributes.module';
+// Uncomment after schema update 
+// import { InventoryModule } from './inventory/inventory.module';
+// import { CustomersModule } from './customers/customers.module';
+// import { CustomerGroupsModule } from './customer-groups/customer-groups.module';
 
-@Module({
-  imports: [
+@Module({  imports: [
     ConfigModule, 
     PrismaModule,
     RedisModule,
@@ -31,8 +32,16 @@ import { ProductAttributesModule } from './product-attributes/product-attributes
     PermissionsModule,
     AuthModule, 
     PostsModule, 
-    CommentsModule, WarehousesModule, WarehouseLocationsModule, ProductsModule, ProductCategoriesModule, ProductAttributesModule,
-    // InventoryModule sẽ được uncomment khi module này được tạo
+    CommentsModule,
+    WarehousesModule,
+    WarehouseLocationsModule,
+    ProductsModule,
+    ProductCategoriesModule,
+    ProductAttributesModule,
+    // Uncomment after schema update
+    // InventoryModule,
+    // CustomersModule,
+    // CustomerGroupsModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService, HealthService],

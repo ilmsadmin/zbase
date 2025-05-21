@@ -64,24 +64,26 @@ Tài liệu này liệt kê các task cần thực hiện để hoàn thiện h�
   - [x] Tests
 
 ### 2.4. Module Inventory
-- [ ] Tạo Inventory module
-  - [ ] Controller
-  - [ ] Service
-  - [ ] DTO
-  - [ ] Tests
-- [ ] Tạo InventoryTransactions module (hoặc tích hợp vào Inventory)
+- [x] Tạo Inventory module
+  - [x] Controller
+  - [x] Service
+  - [x] DTO
+  - [x] Tests
+- [x] Tạo InventoryTransactions module (đã tích hợp vào Inventory)
+- [ ] Cập nhật schema Prisma để phù hợp với module Inventory
 
 ### 2.5. Module Khách Hàng
-- [ ] Tạo Customers module
-  - [ ] Controller
-  - [ ] Service
-  - [ ] DTO
-  - [ ] Tests
-- [ ] Tạo CustomerGroups module
-  - [ ] Controller
-  - [ ] Service
-  - [ ] DTO
-  - [ ] Tests
+- [x] Tạo Customers module
+  - [x] Controller
+  - [x] Service
+  - [x] DTO
+  - [x] Tests
+- [x] Tạo CustomerGroups module
+  - [x] Controller
+  - [x] Service
+  - [x] DTO
+  - [x] Tests
+- [ ] Cập nhật schema Prisma để phù hợp với module Customers và CustomerGroups
 
 ### 2.6. Module Đối Tác
 - [ ] Tạo Partners module

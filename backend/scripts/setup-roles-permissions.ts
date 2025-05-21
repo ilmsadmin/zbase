@@ -46,26 +46,25 @@ const adminPermissions = [
   { action: 'product-attributes.update', description: 'Update product attributes' },
   { action: 'product-attributes.delete', description: 'Delete product attributes' },
   { action: 'product-attributes.manage', description: 'Full management of product attributes' },
-  
-  // Inventory management
-  { action: 'create:inventory', description: 'Create inventory records' },
-  { action: 'read:inventory', description: 'View inventory records' },
-  { action: 'update:inventory', description: 'Update inventory records' },
-  { action: 'delete:inventory', description: 'Delete inventory records' },
-  { action: 'manage:inventory', description: 'Full management of inventory' },
-  { action: 'create:inventory_transactions', description: 'Create inventory transactions' },
-  { action: 'read:inventory_transactions', description: 'View inventory transactions' },
+    // Inventory management
+  { action: 'inventory.create', description: 'Create inventory records' },
+  { action: 'inventory.read', description: 'View inventory records' },
+  { action: 'inventory.update', description: 'Update inventory records' },
+  { action: 'inventory.delete', description: 'Delete inventory records' },
+  { action: 'inventory.manage', description: 'Full management of inventory' },
+  { action: 'inventory.transactions.create', description: 'Create inventory transactions' },
+  { action: 'inventory.transactions.read', description: 'View inventory transactions' },
   
   // Customer management
-  { action: 'create:customers', description: 'Create customers' },
-  { action: 'read:customers', description: 'View all customers' },
-  { action: 'update:customers', description: 'Update customers' },
-  { action: 'delete:customers', description: 'Delete customers' },
-  { action: 'manage:customers', description: 'Full management of customers' },
-  { action: 'create:customer_groups', description: 'Create customer groups' },
-  { action: 'read:customer_groups', description: 'View all customer groups' },
-  { action: 'update:customer_groups', description: 'Update customer groups' },
-  { action: 'delete:customer_groups', description: 'Delete customer groups' },
+  { action: 'customers.create', description: 'Create customers' },
+  { action: 'customers.read', description: 'View all customers' },
+  { action: 'customers.update', description: 'Update customers' },
+  { action: 'customers.delete', description: 'Delete customers' },
+  { action: 'customers.manage', description: 'Full management of customers' },
+  { action: 'customer-groups.create', description: 'Create customer groups' },
+  { action: 'customer-groups.read', description: 'View all customer groups' },
+  { action: 'customer-groups.update', description: 'Update customer groups' },
+  { action: 'customer-groups.delete', description: 'Delete customer groups' },
   
   // Partner management
   { action: 'create:partners', description: 'Create partners' },
