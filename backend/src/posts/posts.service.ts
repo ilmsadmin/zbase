@@ -98,10 +98,8 @@ export class PostsService {
 
     if (!post) {
       throw new NotFoundException(`Post with ID ${id} not found`);
-    }
-
-    // Check if user has permission to view unpublished post
-    if (!post.published && post.author.id !== userId && userRole !== Role.ADMIN) {
+    }    // Check if user has permission to view unpublished post
+    if (!post.published && post.authorId !== userId && userRole !== Role.ADMIN) {
       throw new ForbiddenException('You do not have permission to view this post');
     }
 
@@ -110,10 +108,8 @@ export class PostsService {
 
   async update(id: number, updatePostDto: UpdatePostDto, userId: number, userRole: Role) {
     // Check if post exists
-    const post = await this.findOne(id, userId, userRole);
-
-    // Check if user has permission to update this post
-    if (post.author.id !== userId && userRole !== Role.ADMIN) {
+    const post = await this.findOne(id, userId, userRole);    // Check if user has permission to update this post
+    if (post.authorId !== userId && userRole !== Role.ADMIN) {
       throw new ForbiddenException('You do not have permission to update this post');
     }
 

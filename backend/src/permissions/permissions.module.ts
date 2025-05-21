@@ -7,6 +7,11 @@ import { ActionsDiscoveryService } from './actions-discovery.service';
 import { DiscoveryModule, MetadataScanner } from '@nestjs/core';
 import { AuthModule } from '../auth/auth.module';
 
+/**
+ * Module PermissionsModule đã được cập nhật để không còn tự động quét controllers 
+ * để tạo permissions. Permissions giờ đây được quản lý thủ công thông qua script
+ * setup-roles-permissions.ts
+ */
 @Module({
   imports: [PrismaModule, RedisModule, DiscoveryModule, forwardRef(() => AuthModule)],
   controllers: [PermissionsController],

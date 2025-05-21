@@ -6,23 +6,22 @@ Tài liệu này liệt kê các task cần thực hiện để hoàn thiện h�
 
 ### 1.1. Prisma Schema
 - [x] Tạo schema ban đầu (đã hoàn thành)
-- [ ] Hoàn thiện chi tiết cho các bảng còn thiếu (InvoiceItem, PriceList, PriceListItem, Transaction, Warranty)
-- [ ] Thêm các constraints và relationships còn thiếu
-- [ ] Tạo và áp dụng migrations
+- [x] Hoàn thiện chi tiết cho các bảng còn thiếu (InvoiceItem, PriceList, PriceListItem, Transaction, Warranty)
+- [x] Thêm các constraints và relationships còn thiếu
+- [x] Tạo và áp dụng migrations
 
 ### 1.2. MongoDB
-- [ ] Thiết lập MongoDB schema validation
-- [ ] Tạo các collections: logs, inventory_logs, sales_analytics, analytics_reports, forecasting_models
-- [ ] Viết service để tương tác với MongoDB
+- [x] Thiết lập MongoDB schema validation
+- [x] Tạo các collections: logs, inventory_logs, sales_analytics, analytics_reports, forecasting_models
+- [x] Viết service để tương tác với MongoDB
 
 ### 1.3. Redis
-- [ ] Thiết lập Redis key patterns
-- [ ] Hoàn thiện service caching cho:
-  - [ ] Session management
-  - [ ] Product caching
-  - [ ] Customer và Group caching
-  - [ ] Warehouse Location caching
-  - [ ] Report caching
+- [x] Thiết lập Redis key patterns
+- [x] Hoàn thiện service caching cho:
+  - [x] Session management
+  - [x] Product caching  - [x] Customer và Group caching
+  - [x] Warehouse Location caching
+  - [x] Report caching
 
 ## 2. Modules Backend (NestJS)
 
@@ -31,31 +30,38 @@ Tài liệu này liệt kê các task cần thực hiện để hoàn thiện h�
 - [x] Auth module (đã hoàn thành)
 - [x] Roles module (đã hoàn thành)
 - [x] Permissions module (đã hoàn thành)
-- [ ] Bổ sung permission cho các roles mới (admin, pos)
+- [x] Bổ sung permission cho các roles mới (admin, pos) - đã cài đặt
+- [x] Vô hiệu hóa chức năng tự động quét controllers để tạo permissions
+- [x] Cập nhật permissions cho các module mới (warehouses, products, v.v)
 
 ### 2.2. Module Kho Hàng
-- [ ] Tạo Warehouses module
-  - [ ] Controller
-  - [ ] Service
-  - [ ] DTO
-  - [ ] Tests
-- [ ] Tạo Warehouse-Locations module
-  - [ ] Controller
-  - [ ] Service
-  - [ ] DTO
-  - [ ] Tests
+- [x] Tạo Warehouses module
+  - [x] Controller
+  - [x] Service
+  - [x] DTO
+  - [x] Tests
+- [x] Tạo Warehouse-Locations module
+  - [x] Controller
+  - [x] Service
+  - [x] DTO
+  - [x] Tests
 
 ### 2.3. Module Sản Phẩm
-- [ ] Tạo Products module
-  - [ ] Controller
-  - [ ] Service
-  - [ ] DTO
-  - [ ] Tests
-- [ ] Tạo ProductCategories module
-  - [ ] Controller
-  - [ ] Service
-  - [ ] DTO
-- [ ] Tạo ProductAttributes module (hoặc tích hợp vào Products module)
+- [x] Tạo Products module
+  - [x] Controller
+  - [x] Service
+  - [x] DTO
+  - [x] Tests
+- [x] Tạo ProductCategories module
+  - [x] Controller
+  - [x] Service
+  - [x] DTO
+  - [x] Tests
+- [x] Tạo ProductAttributes module
+  - [x] Controller
+  - [x] Service
+  - [x] DTO
+  - [x] Tests
 
 ### 2.4. Module Inventory
 - [ ] Tạo Inventory module
@@ -233,8 +239,8 @@ Tài liệu này liệt kê các task cần thực hiện để hoàn thiện h�
 ## 5. Triển Khai
 
 ### 5.1. Docker
-- [ ] Cập nhật docker-compose.yml
-- [ ] Cấu hình volumes
+- [x] Cập nhật docker-compose.yml
+- [x] Cấu hình volumes
 - [ ] Tạo Dockerfiles cho frontend và backend
 
 ### 5.2. CI/CD
@@ -257,14 +263,14 @@ Tài liệu này liệt kê các task cần thực hiện để hoàn thiện h�
 ## 7. Kế Hoạch Triển Khai Theo Phases
 
 ### 7.1. Phase 1: Cơ Sở Hạ Tầng
-- [ ] Hoàn thiện database schemas
-- [ ] Setup Redis caching
-- [ ] Xây dựng khung API cơ bản
+- [x] Hoàn thiện database schemas
+- [x] Setup Redis caching
+- [x] Xây dựng khung API cơ bản
 - [ ] Xây dựng layout frontend
 
 ### 7.2. Phase 2: Core Features Admin
-- [ ] Quản lý kho hàng
-- [ ] Quản lý sản phẩm
+- [x] Quản lý kho hàng
+- [x] Quản lý sản phẩm
 - [ ] Quản lý tồn kho
 - [ ] Quản lý khách hàng
 - [ ] Quản lý đối tác

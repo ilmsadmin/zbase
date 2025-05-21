@@ -20,12 +20,22 @@ export class PermissionsController {
   async getAllPermissions() {
     return this.permissionsService.getAllPermissions();
   }
-
+  /**
+   * Endpoint này đã bị vô hiệu hóa theo yêu cầu.
+   * Không còn hỗ trợ tự động khám phá permissions từ controllers.
+   * Permissions giờ đây được quản lý thủ công thông qua script setup-roles-permissions.ts
+   * 
+   * @deprecated
+   */
   @Get('discover')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   async discoverActions() {
-    return this.actionsDiscoveryService.discoverActions();
+    return {
+      message: 'Chức năng tự động quét controllers để tạo permissions đã bị vô hiệu hóa.',
+      note: 'Tham khảo file setup-roles-permissions.ts để biết cách thiết lập permissions thủ công.',
+      actions: []
+    };
   }
 
   @Post('role/:roleId/permission/:permissionId')

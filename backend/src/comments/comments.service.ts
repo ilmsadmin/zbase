@@ -107,10 +107,8 @@ export class CommentsService {
 
   async update(id: number, updateCommentDto: UpdateCommentDto, userId: number, userRole: Role) {
     // Check if comment exists
-    const comment = await this.findOne(id);
-
-    // Check permissions - only author or admin can update
-    if (comment.author.id !== userId && userRole !== Role.ADMIN) {
+    const comment = await this.findOne(id);    // Check permissions - only author or admin can update
+    if (comment.authorId !== userId && userRole !== Role.ADMIN) {
       throw new ForbiddenException('You do not have permission to update this comment');
     }
 
@@ -133,10 +131,8 @@ export class CommentsService {
 
   async remove(id: number, userId: number, userRole: Role) {
     // Check if comment exists
-    const comment = await this.findOne(id);
-
-    // Check permissions - only author or admin can delete
-    if (comment.author.id !== userId && userRole !== Role.ADMIN) {
+    const comment = await this.findOne(id);    // Check permissions - only author or admin can delete
+    if (comment.authorId !== userId && userRole !== Role.ADMIN) {
       throw new ForbiddenException('You do not have permission to delete this comment');
     }
 
