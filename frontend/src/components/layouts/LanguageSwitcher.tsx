@@ -11,10 +11,36 @@ function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(" ");
 }
 
+import { useState, useEffect } from "react";
+import Cookies from "js-cookie";
+import { defaultLocale } from "@/i18n";
+
 export default function LanguageSwitcher() {
   const pathname = usePathname();
   const t = useTranslations("common");
-
+  const [currentLocale, setCurrentLocale] = useState<string>(defaultLocale);
+  
+  // Get current locale from cookie on client side
+  useEffect(() => {
+    const cookieLocale = Cookies.get('NEXT_LOCALE');
+    if (cookieLocale && locales.includes(cookieLocale as any)) {
+      setCurrentLocale(cookieLocale);
+    }
+  }, []);
+  
+  // Function to change language using cookies
+  const changeLanguage = (locale: string) => {
+    // Set cookie with 1 year expiration
+    Cookies.set('NEXT_LOCALE', locale, { 
+      path: '/', 
+      expires: 365 
+    });
+    
+    // Reload the page to apply the new locale
+    window.location.reload();
+  };
+  
+  // Language names mapping
   const languageNames: Record<string, string> = {
     vi: "Tiếng Việt",
     en: "English",
@@ -34,21 +60,20 @@ export default function LanguageSwitcher() {
         leaveFrom="transform opacity-100 scale-100"
         leaveTo="transform opacity-0 scale-95"
       >
-        <Menu.Items className="origin-top-right absolute right-0 mt-2 w-56 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
-          <div className="py-1">
+        <Menu.Items className="origin-top-right absolute right-0 mt-2 w-56 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">          <div className="py-1">
             {locales.map((locale) => (
               <Menu.Item key={locale}>
                 {({ active }) => (
-                  <Link
-                    href={pathname}
-                    locale={locale}
+                  <button
+                    onClick={() => changeLanguage(locale)}
                     className={classNames(
                       active ? "bg-gray-100 text-indigo-600" : "text-gray-700",
-                      "block px-4 py-2 text-sm hover:text-indigo-600 transition-colors duration-200"
+                      locale === currentLocale ? "font-medium" : "",
+                      "block w-full text-left px-4 py-2 text-sm hover:text-indigo-600 transition-colors duration-200"
                     )}
                   >
                     {languageNames[locale]}
-                  </Link>
+                  </button>
                 )}
               </Menu.Item>
             ))}

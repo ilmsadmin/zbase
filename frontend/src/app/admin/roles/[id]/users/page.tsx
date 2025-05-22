@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+// Removed useParams import for locale migration;
 import { useTranslations } from "next-intl";
 import MainLayout from "@/components/layouts/MainLayout";
 import RoleGuard from "@/components/auth/RoleGuard";

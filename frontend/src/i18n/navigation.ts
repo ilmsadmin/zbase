@@ -5,16 +5,20 @@ import { locales, defaultLocale } from '../i18n';
 export { locales, defaultLocale };
 
 // Function to strip locale prefix from a path
+// This is kept for backward compatibility with existing code but is not 
+// needed for cookie-based i18n where paths don't have locale prefixes
 export function stripLocaleFromPath(path: string): string {
   if (typeof path !== 'string') return path;
   const localePattern = new RegExp(`^/(${locales.join('|')})/`);
   return path.replace(localePattern, '/');
 }
 
-// Create navigation utilities for i18n
+// Create navigation utilities for i18n with cookie-based approach
 export const { Link, redirect, useRouter: baseUseRouter, usePathname } = createNavigation({
   locales,
-  defaultLocale
+  defaultLocale,
+  // For cookie-based i18n, we use a custom linking strategy with no locale prefix
+  urlFromPath: (path) => path // No locale prefix
 });
 
 // Wrapper for useRouter to fix duplicate locale issue
@@ -46,7 +50,14 @@ export function useRouter() {
 }
 
 export function getLocale() {
-  // In client environment, can't use headers() from next/headers
-  // so we use the defaultLocale
+  // In client environment we need to use the cookie
+  if (typeof document !== 'undefined') {
+    // Browser environment
+    const cookieMatch = document.cookie.match(/NEXT_LOCALE=([^;]+)/);
+    if (cookieMatch && locales.includes(cookieMatch[1] as any)) {
+      return cookieMatch[1];
+    }
+  }
+  // Fallback to default locale
   return defaultLocale;
 }

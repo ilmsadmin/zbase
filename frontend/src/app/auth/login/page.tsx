@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import MainLayout from "@/components/layouts/MainLayout";
@@ -14,6 +14,14 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { status } = useSession();
+  
+  // Chuyển hướng đến dashboard nếu người dùng đã đăng nhập
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.push("/dashboard");
+    }
+  }, [status, router]);
 
   const loginSchema = z.object({
     email: z.string().email(t("validation.emailInvalid")),
@@ -28,9 +36,7 @@ export default function LoginPage() {
     formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
-  });
-
-  const onSubmit = async (data: LoginFormData) => {
+  });  const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     setError(null);
 
@@ -39,12 +45,15 @@ export default function LoginPage() {
         redirect: false,
         email: data.email,
         password: data.password,
-      });      if (result?.error) {
+      });      
+      if (result?.error) {
         setError(t("invalidCredentials"));
         return;
       }
 
-      router.push("/dashboard");
+      // Chuyển hướng đến dashboard với cờ replace để tránh quay lại trang login
+      router.replace("/dashboard");
+      router.refresh();
     } catch (error) {
       setError(t("errorOccurred"));
     } finally {

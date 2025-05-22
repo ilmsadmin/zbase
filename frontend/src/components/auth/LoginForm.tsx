@@ -31,7 +31,6 @@ export default function LoginForm() {
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
-
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     setError(null);
@@ -41,12 +40,14 @@ export default function LoginForm() {
         redirect: false,
         email: data.email,
         password: data.password,
-      });      if (result?.error) {
+      });      
+      if (result?.error) {
         setError(t("auth.login.invalidCredentials"));
         return;
       }
 
-      router.push("/dashboard");
+      // Chuyển hướng đến dashboard với cờ replace để tránh quay lại trang login
+      router.replace("/dashboard");
       router.refresh();
     } catch (error) {
       setError(t("auth.login.errorOccurred"));

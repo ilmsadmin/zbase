@@ -1,7 +1,10 @@
+"use client";
+
 import Link from 'next/link';
 import Image from 'next/image';
 import LanguageSwitcher from '../layouts/LanguageSwitcher';
 import { useTranslations } from 'next-intl';
+import { useSession } from 'next-auth/react';
 
 // Placeholder SVG for demo purposes when no images are available
 const PlaceholderSVG = () => (
@@ -11,12 +14,20 @@ const PlaceholderSVG = () => (
 );
 
 interface LandingPageProps {
-  locale?: string;
+  // No longer need locale prop with cookie-based approach
 }
 
-export default function LandingPage({ locale = 'vi' }: LandingPageProps) {
-  // Nếu được sử dụng trong ngữ cảnh next-intl
-  let t: any;  try {
+export default function LandingPage() {
+  // Using next-intl with cookie-based locale
+  let t: any;
+  
+  // Initialize default locale for links (we don't need to include it in URLs anymore)
+  const defaultLocale = 'vi';
+  
+  // Kiểm tra trạng thái đăng nhập
+  const { data: session, status } = useSession();
+  
+  try {
     t = useTranslations('common');
   } catch (e) {
     // Fallback cho trường hợp không có context translation
@@ -107,30 +118,43 @@ export default function LandingPage({ locale = 'vi' }: LandingPageProps) {
           <div className="flex justify-between h-16 items-center">
             <div className="flex-shrink-0 flex items-center">
               <span className="text-2xl font-bold text-blue-600">ZBase</span>
-            </div>            <nav className="hidden md:flex space-x-10">
-              <Link href={`/${locale}`} className="text-gray-700 hover:text-gray-900 font-medium">
+            </div>            <nav className="hidden md:flex space-x-10">              <Link href="/" className="text-gray-700 hover:text-gray-900 font-medium">
                 {t('landing.menu.home')}
               </Link>
-              <Link href={`/${locale}/about`} className="text-gray-700 hover:text-gray-900 font-medium">
+              <Link href="/about" className="text-gray-700 hover:text-gray-900 font-medium">
                 {t('landing.menu.about')}
               </Link>
-              <Link href={`/${locale}/features`} className="text-gray-700 hover:text-gray-900 font-medium">
+              <Link href="/features" className="text-gray-700 hover:text-gray-900 font-medium">
                 {t('landing.menu.features')}
               </Link>
-              <Link href={`/${locale}/pricing`} className="text-gray-700 hover:text-gray-900 font-medium">
+              <Link href="/pricing" className="text-gray-700 hover:text-gray-900 font-medium">
                 {t('landing.menu.pricing')}
               </Link>
-              <Link href={`/${locale}/contact`} className="text-gray-700 hover:text-gray-900 font-medium">
+              <Link href="/contact" className="text-gray-700 hover:text-gray-900 font-medium">
                 {t('landing.menu.contact')}
               </Link>
-            </nav>
-            <div className="flex items-center space-x-4">
-              <LanguageSwitcher />              <Link href={`/${locale}/auth/login`} className="text-blue-600 hover:text-blue-800 font-medium">
-                {t('buttons.login')}
-              </Link>
-              <Link href={`/${locale}/auth/register`} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">
-                {t('buttons.register')}
-              </Link>
+            </nav>            <div className="flex items-center space-x-4">
+              <LanguageSwitcher />
+              
+              {status === 'authenticated' ? (
+                <>
+                  <Link href="/dashboard" className="text-blue-600 hover:text-blue-800 font-medium">
+                    Dashboard
+                  </Link>
+                  <span className="bg-green-600 text-white px-4 py-2 rounded-md">
+                    {session?.user?.name || session?.user?.email}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <Link href="/auth/login" className="text-blue-600 hover:text-blue-800 font-medium">
+                    {t('buttons.login')}
+                  </Link>
+                  <Link href="/auth/register" className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">
+                    {t('buttons.register')}
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -147,17 +171,34 @@ export default function LandingPage({ locale = 'vi' }: LandingPageProps) {
                 </h1>
                 <p className="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
                   {t('landing.hero.description')}
-                </p>
-                <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
-                  <div className="rounded-md shadow">                    <Link href={`/${locale}/auth/register`} className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 md:py-4 md:text-lg md:px-10">
-                      {t('buttons.tryFree')}
-                    </Link>
-                  </div>
-                  <div className="mt-3 sm:mt-0 sm:ml-3">
-                    <Link href={`/${locale}/contact`} className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 md:py-4 md:text-lg md:px-10">
-                      {t('buttons.contactUs')}
-                    </Link>
-                  </div>
+                </p>                <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
+                  {status === 'authenticated' ? (
+                    <>
+                      <div className="rounded-md shadow">
+                        <Link href="/dashboard" className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 md:py-4 md:text-lg md:px-10">
+                          Đi đến Dashboard
+                        </Link>
+                      </div>
+                      <div className="mt-3 sm:mt-0 sm:ml-3">
+                        <Link href="/contact" className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 md:py-4 md:text-lg md:px-10">
+                          {t('buttons.contactUs')}
+                        </Link>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="rounded-md shadow">
+                        <Link href="/auth/register" className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 md:py-4 md:text-lg md:px-10">
+                          {t('buttons.tryFree')}
+                        </Link>
+                      </div>
+                      <div className="mt-3 sm:mt-0 sm:ml-3">
+                        <Link href="/contact" className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 md:py-4 md:text-lg md:px-10">
+                          {t('buttons.contactUs')}
+                        </Link>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </main>
@@ -262,22 +303,22 @@ export default function LandingPage({ locale = 'vi' }: LandingPageProps) {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Contact Form */}
-      <div className="py-12 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-md mx-auto">            <div className="text-center">
-              <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
-                {t('landing.contact.title')}
-              </h2>
-              <p className="mt-3 text-lg text-gray-500">
-                {t('landing.contact.description')}
-              </p>
-            </div>
-            <div className="mt-8">
-              <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-                <form className="space-y-6" action="#" method="POST">
+      </div>      {/* Contact Form - Chỉ hiển thị nếu chưa đăng nhập */}
+      {status !== 'authenticated' && (
+        <div className="py-12 bg-gray-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-md mx-auto">            
+              <div className="text-center">
+                <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+                  {t('landing.contact.title')}
+                </h2>
+                <p className="mt-3 text-lg text-gray-500">
+                  {t('landing.contact.description')}
+                </p>
+              </div>
+              <div className="mt-8">
+                <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+                  <form className="space-y-6" action="#" method="POST">
                   <div>                    <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                       {t('landing.contact.name')}
                     </label>
@@ -338,9 +379,8 @@ export default function LandingPage({ locale = 'vi' }: LandingPageProps) {
                         className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                       />
                     </div>
-                  </div>
-
-                  <div>                    <button
+                  </div>                  <div>
+                    <button
                       type="submit"
                       className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                     >
@@ -353,63 +393,61 @@ export default function LandingPage({ locale = 'vi' }: LandingPageProps) {
           </div>
         </div>
       </div>
+      )}
 
       {/* Footer */}
       <footer className="bg-gray-800">
         <div className="max-w-7xl mx-auto py-12 px-4 overflow-hidden sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider">Về ZBase</h3>
-              <ul role="list" className="mt-4 space-y-4">
-                <li>                  <Link href={`/${locale}/about`} className="text-base text-gray-400 hover:text-white">
+              <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider">Về ZBase</h3>              <ul role="list" className="mt-4 space-y-4">
+                <li>                  <Link href="/about" className="text-base text-gray-400 hover:text-white">
                     {t('landing.menu.about')}
                   </Link>
                 </li>
                 <li>
-                  <Link href={`/${locale}/features`} className="text-base text-gray-400 hover:text-white">
+                  <Link href="/features" className="text-base text-gray-400 hover:text-white">
                     {t('landing.menu.features')}
                   </Link>
                 </li>
                 <li>
-                  <Link href={`/${locale}/team`} className="text-base text-gray-400 hover:text-white">
+                  <Link href="/team" className="text-base text-gray-400 hover:text-white">
                     Đội ngũ
                   </Link>
                 </li>
               </ul>
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider">Giải pháp</h3>
-              <ul role="list" className="mt-4 space-y-4">
-                <li>                  <Link href={`/${locale}/solutions/retail`} className="text-base text-gray-400 hover:text-white">
+              <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider">Giải pháp</h3>              <ul role="list" className="mt-4 space-y-4">
+                <li>                  <Link href="/solutions/retail" className="text-base text-gray-400 hover:text-white">
                     Bán lẻ
                   </Link>
                 </li>
                 <li>
-                  <Link href={`/${locale}/solutions/warehouse`} className="text-base text-gray-400 hover:text-white">
+                  <Link href="/solutions/warehouse" className="text-base text-gray-400 hover:text-white">
                     Kho vận
                   </Link>
                 </li>
                 <li>
-                  <Link href={`/${locale}/solutions/distribution`} className="text-base text-gray-400 hover:text-white">
+                  <Link href="/solutions/distribution" className="text-base text-gray-400 hover:text-white">
                     Phân phối
                   </Link>
                 </li>
               </ul>
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider">Hỗ trợ</h3>
-              <ul role="list" className="mt-4 space-y-4">
-                <li>                  <Link href={`/${locale}/support/documentation`} className="text-base text-gray-400 hover:text-white">
+              <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider">Hỗ trợ</h3>              <ul role="list" className="mt-4 space-y-4">
+                <li>                  <Link href="/support/documentation" className="text-base text-gray-400 hover:text-white">
                     Tài liệu
                   </Link>
                 </li>
                 <li>
-                  <Link href={`/${locale}/support/faq`} className="text-base text-gray-400 hover:text-white">
+                  <Link href="/support/faq" className="text-base text-gray-400 hover:text-white">
                     FAQ
                   </Link>
                 </li>
                 <li>
-                  <Link href={`/${locale}/support/contact`} className="text-base text-gray-400 hover:text-white">
+                  <Link href="/support/contact" className="text-base text-gray-400 hover:text-white">
                     {t('landing.menu.contact')}
                   </Link>
                 </li>
