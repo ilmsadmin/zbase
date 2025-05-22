@@ -13,6 +13,9 @@ import adminUsers from './admin.users';
 import adminRoles from './admin.roles';
 import adminComments from './admin.comments';
 import adminPosts from './admin.posts';
+import adminReports from './admin.reports';
+import adminEmployees from './admin.employees';
+import adminProducts from './admin.products';
 
 export default {
   common,
@@ -23,8 +26,12 @@ export default {
     users: adminUsers,
     roles: adminRoles,
     comments: adminComments,
-    posts: adminPosts
-  },profile,
+    posts: adminPosts,
+    reports: adminReports,
+    employees: adminEmployees,
+    products: adminProducts
+  },
+  profile,
   permissions,
   roles,
   users,

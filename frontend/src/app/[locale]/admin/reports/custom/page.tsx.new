@@ -1,0 +1,587 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
+import { useReport } from "@/components/contexts/ReportContext";
+import {
+  FiDownload, FiSave, FiPlus, FiEdit, FiTrash2,
+  FiCheckSquare, FiFilter, FiColumns, FiSettings,
+  FiTable, FiHelpCircle, FiClock, FiSearch, FiShare2
+} from "react-icons/fi";
+import { 
+  ReportType, ReportFormat, ReportFrequency,
+  ReportTemplate, reportService
+} from "@/lib/api/services/report";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle
+} from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/Select";
+import { Input } from "@/components/ui/Input";
+import { Label } from "@/components/ui/Label";
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/Dialog";
+import { Textarea } from "@/components/ui/Textarea";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/Accordion";
+import { Checkbox } from "@/components/ui/Checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/RadioGroup";
+import { Loading } from "@/components/ui/Loading";
+import { formatCurrency, formatDate, formatDateTime } from "@/lib/utils/format";
+import { DataTable, Column } from "@/components/ui/Table/DataTable";
+
+// Define the structure of a custom report template
+interface CustomReportTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  dateCreated: string;
+  lastModified: string;
+  reportType: ReportType;
+  fields: {
+    name: string;
+    label: string;
+    include: boolean;
+    aggregate?: 'sum' | 'avg' | 'min' | 'max' | 'count' | null;
+  }[];
+  filters: {
+    field: string;
+    operator: string;
+    value: any;
+    type: string;
+  }[];
+  sorting: {
+    field: string;
+    direction: 'asc' | 'desc';
+  }[];
+  grouping: string[];
+}
+
+export default function CustomReportsPage() {
+  const t = useTranslations("admin.reports");
+  
+  // State for report templates
+  const [templates, setTemplates] = useState<CustomReportTemplate[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState<CustomReportTemplate | null>(null);
+  
+  // State for new template
+  const [isCreatingTemplate, setIsCreatingTemplate] = useState(false);
+  const [newTemplate, setNewTemplate] = useState<Partial<CustomReportTemplate>>({
+    name: '',
+    description: '',
+    reportType: ReportType.SALES,
+    fields: [],
+    filters: [],
+    sorting: [],
+    grouping: []
+  });
+
+  // Use the Report Context
+  const {
+    loading,
+    error: reportError,
+    reportData,
+    recentReports,
+    fetchReportData,
+    fetchRecentReports,
+    generateReport,
+    downloadReport,
+    shareReport,
+    optimizedChartData
+  } = useReport();
+
+  // Fetch templates on component mount
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      try {
+        const response = await reportService.getReportTemplates();
+        setTemplates(response.data || []);
+      } catch (error) {
+        console.error('Error fetching templates:', error);
+      }
+    };
+
+    fetchTemplates();
+    fetchRecentReports(ReportType.CUSTOM);
+  }, [fetchRecentReports]);
+
+  // Handle template selection
+  const handleSelectTemplate = async (template: CustomReportTemplate) => {
+    setSelectedTemplate(template);
+    
+    // Fetch report data based on template
+    await fetchReportData(ReportType.CUSTOM, {
+      templateId: template.id
+    });
+  };
+
+  // Handle template deletion
+  const handleDeleteTemplate = async (templateId: string) => {
+    try {
+      await reportService.deleteReportTemplate(templateId);
+      setTemplates(templates.filter(t => t.id !== templateId));
+      if (selectedTemplate?.id === templateId) {
+        setSelectedTemplate(null);
+      }
+    } catch (error) {
+      console.error('Error deleting template:', error);
+    }
+  };
+
+  // Handle running the selected report template
+  const handleRunReport = async () => {
+    if (!selectedTemplate) return;
+    
+    // Fetch report data based on template
+    await fetchReportData(ReportType.CUSTOM, {
+      templateId: selectedTemplate.id
+    });
+  };
+
+  // Handle saving a new or edited template
+  const handleSaveTemplate = async () => {
+    try {
+      if (selectedTemplate && selectedTemplate.id) {
+        // Update existing template
+        const updatedTemplate = await reportService.updateReportTemplate(selectedTemplate.id, selectedTemplate);
+        setTemplates(templates.map(t => t.id === updatedTemplate.id ? updatedTemplate : t));
+      } else {
+        // Create new template
+        const createdTemplate = await reportService.createReportTemplate(newTemplate);
+        setTemplates([...templates, createdTemplate]);
+        setSelectedTemplate(createdTemplate);
+        setIsCreatingTemplate(false);
+      }
+    } catch (error) {
+      console.error('Error saving template:', error);
+    }
+  };
+
+  // Handle download as specific format
+  const handleDownloadReport = async (format: ReportFormat) => {
+    if (!selectedTemplate) return;
+    
+    const result = await generateReport({
+      name: `${selectedTemplate.name} - ${formatDate(new Date())}`,
+      description: selectedTemplate.description,
+      type: ReportType.CUSTOM,
+      format: format,
+      parameters: {
+        templateId: selectedTemplate.id
+      },
+      frequency: ReportFrequency.ONCE
+    });
+  };
+
+  // Template columns for the list
+  const templateColumns: Column<CustomReportTemplate>[] = [
+    {
+      key: 'name',
+      header: t('templateName'),
+      render: (row) => <span className="font-medium">{row.name}</span>,
+      sortable: true,
+    },
+    {
+      key: 'description',
+      header: t('description'),
+      render: (row) => <span className="text-gray-500">{row.description || '-'}</span>,
+      sortable: false,
+    },
+    {
+      key: 'lastModified',
+      header: t('lastModified'),
+      render: (row) => <span>{formatDateTime(row.lastModified)}</span>,
+      sortable: true,
+    },
+    {
+      key: 'actions',
+      header: t('actions'),
+      render: (row) => (
+        <div className="flex space-x-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => handleSelectTemplate(row)}
+          >
+            <FiCheckSquare className="mr-1" /> {t('select')}
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => handleDeleteTemplate(row.id)}
+          >
+            <FiTrash2 className="mr-1" /> {t('delete')}
+          </Button>
+        </div>
+      ),
+      align: 'right',
+    },
+  ];
+
+  // Report data columns (dynamic based on selected template)
+  const getReportColumns = (): Column<any>[] => {
+    if (!selectedTemplate || !selectedTemplate.fields) return [];
+    
+    return selectedTemplate.fields
+      .filter(field => field.include)
+      .map(field => ({
+        key: field.name,
+        header: field.label,
+        render: (row: any) => <span>{row[field.name]}</span>,
+        sortable: true,
+      }));
+  };
+
+  // Recent reports columns
+  const recentReportsColumns: Column<any>[] = [
+    {
+      key: 'name',
+      header: t('reportName'),
+      render: (row) => <span>{row.name}</span>,
+      sortable: true,
+    },
+    {
+      key: 'format',
+      header: t('format'),
+      render: (row) => <span className="uppercase">{row.format}</span>,
+      sortable: true,
+    },
+    {
+      key: 'createdAt',
+      header: t('createdAt'),
+      render: (row) => <span>{formatDateTime(row.createdAt)}</span>,
+      sortable: true,
+    },
+    {
+      key: 'actions',
+      header: t('actions'),
+      render: (row) => (
+        <div className="flex space-x-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => downloadReport(row.id, row.format)}
+            disabled={!row.fileUrl}
+          >
+            <FiDownload className="mr-1" /> {t('download')}
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => {
+              const url = shareReport(row.id, { expiry: '7d' });
+              // Copy to clipboard
+              navigator.clipboard.writeText(url);
+              alert(t('linkCopiedToClipboard'));
+            }}
+            disabled={!row.fileUrl}
+          >
+            <FiShare2 className="mr-1" /> {t('share')}
+          </Button>
+        </div>
+      ),
+      align: 'right',
+    },
+  ];
+
+  return (
+    <div className="container mx-auto px-4">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-gray-800 mb-2">{t('customReports')}</h1>
+        <p className="text-gray-600">{t('customReportsDescription')}</p>
+      </div>
+      
+      <Tabs defaultValue="templates" className="mb-8">
+        <TabsList>
+          <TabsTrigger value="templates">
+            <FiTable className="mr-1" />
+            {t('reportTemplates')}
+          </TabsTrigger>
+          <TabsTrigger value="builder" disabled={!selectedTemplate}>
+            <FiSettings className="mr-1" />
+            {t('reportBuilder')}
+          </TabsTrigger>
+          <TabsTrigger value="preview" disabled={!reportData}>
+            <FiTable className="mr-1" />
+            {t('reportPreview')}
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="templates" className="pt-4">
+          <div className="flex justify-end mb-4">
+            <Button onClick={() => setIsCreatingTemplate(true)}>
+              <FiPlus className="mr-1" />
+              {t('newTemplate')}
+            </Button>
+          </div>
+          
+          <Card>
+            <CardContent className="p-0">
+              {templates.length > 0 ? (
+                <DataTable
+                  columns={templateColumns}
+                  data={templates}
+                  pagination
+                  initialPageSize={10}
+                />
+              ) : (
+                <div className="h-40 flex items-center justify-center text-gray-500">
+                  {loading ? <Loading /> : <p>{t('noTemplates')}</p>}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          
+          {/* Template Creation Dialog */}
+          <Dialog open={isCreatingTemplate} onOpenChange={setIsCreatingTemplate}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>{t('createNewTemplate')}</DialogTitle>
+                <DialogDescription>
+                  {t('createNewTemplateDescription')}
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="templateName">{t('templateName')}</Label>
+                  <Input
+                    id="templateName"
+                    value={newTemplate.name || ''}
+                    onChange={(e) => setNewTemplate({...newTemplate, name: e.target.value})}
+                    placeholder={t('enterTemplateName')}
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="templateDescription">{t('description')}</Label>
+                  <Textarea
+                    id="templateDescription"
+                    value={newTemplate.description || ''}
+                    onChange={(e) => setNewTemplate({...newTemplate, description: e.target.value})}
+                    placeholder={t('enterDescription')}
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="reportType">{t('reportType')}</Label>
+                  <Select
+                    value={newTemplate.reportType}
+                    onValueChange={(value) => setNewTemplate({...newTemplate, reportType: value as ReportType})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={t('selectReportType')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={ReportType.SALES}>{t('sales')}</SelectItem>
+                      <SelectItem value={ReportType.INVENTORY}>{t('inventory')}</SelectItem>
+                      <SelectItem value={ReportType.ACCOUNTS_RECEIVABLE}>{t('accountsReceivable')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsCreatingTemplate(false)}>
+                  {t('cancel')}
+                </Button>
+                <Button type="button" onClick={handleSaveTemplate} disabled={!newTemplate.name}>
+                  {t('createTemplate')}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </TabsContent>
+        
+        <TabsContent value="builder" className="pt-4">
+          {selectedTemplate ? (
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>{selectedTemplate.name}</CardTitle>
+                  {selectedTemplate.description && (
+                    <CardDescription>{selectedTemplate.description}</CardDescription>
+                  )}
+                </CardHeader>
+                
+                <CardContent>
+                  <Accordion type="multiple">
+                    <AccordionItem value="fields">
+                      <AccordionTrigger>
+                        <div className="flex items-center">
+                          <FiColumns className="mr-2" />
+                          {t('selectedFields')}
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        {/* Fields selection would go here */}
+                        <p className="text-sm text-gray-500">{t('fieldsSelectionPlaceholder')}</p>
+                      </AccordionContent>
+                    </AccordionItem>
+                    
+                    <AccordionItem value="filters">
+                      <AccordionTrigger>
+                        <div className="flex items-center">
+                          <FiFilter className="mr-2" />
+                          {t('filters')}
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        {/* Filters configuration would go here */}
+                        <p className="text-sm text-gray-500">{t('filtersPlaceholder')}</p>
+                      </AccordionContent>
+                    </AccordionItem>
+                    
+                    <AccordionItem value="sorting">
+                      <AccordionTrigger>
+                        <div className="flex items-center">
+                          <FiSettings className="mr-2" />
+                          {t('sortingAndGrouping')}
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        {/* Sorting and grouping configuration would go here */}
+                        <p className="text-sm text-gray-500">{t('sortingPlaceholder')}</p>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                </CardContent>
+                
+                <CardFooter className="flex justify-between">
+                  <Button variant="outline" onClick={() => setSelectedTemplate(null)}>
+                    {t('cancel')}
+                  </Button>
+                  <div className="flex space-x-2">
+                    <Button variant="outline" onClick={handleSaveTemplate}>
+                      <FiSave className="mr-1" />
+                      {t('save')}
+                    </Button>
+                    <Button onClick={handleRunReport}>
+                      <FiCheckSquare className="mr-1" />
+                      {t('runReport')}
+                    </Button>
+                  </div>
+                </CardFooter>
+              </Card>
+            </div>
+          ) : (
+            <div className="h-40 flex items-center justify-center text-gray-500">
+              <p>{t('noTemplateSelected')}</p>
+            </div>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="preview" className="pt-4">
+          {loading ? (
+            <div className="h-80 flex items-center justify-center">
+              <Loading />
+            </div>
+          ) : reportData ? (
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>{selectedTemplate?.name} - {t('preview')}</CardTitle>
+                </CardHeader>
+                
+                <CardContent className="p-0">
+                  <DataTable
+                    columns={getReportColumns()}
+                    data={reportData.data || []}
+                    pagination
+                    initialPageSize={10}
+                  />
+                </CardContent>
+                
+                <CardFooter className="flex justify-end space-x-2">
+                  <div className="dropdown relative inline-block">
+                    <Button variant="outline">
+                      <FiDownload className="mr-1" />
+                      {t('download')}
+                    </Button>
+                    <div className="dropdown-menu shadow-md rounded-md bg-white p-2 mt-1 absolute right-0 hidden hover:block z-50">
+                      <Button 
+                        variant="ghost"
+                        className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 rounded"
+                        onClick={() => handleDownloadReport(ReportFormat.PDF)}
+                      >
+                        PDF
+                      </Button>
+                      <Button 
+                        variant="ghost"
+                        className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 rounded"
+                        onClick={() => handleDownloadReport(ReportFormat.EXCEL)}
+                      >
+                        Excel
+                      </Button>
+                      <Button 
+                        variant="ghost"
+                        className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 rounded"
+                        onClick={() => handleDownloadReport(ReportFormat.CSV)}
+                      >
+                        CSV
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <Button>
+                    <FiShare2 className="mr-1" />
+                    {t('share')}
+                  </Button>
+                </CardFooter>
+              </Card>
+            </div>
+          ) : (
+            <div className="h-40 flex items-center justify-center text-gray-500">
+              <p>{t('noReportDataAvailable')}</p>
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
+      
+      {/* Recent reports */}
+      <div className="mb-8">
+        <h2 className="text-xl font-bold text-gray-800 mb-4">{t('recentReports')}</h2>
+        
+        <Card>
+          <CardContent className="p-0">
+            {recentReports.length > 0 ? (
+              <DataTable
+                columns={recentReportsColumns}
+                data={recentReports}
+                pagination
+                initialPageSize={5}
+              />
+            ) : (
+              <div className="h-40 flex items-center justify-center text-gray-500">
+                {loading ? <Loading /> : <p>{t('noRecentReports')}</p>}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
