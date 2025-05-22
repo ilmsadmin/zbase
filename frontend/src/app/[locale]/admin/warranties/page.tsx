@@ -8,7 +8,7 @@ import {
   FiRefreshCw, FiFilter, FiDownload, FiCalendar, FiTool 
 } from "react-icons/fi";
 import { Link } from "@/i18n/navigation";
-import { DataTable, Column } from "@/components/ui/Table/DataTable";
+import { DataTable, DataTableColumn as Column } from "@/components/ui/Table";
 import { formatDateTime, formatCurrency } from "@/lib/utils/format";
 import { 
   Warranty, WarrantyStatus, WarrantyFilter, 

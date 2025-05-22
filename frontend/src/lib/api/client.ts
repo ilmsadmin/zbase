@@ -101,9 +101,7 @@ async function fetchWithAuth(
         // If token refresh fails, throw unauthorized error
         throw new HttpError(401, "Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
       }
-    }
-
-    if (!response.ok) {
+    }    if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new HttpError(
         response.status,
@@ -112,7 +110,15 @@ async function fetchWithAuth(
       );
     }
 
-    return response.json();
+    // Check if response has content
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      const text = await response.text();
+      // Handle empty responses - return empty object instead of trying to parse
+      return text ? JSON.parse(text) : {};
+    }
+    
+    return {};
   } catch (error) {
     if (error instanceof HttpError) {
       throw error;

@@ -2,12 +2,17 @@
 
 Tài liệu này liệt kê các task cần thực hiện để hoàn thiện hệ thống quản lý bán hàng theo thiết kế đã được mô tả trong `POS_design.md` và `database_design.md`.
 
-## Tình Trạng Hiện Tại (cập nhật 21/05/2025)
-- **Hoàn thành**: Tất cả các module Backend đã được phát triển và kiểm thử
+## Tình Trạng Hiện Tại (cập nhật 22/05/2025)
+- **Hoàn thành**: Tất cả các module Backend### 8.1. Phase 1: Cơ Sở Hạ Tầng
+- [x] Hoàn thiện database schemas
+- [x] Setup Redis caching
+- [x] Xây dựng khung API cơ bản
+- [x] Xây dựng layout frontendược phát triển và kiểm thử
 - **Hoàn thành**: Phần Admin Dashboard, quản lý kho hàng, quản lý sản phẩm, quản lý tồn kho và quản lý bảo hành
-- **Hoàn thành một phần**: Quản lý giao dịch (transactions)
-- **Đang triển khai**: Phần quản lý khách hàng, đối tác, hóa đơn và các chức năng còn lại
-- **Kế hoạch tiếp theo**: Hoàn thiện báo cáo và phân tích, sau đó phát triển POS
+- **Hoàn thành**: Quản lý giao dịch (transactions)
+- **Hoàn thành**: Tích hợp máy quét mã vạch (barcode scanner) cho POS với hỗ trợ đa định dạng mã vạch và chế độ ngoại tuyến
+- **Đang triển khai**: Phần quản lý khách hàng, đối tác, hóa đơn và các chức năng còn lại của POS
+- **Kế hoạch tiếp theo**: Hoàn thiện báo cáo và phân tích, tiếp tục phát triển giao diện POS
 
 ## 1. Cơ Sở Dữ Liệu
 
@@ -224,27 +229,33 @@ Tài liệu này liệt kê các task cần thực hiện để hoàn thiện h�
 ### 3.2. Giao Diện POS
 
 #### 3.2.1. Layout và Components
-- [ ] Layout POS
-- [ ] Màn hình bán hàng
-- [ ] Màn hình quản lý ca
-- [ ] Màn hình bảo hành
-- [ ] Components cho POS (product cards, cart, payment, etc.)
+- [x] Layout POS
+- [x] Màn hình bán hàng 
+- [x] Màn hình quản lý ca
+- [x] Màn hình bảo hành
+- [x] Components cho POS (product cards, cart, payment)
+- [x] Tích hợp máy quét mã vạch (barcode scanner)
 
 #### 3.2.2. Pages POS
-- [ ] Đăng nhập POS
-- [ ] Màn hình chính
-- [ ] Quản lý ca làm việc
-  - [ ] Mở ca
-  - [ ] Đóng ca
-  - [ ] Báo cáo ca
-- [ ] Bán hàng
-  - [ ] Tìm kiếm sản phẩm
-  - [ ] Giỏ hàng
-  - [ ] Thanh toán
-  - [ ] In hóa đơn
-- [ ] Kiểm tra bảo hành
-  - [ ] Tra cứu bảo hành
-  - [ ] Tạo yêu cầu mới
+- [x] Đăng nhập POS
+- [x] Màn hình chính
+- [x] Quản lý ca làm việc
+  - [x] Mở ca
+  - [x] Đóng ca
+  - [x] Báo cáo ca
+- [x] Bán hàng
+  - [x] Tìm kiếm sản phẩm
+  - [x] Giỏ hàng
+  - [x] Thanh toán
+  - [x] In hóa đơn
+- [x] Tích hợp máy quét mã vạch (barcode scanner)
+  - [x] Quét và nhận diện mã vạch
+  - [x] Hỗ trợ đa định dạng mã vạch (EAN-13, UPC-A, CODE-128, v.v.)
+  - [x] Chế độ ngoại tuyến (offline mode)
+  - [x] Xử lý mã vạch không hoàn chỉnh
+- [x] Kiểm tra bảo hành
+  - [x] Tra cứu bảo hành
+  - [x] Tạo yêu cầu mới
 
 ## 4. Tích Hợp và Testing
 
@@ -259,6 +270,11 @@ Tài liệu này liệt kê các task cần thực hiện để hoàn thiện h�
 - [ ] E2E tests cho API
 - [ ] Integration tests
 - [ ] UI testing
+- [ ] Testing máy quét mã vạch với các thiết bị thực tế:
+  - [ ] Kiểm tra với các máy quét thông dụng (Symbol, Honeywell, Datalogic)
+  - [ ] Kiểm tra với các định dạng mã vạch khác nhau
+  - [ ] Kiểm tra khả năng phục hồi từ mã vạch không hoàn chỉnh
+  - [ ] Kiểm tra chế độ ngoại tuyến và đồng bộ hóa
 
 ## 5. Triển Khai
 
@@ -282,34 +298,62 @@ Tài liệu này liệt kê các task cần thực hiện để hoàn thiện h�
 ### 6.2. Tài Liệu Người Dùng
 - [ ] Hướng dẫn sử dụng Admin
 - [ ] Hướng dẫn sử dụng POS
+  - [ ] Hướng dẫn sử dụng máy quét mã vạch
+  - [ ] Xử lý sự cố và tình huống ngoại lệ
+  - [ ] Quy trình bán hàng với mã vạch
 - [ ] FAQs
 
-## 7. Kế Hoạch Triển Khai Theo Phases
+## 7. Tích Hợp Máy Quét Mã Vạch (Barcode Scanner)
 
-### 7.1. Phase 1: Cơ Sở Hạ Tầng
+### 7.1. Mô Tả
+- [x] Tích hợp máy quét mã vạch vào giao diện bán hàng POS
+- [x] Hỗ trợ đa định dạng mã vạch phổ biến trong bán lẻ
+- [x] Xử lý các trường hợp ngoại tuyến và mã vạch bị lỗi
+
+### 7.2. Chức Năng Đã Triển Khai
+- [x] Nhận diện mã vạch từ nhiều định dạng khác nhau: EAN-13, UPC-A, UPC-E, CODE-128, CODE-39, ITF
+- [x] Xác thực và kiểm tra tính hợp lệ của mã vạch
+- [x] Khả năng khôi phục mã vạch không đầy đủ hoặc bị lỗi
+- [x] Chế độ ngoại tuyến (offline mode) cho phép quét mã khi mất kết nối
+- [x] Lưu trữ mã vạch đã quét trong bộ nhớ cục bộ (localStorage) để xử lý sau khi kết nối trở lại
+- [x] Hiển thị thông báo trạng thái quét (thành công/lỗi)
+- [x] Hiển thị thông tin về định dạng mã vạch đã phát hiện
+
+### 7.3. Tính Năng Cần Phát Triển Thêm
+- [ ] Kiểm thử với nhiều loại máy quét mã vạch thực tế
+- [ ] Tùy chỉnh cấu hình cho từng loại máy quét cụ thể
+- [ ] Mở rộng hỗ trợ cho mã QR và mã 2D
+- [ ] Tối ưu hóa bộ nhớ cache ngoại tuyến cho dữ liệu sản phẩm
+
+## 8. Kế Hoạch Triển Khai Theo Phases
+
+### 8.1. Phase 1: Cơ Sở Hạ Tầng
 - [x] Hoàn thiện database schemas
 - [x] Setup Redis caching
 - [x] Xây dựng khung API cơ bản
 - [x] Xây dựng layout frontend
 
-### 7.2. Phase 2: Core Features Admin
+### 8.2. Phase 2: Core Features Admin
 - [x] Quản lý kho hàng
 - [x] Quản lý sản phẩm
 - [x] Quản lý tồn kho
 - [ ] Quản lý khách hàng
 - [ ] Quản lý đối tác
 
-### 7.3. Phase 3: Core Features POS
-- [ ] Quản lý ca làm việc
-- [ ] Bán hàng
-- [ ] Quản lý hóa đơn
+### 8.3. Phase 3: Core Features POS
+- [x] Quản lý ca làm việc
+- [x] Bán hàng
+  - [x] Tích hợp máy quét mã vạch
+  - [x] Giỏ hàng và thanh toán
+  - [x] Tìm kiếm sản phẩm
+- [ ] Quản lý hóa đơn đầy đủ
 
-### 7.4. Phase 4: Advanced Features
+### 8.4. Phase 4: Advanced Features
 - [x] Báo cáo và phân tích
 - [x] Bảo hành
 - [ ] Tùy chỉnh giá theo nhóm khách hàng
 
-### 7.5. Phase 5: Hoàn Thiện
+### 8.5. Phase 5: Hoàn Thiện
 - [ ] Testing và sửa lỗi
 - [ ] Tối ưu hiệu năng
 - [ ] Viết tài liệu
