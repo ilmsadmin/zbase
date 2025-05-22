@@ -1,43 +1,68 @@
-import { NextRequest } from 'next/server';
-import createMiddleware from 'next-intl/middleware';
+import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
+import { match } from '@formatjs/intl-localematcher';
+import Negotiator from 'negotiator';
+import { defaultLocale, locales } from './i18n';
 
-// Create intl middleware
-const intlMiddleware = createMiddleware({
-  // A list of all locales that are supported
-  locales: ['vi', 'en'],
- 
-  // If this locale is matched, pathnames work without a prefix (e.g. `/about`)
-  defaultLocale: 'vi',
+// Get locale from cookie, header, or default
+function getLocale(request: NextRequest): string {
+  // Check if locale is in cookie
+  const cookieLocale = request.cookies.get('NEXT_LOCALE')?.value;
+  if (cookieLocale && locales.includes(cookieLocale as any)) {
+    return cookieLocale;
+  }
 
-  // Auto-detection based on browser/cookie settings
-  localeDetection: true
-});
+  // Use accept-language header for negotiation if no cookie
+  let languages: string[] = [];
+  const acceptLanguage = request.headers.get('accept-language');
+  if (acceptLanguage) {
+    languages = new Negotiator({
+      headers: { 'accept-language': acceptLanguage }
+    }).languages();
+  }
 
-// Logger middleware for debugging
-const debugMiddleware = async (request: NextRequest) => {
-  // Only log for admin path
+  try {
+    return match(languages, locales as unknown as string[], defaultLocale) || defaultLocale;
+  } catch (e) {
+    return defaultLocale;
+  }
+}
+
+// Middleware function that handles both locale detection and auth logging
+export async function middleware(request: NextRequest) {
+  // Get locale from cookie or headers
+  const locale = getLocale(request);
+  
+  // Log admin access attempts for debugging
   if (request.nextUrl.pathname.startsWith('/admin')) {
     try {
-      // Get the token
       const token = await getToken({ req: request });
       console.log(`Middleware - Admin route request:`, { 
         path: request.nextUrl.pathname,
         hasToken: !!token,
         role: token?.role,
+        locale
       });
     } catch (error) {
       console.error("Middleware error:", error);
     }
   }
   
-  // Continue to intl middleware
-  return intlMiddleware(request);
-};
-
-export default debugMiddleware;
+  // Create response
+  const response = NextResponse.next();
+  
+  // Always set the locale cookie to ensure consistency
+  if (!request.cookies.has('NEXT_LOCALE') || request.cookies.get('NEXT_LOCALE')?.value !== locale) {
+    response.cookies.set('NEXT_LOCALE', locale, { 
+      path: '/',
+      maxAge: 60 * 60 * 24 * 365 // 1 year
+    });
+  }
+  
+  return response;
+}
  
 export const config = {
-  // Skip all paths that should not be internationalized
-  matcher: ['/((?!api|_next|.*\\..*).*)']
+  // Skip all paths that should not be handled by this middleware
+  matcher: ['/((?!api|_next|_vercel|.*\\..*).*)']
 };

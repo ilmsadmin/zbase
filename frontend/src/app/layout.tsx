@@ -3,6 +3,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/components/auth/AuthProvider";
 import { AbilityProvider } from "@/abilities/AbilityContext";
+import { NextIntlClientProvider } from 'next-intl';
+import { cookies } from 'next/headers';
+import { defaultLocale, locales } from '@/i18n';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,21 +22,42 @@ export const metadata: Metadata = {
   description: "Hệ thống quản lý với xác thực và phân quyền",
 };
 
-export default function RootLayout({
+// Get messages for the locale
+async function getMessages(locale: string) {
+  try {
+    return (await import(`@/messages/${locale}/index`)).default;
+  } catch (error) {
+    console.error(`Failed to load messages for locale: ${locale}`, error);
+    // Fallback to default locale if the requested locale is not found
+    return (await import(`@/messages/${defaultLocale}/index`)).default;
+  }
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Get locale from cookie
+  const cookieStore = cookies();
+  const cookieLocale = cookieStore.get('NEXT_LOCALE')?.value;
+  const locale = cookieLocale && locales.includes(cookieLocale as any) ? cookieLocale : defaultLocale;
+  
+  // Get messages for the current locale
+  const messages = await getMessages(locale);
+  
   return (
-    <html lang="vi">
+    <html lang={locale}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProvider>
-          <AbilityProvider>
-            {children}
-          </AbilityProvider>
-        </AuthProvider>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <AuthProvider>
+            <AbilityProvider>
+              {children}
+            </AbilityProvider>
+          </AuthProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

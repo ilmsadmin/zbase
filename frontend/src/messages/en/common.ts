@@ -1,7 +1,46 @@
 export default {
   title: 'ZBase - Management System',
   welcome: 'Welcome to ZBase',
-  description: 'A modern management system with user authentication and role-based access control (RBAC).',  navigation: {
+  description: 'A modern management system with user authentication and role-based access control (RBAC).',
+  landing: {
+    hero: {
+      title: 'Smart Business Management with ZBase',
+      description: 'Comprehensive inventory and retail management solution, helping businesses operate efficiently and develop sustainably.'
+    },
+    features: {
+      title: 'Features',
+      subtitle: 'Comprehensive Solutions for Businesses',
+      description: 'ZBase provides all the features to help your business operate efficiently.'
+    },
+    stats: {
+      title: 'Trusted by thousands of businesses',
+      businesses: 'Businesses using',
+      transactions: 'Transactions per month',
+      uptime: 'Uptime',
+      support: 'Customer support'
+    },
+    testimonials: {
+      title: 'What Our Customers Say',
+      subtitle: 'Customer satisfaction is our success'
+    },
+    contact: {
+      title: 'Register for a Free Trial',
+      description: 'Leave your information, we will contact you within 24 hours',
+      name: 'Full name',
+      email: 'Email',
+      phone: 'Phone number',
+      company: 'Company name',
+      submit: 'Register Now'
+    },
+    menu: {
+      home: 'Home',
+      about: 'About',
+      features: 'Features',
+      pricing: 'Pricing',
+      contact: 'Contact'
+    }
+  },
+  navigation: {
     home: 'Home',
     dashboard: 'Dashboard',
     profile: 'Profile',

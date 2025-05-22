@@ -5,7 +5,7 @@ import RoleGuard from "@/components/auth/RoleGuard";
 import { useTranslations } from "next-intl";
 import AdminDashboard from "@/components/admin/dashboard/AdminDashboard";
 
-export default function AdminPage() {
+export default function AdminDashboardPage() {
   const t = useTranslations("admin");
   
   return (

@@ -1,44 +1,48 @@
-import React, { useState } from 'react';
-import AdminHeader from './admin/AdminHeader';
-import AdminSidebar from './admin/AdminSidebar';
+import React from 'react';
+import { usePathname } from 'next/navigation';
 import AdminFooter from './admin/AdminFooter';
-import AdminBreadcrumbs from './admin/AdminBreadcrumbs';
+import AdminNavigationMenu from './admin/AdminNavigationMenu';
+import SubNavigation from './admin/SubNavigation';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
 }
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-
-  const toggleSidebar = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
+  const pathname = usePathname() || '';
+    // Determine current module from path
+  const getModule = (path: string) => {
+    // For root admin path or admin/dashboard, return dashboard
+    if (path === '/admin' || path === '/admin/dashboard') return 'dashboard';
+    
+    if (path.includes('/admin/warehouse')) return 'warehouse';
+    if (path.includes('/admin/products')) return 'products';
+    if (path.includes('/admin/customers')) return 'customers';
+    if (path.includes('/admin/sales')) return 'sales';
+    if (path.includes('/admin/finance')) return 'finance';
+    if (path.includes('/admin/reports')) return 'reports';
+    if (path.includes('/admin/settings')) return 'settings';
+    return 'dashboard';
   };
+  
+  const currentModule = getModule(pathname);
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
-      <AdminSidebar collapsed={sidebarCollapsed} onToggle={toggleSidebar} />
-
-      {/* Main Content */}
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarCollapsed ? 'ml-20' : 'ml-64'}`}>
-        {/* Header */}
-        <AdminHeader onToggleSidebar={toggleSidebar} />
-
-        {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto p-6 bg-gray-50">
-          {/* Breadcrumbs */}
-          <AdminBreadcrumbs />
+    <div className="flex flex-col min-h-screen bg-gray-50">
+      {/* Top Navigation Menu */}
+      <AdminNavigationMenu />
+      
+      {/* Sub Navigation */}
+      <SubNavigation module={currentModule} currentPath={pathname} />      {/* Main Content Area */}
+      <main className="flex-1 p-6 bg-gray-50 mt-0">
           
           {/* Page Content */}
-          <div className="mt-4">
+          <div className="mt-2">
             {children}
-          </div>
-        </main>
+          </div>        </main>
 
         {/* Footer */}
         <AdminFooter />
-      </div>
     </div>
   );
 }

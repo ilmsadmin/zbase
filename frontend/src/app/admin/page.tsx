@@ -7,11 +7,9 @@ import AdminDashboard from "@/components/admin/dashboard/AdminDashboard";
 
 export default function AdminPage() {
   const t = useTranslations("admin");
-  
-  return (
+    return (
     <RoleGuard allowedRoles={["ADMIN"]}>
-      <AdminLayout>
-        <div className="py-6">
+      <AdminLayout>        <div className="py-1">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h1 className="sr-only">{t("dashboard")}</h1>
             <AdminDashboard />

@@ -10,6 +10,12 @@ interface BreadcrumbItem {
 
 export default function AdminBreadcrumbs() {
   const pathname = usePathname();
+  
+  // Special case for root admin path
+  if (pathname === '/admin' || pathname === '/admin/dashboard') {
+    return null; // Don't render breadcrumbs on the dashboard page
+  }
+  
   const pathSegments = pathname.split('/').filter(Boolean);
   
   // Skip the first segment which is 'admin'
@@ -20,7 +26,7 @@ export default function AdminBreadcrumbs() {
 
   // Add Home
   breadcrumbs.push({
-    href: '/admin/dashboard',
+    href: '/admin',
     label: 'Trang chủ'
   });
 
