@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
-import { Inter as FontSans } from "next/font/google";
+import { Roboto_Flex as FontSans } from "next/font/google";
 import { Geist_Mono as FontMono } from "next/font/google";
 import "./globals.css";
+import { ReactQueryProvider } from "@/lib/react-query";
+import { ToastProvider } from "@/components/ui/Toast";
 
 const fontSans = FontSans({
-  subsets: ["latin"],
+  subsets: ["latin", "vietnamese"],
   variable: "--font-sans",
 });
 
@@ -28,7 +30,11 @@ export default function RootLayout({
       <body
         className={`${fontSans.variable} ${fontMono.variable} antialiased`}
       >
-        {children}
+        <ReactQueryProvider>
+          <ToastProvider>
+            {children}
+          </ToastProvider>
+        </ReactQueryProvider>
       </body>
     </html>
   );
