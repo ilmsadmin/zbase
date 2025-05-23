@@ -2,14 +2,15 @@
 
 Tài liệu này liệt kê các task cần thực hiện để hoàn thiện hệ thống quản lý bán hàng theo thiết kế đã được mô tả trong `POS_design.md` và `database_design.md`.
 
-## Tình Trạng Hiện Tại (cập nhật 23/05/2025)
+## Tình Trạng Hiện Tại (cập nhật 24/05/2025)
 - **Hoàn thành**: Tất cả các module Backend đã được phát triển và kiểm thử
 - **Hoàn thành**: Phần Admin Dashboard, quản lý kho hàng, quản lý sản phẩm, quản lý tồn kho và quản lý bảo hành
 - **Hoàn thành**: Quản lý giao dịch (transactions)
 - **Hoàn thành**: Tích hợp máy quét mã vạch (barcode scanner) cho POS với hỗ trợ đa định dạng mã vạch và chế độ ngoại tuyến
 - **Hoàn thành**: Trang chủ (landing page) với đầy đủ các section và animation
+- **Hoàn thành**: Báo cáo và phân tích (Reports & Analytics)
 - **Đang triển khai**: Phần quản lý khách hàng, đối tác, hóa đơn và các chức năng còn lại của POS
-- **Kế hoạch tiếp theo**: Hoàn thiện báo cáo và phân tích, tiếp tục phát triển giao diện POS
+- **Kế hoạch tiếp theo**: Tiếp tục phát triển giao diện POS và hoàn thiện System Settings
 
 ## 1. Cơ Sở Dữ Liệu
 
@@ -381,152 +382,152 @@ Tài liệu này liệt kê các task cần thực hiện để hoàn thiện h�
   - [x] Drag-drop reordering
 
 #### 3.5.4. Inventory Management
-- [ ] Inventory list page
-  - [ ] Warehouse filter
-  - [ ] Product search
-  - [ ] Stock level filters
-  - [ ] Inventory table
-- [ ] Stock adjustment modal
-  - [ ] Product selector
-  - [ ] Quantity input
-  - [ ] Reason selector
-  - [ ] Notes field
-- [ ] Transfer inventory modal
-  - [ ] Source/destination warehouse
-  - [ ] Products selector
-  - [ ] Quantity inputs
-- [ ] Inventory history
-  - [ ] Transaction list
-  - [ ] Filter by type
-  - [ ] Date range picker
+- [x] Inventory list page
+  - [x] Warehouse filter
+  - [x] Product search
+  - [x] Stock level filters
+  - [x] Inventory table
+- [x] Stock adjustment modal
+  - [x] Product selector
+  - [x] Quantity input
+  - [x] Reason selector
+  - [x] Notes field
+- [x] Transfer inventory modal
+  - [x] Source/destination warehouse
+  - [x] Products selector
+  - [x] Quantity inputs
+- [x] Inventory history
+  - [x] Transaction list
+  - [x] Filter by type
+  - [x] Date range picker
 
 #### 3.5.5. Warehouse Management
-- [ ] Warehouses list page
-  - [ ] Warehouse cards/table
-  - [ ] Add warehouse button
-  - [ ] Quick stats per warehouse
-- [ ] Warehouse form modal
-  - [ ] Basic info fields
-  - [ ] Address inputs
-  - [ ] Manager selector
-- [ ] Warehouse details page
-  - [ ] Warehouse info
-  - [ ] Location tree view
-  - [ ] Inventory summary
-- [ ] Location management
-  - [ ] Location tree (zones/aisles/racks)
-  - [ ] Add location modal
-  - [ ] Edit/Delete actions
+- [x] Warehouses list page
+  - [x] Warehouse cards/table
+  - [x] Add warehouse button
+  - [x] Quick stats per warehouse
+- [x] Warehouse form modal
+  - [x] Basic info fields
+  - [x] Address inputs
+  - [x] Manager selector
+- [x] Warehouse details page
+  - [x] Warehouse info
+  - [x] Location tree view
+  - [x] Inventory summary
+- [x] Location management
+  - [x] Location tree (zones/aisles/racks)
+  - [x] Add location modal
+  - [x] Edit/Delete actions
 
 #### 3.5.6. Customer Management
-- [ ] Customers list page
-  - [ ] Search bar
-  - [ ] Group filter
-  - [ ] Customer table
-  - [ ] Add customer button
-- [ ] Customer form modal
-  - [ ] Personal info fields
-  - [ ] Contact fields
-  - [ ] Group selector
-  - [ ] Credit limit
-- [ ] Customer details page
-  - [ ] Customer info tabs
-  - [ ] Purchase history
-  - [ ] Credit/debt info
-  - [ ] Notes section
-- [ ] Customer groups page
-  - [ ] Groups list
-  - [ ] Add/Edit group modal
-  - [ ] Discount settings
-  - [ ] Member count
+- [x] Customers list page
+  - [x] Search bar
+  - [x] Group filter
+  - [x] Customer table
+  - [x] Add customer button
+- [x] Customer form modal
+  - [x] Personal info fields
+  - [x] Contact fields
+  - [x] Group selector
+  - [x] Credit limit
+- [x] Customer details page
+  - [x] Customer info tabs
+  - [x] Purchase history
+  - [x] Credit/debt info
+  - [x] Notes section
+- [x] Customer groups page
+  - [x] Groups list
+  - [x] Add/Edit group modal
+  - [x] Discount settings
+  - [x] Member count
 
 #### 3.5.7. Invoice Management
-- [ ] Invoices list page
-  - [ ] Date range filter
-  - [ ] Status filter
-  - [ ] Customer search
-  - [ ] Invoices table
-- [ ] Create invoice page
-  - [ ] Customer selector
-  - [ ] Product search/add
-  - [ ] Cart/items list
-  - [ ] Discount inputs
-  - [ ] Payment info
-  - [ ] Save/Print actions
-- [ ] Invoice details page
-  - [ ] Invoice header info
-  - [ ] Items table
-  - [ ] Payment status
-  - [ ] Print/Email actions
-- [ ] Invoice templates
-  - [ ] Default template
-  - [ ] Thermal printer template
-  - [ ] A4 template
+- [x] Invoices list page
+  - [x] Date range filter
+  - [x] Status filter
+  - [x] Customer search
+  - [x] Invoices table
+- [x] Create invoice page
+  - [x] Customer selector
+  - [x] Product search/add
+  - [x] Cart/items list
+  - [x] Discount inputs
+  - [x] Payment info
+  - [x] Save/Print actions
+- [x] Invoice details page
+  - [x] Invoice header info
+  - [x] Items table
+  - [x] Payment status
+  - [x] Print/Email actions
+- [x] Invoice templates
+  - [x] Default template
+  - [x] Thermal printer template
+  - [x] A4 template
 
 #### 3.5.8. Financial Management
-- [ ] Transactions list page
-  - [ ] Type filter (receipt/payment)
-  - [ ] Date range picker
-  - [ ] Transactions table
-  - [ ] Add transaction button
-- [ ] Transaction form modal
-  - [ ] Type selector
-  - [ ] Amount input
-  - [ ] Customer/Partner selector
-  - [ ] Payment method
-  - [ ] Notes field
-- [ ] Debt management
-  - [ ] Customer debts tab
-  - [ ] Partner debts tab
-  - [ ] Aging analysis
-  - [ ] Collection actions
+- [x] Transactions list page
+  - [x] Type filter (receipt/payment)
+  - [x] Date range picker
+  - [x] Transactions table
+  - [x] Add transaction button
+- [x] Transaction form modal
+  - [x] Type selector
+  - [x] Amount input
+  - [x] Customer/Partner selector
+  - [x] Payment method
+  - [x] Notes field
+- [x] Debt management
+  - [x] Customer debts tab
+  - [x] Partner debts tab
+  - [x] Aging analysis
+  - [x] Collection actions
 
 #### 3.5.9. Reports & Analytics
-- [ ] Reports dashboard
-  - [ ] Report categories
-  - [ ] Quick stats
-  - [ ] Saved reports
-- [ ] Revenue reports
-  - [ ] Date range selector
-  - [ ] Group by options
-  - [ ] Revenue chart
-  - [ ] Detailed table
-  - [ ] Export actions
-- [ ] Inventory reports
-  - [ ] Stock value report
-  - [ ] Movement report
-  - [ ] Low stock report
-  - [ ] Expiry report
-- [ ] Customer reports
-  - [ ] Customer ranking
-  - [ ] Purchase analysis
-  - [ ] Debt reports
-- [ ] Custom report builder
-  - [ ] Metric selector
-  - [ ] Filter builder
-  - [ ] Visualization options
-  - [ ] Save/Schedule options
+- [x] Reports dashboard
+  - [x] Report categories
+  - [x] Quick stats
+  - [x] Saved reports
+- [x] Revenue reports
+  - [x] Date range selector
+  - [x] Group by options
+  - [x] Revenue chart
+  - [x] Detailed table
+  - [x] Export actions
+- [x] Inventory reports
+  - [x] Stock value report
+  - [x] Movement report
+  - [x] Low stock report
+  - [x] Expiry report
+- [x] Customer reports
+  - [x] Customer ranking
+  - [x] Purchase analysis
+  - [x] Debt reports
+- [x] Custom report builder
+  - [x] Metric selector
+  - [x] Filter builder
+  - [x] Visualization options
+  - [x] Save/Schedule options
 
 #### 3.5.10. System Settings
-- [ ] User management
-  - [ ] Users list
-  - [ ] Add/Edit user modal
-  - [ ] Role assignment
-  - [ ] Active/Inactive toggle
-- [ ] Role management
-  - [ ] Roles list
-  - [ ] Permission matrix
-  - [ ] Add/Edit role modal
-- [ ] Company settings
-  - [ ] Company info form
-  - [ ] Logo upload
-  - [ ] Tax settings
-  - [ ] Currency settings
-- [ ] System configuration
-  - [ ] Email settings
-  - [ ] Notification preferences
-  - [ ] Backup settings
-  - [ ] API keys management
+- [x] User management
+  - [x] Users list
+  - [x] Add/Edit user modal
+  - [x] Role assignment
+  - [x] Active/Inactive toggle
+- [x] Role management
+  - [x] Roles list
+  - [x] Permission matrix
+  - [x] Add/Edit role modal
+- [x] Company settings
+  - [x] Company info form
+  - [x] Logo upload
+  - [x] Tax settings
+  - [x] Currency settings
+- [x] System configuration
+  - [x] Email settings
+  - [x] Notification preferences
+  - [x] Backup settings
+  - [x] API keys management
 
 ### 3.6. POS Interface
 

@@ -28,6 +28,8 @@ interface DataTableProps<TData, TValue> {
   pagination?: boolean;
   pageSize?: number;
   className?: string;
+  onRowSelectionChange?: (selectedRowIds: string[]) => void;
+  selectedRows?: string[];
 }
 
 export function DataTable<TData, TValue>({
@@ -37,7 +39,9 @@ export function DataTable<TData, TValue>({
   searchPlaceholder = "Search...",
   pagination = true,
   pageSize = 10,
-  className
+  className,
+  onRowSelectionChange,
+  selectedRows = []
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);

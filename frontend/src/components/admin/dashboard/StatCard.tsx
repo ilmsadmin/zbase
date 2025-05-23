@@ -13,18 +13,20 @@ interface StatCardProps {
 
 export const StatCard = ({ title, value, trend, trendValue, icon, trendDirection }: StatCardProps) => {
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-200">
-      <div className="flex items-center">
-        <div className="p-3 rounded-lg mr-4 bg-orange-50">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-200 overflow-hidden relative">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-medium text-gray-500">{title}</h3>
+        <div className="p-2 rounded-full bg-orange-50">
           {icon}
         </div>
-        <div>
-          <h3 className="text-sm font-medium text-gray-500">{title}</h3>
-          <p className="text-2xl font-bold text-gray-800">{value}</p>
-        </div>
       </div>
-      <div className="mt-4 flex items-center">
-        <span className={`text-sm mr-2 flex items-center ${
+      
+      <div className="mb-4">
+        <p className="text-2xl font-bold text-gray-800">{value}</p>
+      </div>
+      
+      <div className="flex items-center">
+        <span className={`text-sm mr-2 flex items-center font-medium ${
           trendDirection === 'up' 
             ? 'text-green-600' 
             : trendDirection === 'down' 
@@ -45,6 +47,15 @@ export const StatCard = ({ title, value, trend, trendValue, icon, trendDirection
         </span>
         <span className="text-sm text-gray-500">{trend}</span>
       </div>
+      
+      {/* Decorative element */}
+      <div className={`absolute -bottom-6 -right-6 w-24 h-24 rounded-full ${
+        trendDirection === 'up' 
+          ? 'bg-green-500/5' 
+          : trendDirection === 'down' 
+            ? 'bg-red-500/5'
+            : 'bg-gray-500/5'
+      }`}></div>
     </div>
   );
 };

@@ -52,10 +52,15 @@ export default function AdminLayout({
                 <li>
                   <Link href="/admin/invoices" className="block p-2 rounded hover:bg-secondary">Invoices</Link>
                 </li>
-                
-                <PermissionGuard requiredRoles={[UserRole.ADMIN, UserRole.MANAGER]}>
+                  <PermissionGuard requiredRoles={[UserRole.ADMIN, UserRole.MANAGER]}>
                   <li>
                     <Link href="/admin/reports" className="block p-2 rounded hover:bg-secondary">Reports</Link>
+                  </li>
+                </PermissionGuard>
+                
+                <PermissionGuard requiredRoles={[UserRole.ADMIN]}>
+                  <li>
+                    <Link href="/admin/settings" className="block p-2 rounded hover:bg-secondary">Settings</Link>
                   </li>
                 </PermissionGuard>
               </ul>

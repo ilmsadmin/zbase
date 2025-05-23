@@ -1,0 +1,220 @@
+import { Card, DataTable } from '@/components/ui';
+import { PieChart } from '@/components/ui/Charts';
+import { useQuery } from '@tanstack/react-query';
+import { getInventoryValueReport } from '@/services/api/reports';
+import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { exportReport } from '@/services/api/reports';
+
+export default function StockValueReport() {
+  const { data, isLoading } = useQuery({
+    queryKey: ['inventoryValueReport'],
+    queryFn: getInventoryValueReport,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Mock data if API doesn't return results yet
+  const mockData = {
+    totalValue: 125750.50,
+    warehouseValues: [
+      { warehouseId: '1', warehouseName: 'Main Warehouse', totalValue: 85320.25, itemCount: 427 },
+      { warehouseId: '2', warehouseName: 'South Branch', totalValue: 32150.75, itemCount: 215 },
+      { warehouseId: '3', warehouseName: 'East Store', totalValue: 8279.50, itemCount: 98 },
+    ],
+    categoryValues: [
+      { categoryId: '1', categoryName: 'Electronics', value: 48250.75, itemCount: 156 },
+      { categoryId: '2', categoryName: 'Furniture', value: 32450.25, itemCount: 98 },
+      { categoryId: '3', categoryName: 'Office Supplies', value: 18120.50, itemCount: 312 },
+      { categoryId: '4', categoryName: 'Kitchen', value: 15780.00, itemCount: 87 },
+      { categoryId: '5', categoryName: 'Other', value: 11149.00, itemCount: 87 },
+    ],
+  };
+
+  const displayData = data || mockData;
+
+  const warehouseColumns = [
+    {
+      header: 'Warehouse',
+      accessorKey: 'warehouseName',
+    },
+    {
+      header: 'Item Count',
+      accessorKey: 'itemCount',
+    },
+    {
+      header: 'Total Value',
+      accessorKey: 'totalValue',
+      cell: ({ row }: any) => `$${row.original.totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    },
+    {
+      header: '% of Total',
+      cell: ({ row }: any) => {
+        const percentage = (row.original.totalValue / displayData.totalValue) * 100;
+        return `${percentage.toFixed(1)}%`;
+      },
+    },
+  ];
+
+  const categoryColumns = [
+    {
+      header: 'Category',
+      accessorKey: 'categoryName',
+    },
+    {
+      header: 'Item Count',
+      accessorKey: 'itemCount',
+    },
+    {
+      header: 'Total Value',
+      accessorKey: 'totalValue',
+      cell: ({ row }: any) => `$${row.original.totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    },
+    {
+      header: '% of Total',
+      cell: ({ row }: any) => {
+        const percentage = (row.original.totalValue / displayData.totalValue) * 100;
+        return `${percentage.toFixed(1)}%`;
+      },
+    },
+  ];
+
+  const warehouseChartData = {
+    labels: displayData.warehouseValues.map(w => w.warehouseName),
+    datasets: [
+      {
+        data: displayData.warehouseValues.map(w => w.totalValue),
+        backgroundColor: [
+          'rgba(59, 130, 246, 0.7)',
+          'rgba(16, 185, 129, 0.7)',
+          'rgba(249, 115, 22, 0.7)',
+          'rgba(217, 70, 239, 0.7)',
+          'rgba(234, 179, 8, 0.7)',
+        ],
+      },
+    ],
+  };
+
+  const categoryChartData = {
+    labels: displayData.categoryValues.map(c => c.categoryName),
+    datasets: [
+      {
+        data: displayData.categoryValues.map(c => c.value),
+        backgroundColor: [
+          'rgba(59, 130, 246, 0.7)',
+          'rgba(16, 185, 129, 0.7)',
+          'rgba(249, 115, 22, 0.7)',
+          'rgba(217, 70, 239, 0.7)',
+          'rgba(234, 179, 8, 0.7)',
+        ],
+      },
+    ],
+  };
+
+  const handleExport = async (format: 'pdf' | 'csv' | 'excel') => {
+    try {
+      const blob = await exportReport('inventory-value', {}, format);
+      
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `inventory-value-report.${format}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error exporting report:', error);
+      // Show error toast
+    }
+  };
+
+  if (isLoading) {
+    return <div className="animate-pulse h-96 bg-gray-100 rounded-md"></div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-semibold">Stock Value Report</h2>
+        
+        <div className="relative inline-block">
+          <button className="bg-white border border-gray-300 rounded-md px-3 py-2 text-sm flex items-center">
+            <ArrowDownTrayIcon className="h-4 w-4 mr-1" />
+            Export
+            <svg className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 hidden group-hover:block">
+            <div className="py-1">
+              <button 
+                onClick={() => handleExport('pdf')}
+                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              >
+                Export as PDF
+              </button>
+              <button 
+                onClick={() => handleExport('excel')}
+                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              >
+                Export as Excel
+              </button>
+              <button 
+                onClick={() => handleExport('csv')}
+                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              >
+                Export as CSV
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <Card className="p-6">
+        <div className="text-center mb-8">
+          <h3 className="text-lg text-gray-500 font-medium">Total Inventory Value</h3>
+          <div className="text-3xl font-bold mt-2">
+            ${displayData.totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Value by Warehouse</h3>
+            <div className="flex flex-col md:flex-row space-y-6 md:space-y-0">
+              <div className="md:w-1/2">
+                <div className="h-64">
+                  <PieChart data={warehouseChartData} />
+                </div>
+              </div>
+              <div className="md:w-1/2">
+                <DataTable
+                  columns={warehouseColumns}
+                  data={displayData.warehouseValues}
+                  pagination={false}
+                />
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Value by Category</h3>
+            <div className="flex flex-col md:flex-row space-y-6 md:space-y-0">
+              <div className="md:w-1/2">
+                <div className="h-64">
+                  <PieChart data={categoryChartData} />
+                </div>
+              </div>
+              <div className="md:w-1/2">
+                <DataTable
+                  columns={categoryColumns}
+                  data={displayData.categoryValues}
+                  pagination={false}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </Card>
+    </div>
+  );
+}

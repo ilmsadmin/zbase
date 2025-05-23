@@ -9,12 +9,16 @@ interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   name: string;
   label?: string;
   helperText?: string;
+  value?: string | number;
+  onChange?: React.ChangeEventHandler<HTMLInputElement>;
 }
 
 const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
-  ({ className, name, label, helperText, type = 'text', ...props }, ref) => {
-    const { control, formState: { errors } } = useFormContext();
-    const error = errors[name];
+  ({ className, name, label, helperText, type = 'text', value, onChange, ...props }, ref) => {
+    const formContext = useFormContext();
+    const isFormProviderAvailable = !!formContext;
+    
+    const error = isFormProviderAvailable ? formContext.formState.errors[name] : null;
 
     return (
       <div className="space-y-2">
@@ -26,25 +30,42 @@ const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
             {label}
           </label>
         )}
-        <Controller
-          control={control}
-          name={name}
-          render={({ field }) => (
-            <Input
-              {...field}
-              {...props}
-              type={type}
-              id={name}
-              ref={ref}
-              className={cn(
-                error && 'border-red-500 focus-visible:ring-red-500',
-                className
-              )}
-              aria-invalid={!!error}
-              value={field.value || ''}
-            />
-          )}
-        />
+        
+        {isFormProviderAvailable ? (
+          <Controller
+            control={formContext.control}
+            name={name}
+            render={({ field }) => (
+              <Input
+                {...field}
+                {...props}
+                type={type}
+                id={name}
+                ref={ref}
+                className={cn(
+                  error && 'border-red-500 focus-visible:ring-red-500',
+                  className
+                )}
+                aria-invalid={!!error}
+                value={field.value || ''}
+              />
+            )}
+          />
+        ) : (
+          <Input
+            id={name}
+            type={type}
+            ref={ref}
+            className={cn(
+              error && 'border-red-500 focus-visible:ring-red-500',
+              className
+            )}
+            value={value || ''}
+            onChange={onChange}
+            {...props}
+          />
+        )}
+
         {helperText && !error && (
           <p className="text-sm text-muted-foreground">{helperText}</p>
         )}

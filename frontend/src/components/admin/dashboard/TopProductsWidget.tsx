@@ -1,125 +1,152 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ProductImage } from '@/components/ui/ImageWithFallback';
-
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  imageUrl: string;
-  sold: number;
-  revenue: number;
-  stock: number;
-}
+import { dashboardService, TopProduct } from '@/lib/services/dashboardService';
+import { formatCurrency, formatNumber } from '@/utils/formatters';
 
 export const TopProductsWidget = () => {
-  // In a real app, this data would come from API calls
-  const products: Product[] = [
-    {
-      id: '1',
-      name: 'iPhone 13 Pro Max',
-      price: 30500000,
-      imageUrl: '/product-1.jpg',
-      sold: 56,
-      revenue: 1708000000,
-      stock: 23
-    },
-    {
-      id: '2',
-      name: 'Samsung Galaxy S22 Ultra',
-      price: 28500000,
-      imageUrl: '/product-2.jpg',
-      sold: 42,
-      revenue: 1197000000,
-      stock: 18
-    },
-    {
-      id: '3',
-      name: 'Macbook Pro M2',
-      price: 42900000,
-      imageUrl: '/product-3.jpg',
-      sold: 24,
-      revenue: 1029600000,
-      stock: 10
-    },
-    {
-      id: '4',
-      name: 'iPad Air 5',
-      price: 16900000,
-      imageUrl: '/product-4.jpg',
-      sold: 38,
-      revenue: 642200000,
-      stock: 15
-    },
-    {
-      id: '5',
-      name: 'AirPods Pro',
-      price: 5990000,
-      imageUrl: '/product-5.jpg',
-      sold: 86,
-      revenue: 515140000,
-      stock: 42
-    }
-  ];
+  const [products, setProducts] = useState<TopProduct[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [period, setPeriod] = useState<'week' | 'month' | 'quarter' | 'year'>('month');
+
+  useEffect(() => {
+    const fetchTopProducts = async () => {
+      try {
+        setLoading(true);
+        const data = await dashboardService.getTopProducts({ 
+          limit: 5,
+          period
+        });
+        setProducts(data);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching top products:', err);
+        setError('Failed to load top products');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTopProducts();
+  }, [period]);
+
+  // Calculate total quantity sold for percentage calculations
+  const totalQuantitySold = products.reduce((acc, p) => acc + p.quantitySold, 0);
+  // Calculate total revenue
+  const totalRevenue = products.reduce((acc, p) => acc + p.revenue, 0);
+  
+  if (loading) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 h-full flex flex-col">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-semibold text-gray-800">Top Products</h2>
+          <div className="animate-pulse h-4 w-16 bg-gray-200 rounded"></div>
+        </div>
+        
+        <div className="overflow-hidden">
+          <ul className="space-y-4">
+            {[...Array(5)].map((_, i) => (
+              <li key={i} className="flex items-center animate-pulse">
+                <div className="bg-gray-200 rounded-lg w-10 h-10 mr-3"></div>
+                <div className="flex-1 min-w-0">
+                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                </div>
+                <div className="ml-3">
+                  <div className="h-4 bg-gray-200 rounded w-16 mb-2"></div>
+                  <div className="h-3 bg-gray-200 rounded w-8"></div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 h-full flex flex-col">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-semibold text-gray-800">Top Products</h2>
-        <Link href="/admin/products" className="text-sm text-orange-500 hover:text-orange-600">
-          View All
-        </Link>
+        <div className="flex items-center">
+          <select 
+            value={period}
+            onChange={(e) => setPeriod(e.target.value as any)}
+            className="text-sm border-gray-200 rounded-md mr-3 py-1 px-2"
+          >
+            <option value="week">This Week</option>
+            <option value="month">This Month</option>
+            <option value="quarter">This Quarter</option>
+            <option value="year">This Year</option>
+          </select>
+          <Link href="/admin/products" className="text-sm text-orange-500 hover:text-orange-600">
+            View All
+          </Link>
+        </div>
       </div>
       
-      <div className="overflow-hidden">
-        <ul className="space-y-4">
-          {products.map((product) => (
-            <li key={product.id} className="flex items-center">              <div className="bg-gray-100 rounded-lg w-10 h-10 flex items-center justify-center overflow-hidden mr-3">
-                <ProductImage
-                  src={product.imageUrl}
-                  alt={product.name}
-                  size="small"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-800 truncate">{product.name}</p>
-                <div className="flex items-center text-xs text-gray-500">
-                  <span>₫{formatNumber(product.price)}</span>
-                  <span className="mx-1">•</span>
-                  <span>Sold: {product.sold}</span>
-                  <span className="mx-1">•</span>
-                  <span>Stock: {product.stock}</span>
+      {error ? (
+        <div className="bg-red-50 border border-red-200 text-red-800 p-4 rounded-lg flex-grow">
+          <p>{error}</p>
+          <button 
+            onClick={() => setPeriod(period)} // Re-fetch by "changing" to the same period
+            className="mt-2 text-sm font-medium text-red-600 hover:text-red-800"
+          >
+            Try again
+          </button>
+        </div>
+      ) : products.length === 0 ? (
+        <div className="flex items-center justify-center flex-grow text-gray-500 text-sm">
+          No product sales data available for this period
+        </div>
+      ) : (
+        <div className="overflow-hidden">
+          <ul className="space-y-4">
+            {products.map((product) => (
+              <li key={product.id} className="flex items-center">
+                <div className="bg-gray-100 rounded-lg w-10 h-10 flex items-center justify-center overflow-hidden mr-3">
+                  <ProductImage
+                    src={product.imageUrl || ''}
+                    alt={product.name}
+                    size="small"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-              </div>
-              <div className="ml-3 text-right">
-                <p className="text-sm font-medium text-gray-800">₫{formatNumber(product.revenue)}</p>
-                <p className="text-xs text-gray-500">{((product.sold / products.reduce((acc, p) => acc + p.sold, 0)) * 100).toFixed(1)}%</p>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-800 truncate">{product.name}</p>
+                  <div className="flex items-center text-xs text-gray-500">
+                    <span>SKU: {product.sku}</span>
+                    <span className="mx-1">•</span>
+                    <span>Sold: {product.quantitySold}</span>
+                  </div>
+                </div>
+                <div className="ml-3 text-right">
+                  <p className="text-sm font-medium text-gray-800">{formatCurrency(product.revenue)}</p>
+                  <p className="text-xs text-gray-500">
+                    {totalQuantitySold ? ((product.quantitySold / totalQuantitySold) * 100).toFixed(1) : 0}%
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       
       <div className="mt-auto pt-6 border-t border-gray-100">
         <div className="flex justify-between items-center">
           <div className="text-sm">
             <span className="text-gray-500">Total Sold: </span>
-            <span className="font-medium text-gray-800">{products.reduce((acc, p) => acc + p.sold, 0)} units</span>
+            <span className="font-medium text-gray-800">{formatNumber(totalQuantitySold)} units</span>
           </div>
           <div className="text-sm">
             <span className="text-gray-500">Revenue: </span>
-            <span className="font-medium text-gray-800">₫{formatNumber(products.reduce((acc, p) => acc + p.revenue, 0))}</span>
+            <span className="font-medium text-gray-800">{formatCurrency(totalRevenue)}</span>
           </div>
         </div>
       </div>
     </div>
-  );
+    );
 };
-
-// Helper function to format numbers with commas
-function formatNumber(num: number) {
-  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}

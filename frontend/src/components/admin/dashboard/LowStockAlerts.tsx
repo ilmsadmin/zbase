@@ -1,81 +1,94 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ProductImage } from '@/components/ui/ImageWithFallback';
-
-interface LowStockItem {
-  id: string;
-  name: string;
-  currentStock: number;
-  minStock: number;
-  imageUrl?: string;
-  category: string;
-  warehouseId: string;
-  warehouseName: string;
-}
+import { dashboardService, LowStockItem } from '@/lib/services/dashboardService';
 
 export const LowStockAlerts = () => {
-  // In a real app, this data would come from API calls
-  const lowStockItems: LowStockItem[] = [
-    {
-      id: '1',
-      name: 'iPhone 13 Pro Max',
-      currentStock: 5,
-      minStock: 10,
-      imageUrl: '/product-1.jpg',
-      category: 'Smartphones',
-      warehouseId: 'wh1',
-      warehouseName: 'Main Warehouse'
-    },
-    {
-      id: '2',
-      name: 'Samsung Galaxy S22 Ultra',
-      currentStock: 3,
-      minStock: 8,
-      imageUrl: '/product-2.jpg',
-      category: 'Smartphones',
-      warehouseId: 'wh1',
-      warehouseName: 'Main Warehouse'
-    },
-    {
-      id: '3',
-      name: 'Macbook Pro M2',
-      currentStock: 2,
-      minStock: 5,
-      imageUrl: '/product-3.jpg',
-      category: 'Laptops',
-      warehouseId: 'wh2',
-      warehouseName: 'Electronics Warehouse'
-    },
-    {
-      id: '4',
-      name: 'iPad Air 5',
-      currentStock: 4,
-      minStock: 10,
-      imageUrl: '/product-4.jpg',
-      category: 'Tablets',
-      warehouseId: 'wh1',
-      warehouseName: 'Main Warehouse'
-    },
-    {
-      id: '5',
-      name: 'Sony WH-1000XM4',
-      currentStock: 6,
-      minStock: 15,
-      imageUrl: '/product-6.jpg',
-      category: 'Headphones',
-      warehouseId: 'wh2',
-      warehouseName: 'Electronics Warehouse'
-    }
-  ];
+  const [items, setItems] = useState<LowStockItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchLowStockItems = async () => {
+      try {
+        setLoading(true);
+        const data = await dashboardService.getLowStockItems({ limit: 5 });
+        setItems(data);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching low stock items:', err);
+        setError('Failed to load low stock items');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLowStockItems();
+  }, []);
+  
+  if (loading) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 h-full flex flex-col">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-semibold text-gray-800">Low Stock Alerts</h2>
+          <div className="animate-pulse h-4 w-16 bg-gray-200 rounded"></div>
+        </div>
+        
+        <ul className="space-y-3 overflow-y-auto">
+          {[...Array(5)].map((_, i) => (
+            <li key={i} className="flex items-center p-3 border border-gray-100 rounded-lg animate-pulse">
+              <div className="bg-gray-200 rounded-lg w-10 h-10 mr-3"></div>
+              <div className="flex-1 min-w-0">
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+              </div>
+              <div className="ml-3">
+                <div className="h-4 bg-gray-200 rounded w-16 mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-8"></div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+  
+  if (error) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 h-full flex flex-col">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-semibold text-gray-800">Low Stock Alerts</h2>
+          <Link href="/admin/inventory" className="text-sm text-orange-500 hover:text-orange-600">
+            View All
+          </Link>
+        </div>
+        
+        <div className="flex-grow bg-red-50 border border-red-200 text-red-800 p-4 rounded-lg">
+          <p>{error}</p>
+          <button 
+            onClick={() => setLoading(true)} // Trigger a re-fetch
+            className="mt-2 text-sm font-medium text-red-600 hover:text-red-800"
+          >
+            Try again
+          </button>
+        </div>
+      </div>
+    );
+  }
   
   // Sort by severity (difference between current and min stock)
-  const sortedItems = [...lowStockItems].sort((a, b) => {
-    const aDiff = a.minStock - a.currentStock;
-    const bDiff = b.minStock - b.currentStock;
+  const sortedItems = [...items].sort((a, b) => {
+    const aDiff = a.minStockLevel - a.currentStock;
+    const bDiff = b.minStockLevel - b.currentStock;
     return bDiff - aDiff;
   });
+  
+  // Count critical items (30% or less of min stock)
+  const criticalItemsCount = items.filter(item => 
+    item.currentStock <= item.minStockLevel * 0.3
+  ).length;
   
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 h-full flex flex-col">
@@ -93,9 +106,10 @@ export const LowStockAlerts = () => {
       ) : (
         <ul className="space-y-3 overflow-y-auto">
           {sortedItems.map((item) => (
-            <li key={item.id} className="flex items-center p-3 border border-gray-100 rounded-lg hover:bg-gray-50">              <div className="bg-gray-100 rounded-lg w-10 h-10 flex items-center justify-center overflow-hidden mr-3">
+            <li key={item.id} className="flex items-center p-3 border border-gray-100 rounded-lg hover:bg-gray-50">
+              <div className="bg-gray-100 rounded-lg w-10 h-10 flex items-center justify-center overflow-hidden mr-3">
                 <ProductImage
-                  src={item.imageUrl}
+                  src={item.imageUrl || ''}
                   alt={item.name}
                   size="small"
                   className="w-full h-full object-cover"
@@ -104,7 +118,7 @@ export const LowStockAlerts = () => {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-800 truncate">{item.name}</p>
                 <div className="flex items-center text-xs text-gray-500">
-                  <span className="truncate">{item.category}</span>
+                  <span className="truncate">SKU: {item.sku}</span>
                   <span className="mx-1">•</span>
                   <span className="truncate">{item.warehouseName}</span>
                 </div>
@@ -112,18 +126,18 @@ export const LowStockAlerts = () => {
               <div className="ml-3 flex flex-col items-end">
                 <div className="flex items-center">
                   <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                    item.currentStock <= item.minStock * 0.3
+                    item.currentStock <= item.minStockLevel * 0.3
                       ? 'bg-red-100 text-red-800'
-                      : item.currentStock <= item.minStock * 0.6
+                      : item.currentStock <= item.minStockLevel * 0.6
                         ? 'bg-orange-100 text-orange-800'
                         : 'bg-yellow-100 text-yellow-800'
                   }`}>
-                    {item.currentStock} / {item.minStock}
+                    {item.currentStock} / {item.minStockLevel}
                   </span>
                 </div>
                 <div className="mt-1 flex space-x-1">
                   <Link 
-                    href={`/admin/inventory/adjustments/new?productId=${item.id}&warehouseId=${item.warehouseId}`}
+                    href={`/admin/inventory/adjustments/new?productId=${item.id}`}
                     className="text-xs text-blue-600 hover:text-blue-800"
                   >
                     Restock
@@ -140,7 +154,7 @@ export const LowStockAlerts = () => {
           <div className="text-sm">
             <span className="text-gray-500">Critical Items: </span>
             <span className="font-medium text-red-600">
-              {lowStockItems.filter(item => item.currentStock <= item.minStock * 0.3).length}
+              {criticalItemsCount}
             </span>
           </div>
           <button className="px-3 py-1 text-sm rounded-md bg-orange-100 text-orange-600 font-medium hover:bg-orange-200">
