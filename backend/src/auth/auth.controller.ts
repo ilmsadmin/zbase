@@ -1,10 +1,12 @@
-import { Controller, Post, Body, Get, UseGuards, Req, Headers, Ip, UnauthorizedException } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards, Req, Headers, Ip, UnauthorizedException, Param } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { Request } from 'express';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { UsersService } from '../users/users.service';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -55,5 +57,18 @@ export class AuthController {
       throw new UnauthorizedException('User not authenticated');
     }
     return this.authService.refreshToken(req.user['id']);
+  }
+
+  @Post('forgot-password')
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(forgotPasswordDto.email);
+  }
+
+  @Post('reset-password/:token')
+  async resetPassword(
+    @Param('token') token: string,
+    @Body() resetPasswordDto: ResetPasswordDto
+  ) {
+    return this.authService.resetPassword(token, resetPasswordDto.password);
   }
 }

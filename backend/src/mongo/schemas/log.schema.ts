@@ -51,9 +51,12 @@ export enum LogActionType {
   // Shift actions
   OPEN_SHIFT = 'open_shift',
   CLOSE_SHIFT = 'close_shift',
+    // Sales actions
+  CREATE_SALE = 'create_sale',
   
-  // Sales actions
-  CREATE_SALE = 'create_sale'
+  // Auth actions
+  PASSWORD_RESET_REQUEST = 'password_reset_request',
+  PASSWORD_RESET_COMPLETE = 'password_reset_complete'
 }
 
 export enum LogResourceType {
@@ -67,7 +70,8 @@ export enum LogResourceType {
   INVOICE = 'invoice',
   TRANSACTION = 'transaction',
   WARRANTY = 'warranty',
-  SHIFT = 'shift'
+  SHIFT = 'shift',
+  AUTH = 'auth'
 }
 
 @Schema({ 

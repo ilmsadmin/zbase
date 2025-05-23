@@ -17,14 +17,10 @@ export default function LogoutPage() {
         
         // Make sure cookies are cleared
         deleteCookie('auth_token');
-        
-        // Show a message to the user
-        alert('Đã đăng xuất thành công');
-        
+
         // Redirect to login page
         router.push('/login');
       } catch (error) {
-        console.error('Logout error:', error);
         
         // Even if there's an error with the API call, still clear local storage and cookies
         localStorage.removeItem('auth_token');

@@ -51,7 +51,7 @@ export function middleware(request: NextRequest) {
   
   // Nếu đã đăng nhập mà truy cập vào trang login/register -> chuyển hướng đến dashboard
   if (isAuthRoute && token) {
-    return NextResponse.redirect(new URL('/admin/dashboard', request.url));
+    return NextResponse.redirect(new URL('/admin', request.url));
   }
   
   return NextResponse.next();

@@ -34,7 +34,7 @@ export default function AdminLayout({
             <nav className="p-4">
               <ul className="space-y-2">
                 <li>
-                  <Link href="/admin/dashboard" className="block p-2 rounded hover:bg-secondary">Dashboard</Link>
+                  <Link href="/admin" className="block p-2 rounded hover:bg-secondary">Dashboard</Link>
                 </li>
                 <li>
                   <Link href="/admin/products" className="block p-2 rounded hover:bg-secondary">Products</Link>

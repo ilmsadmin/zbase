@@ -35,7 +35,7 @@ export const useAuth = () => {
   }, [isAuthenticated, isLoading, router]);
   
   // Utility function để redirect người dùng đã đăng nhập
-  const redirectIfAuthenticated = useCallback((redirectTo = '/admin/dashboard') => {
+  const redirectIfAuthenticated = useCallback((redirectTo = '/admin') => {
     if (!isLoading && isAuthenticated) {
       router.push(redirectTo);
       return true;

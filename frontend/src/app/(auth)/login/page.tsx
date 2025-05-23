@@ -26,7 +26,6 @@ type LoginFormValues = z.infer<typeof loginFormSchema>;
 function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [debugMode, setDebugMode] = useState(false); // Thêm state để hiển thị debug
   
   // Initialize form with react-hook-form and zod validation
   const methods = useForm<LoginFormValues>({
@@ -47,18 +46,13 @@ function LoginForm() {
   
   // Kiểm tra xem người dùng đã đăng nhập chưa khi tải trang login
   useEffect(() => {
-    // Thêm console.log để debug
-    console.log("Auth state changed:", { isAuthenticated, isLoading, user });
-    
     if (isAuthenticated && user) {
       console.log("User authenticated, redirecting...");
       // Nếu đã đăng nhập, tự động chuyển hướng đến trang admin
       if (callbackUrl) {
-        console.log(`Redirecting to callback URL: ${callbackUrl}`);
         router.push(callbackUrl);
       } else {
-        console.log("Redirecting to admin dashboard");
-        router.push("/admin/dashboard");
+        router.push("/admin");
       }
     }
   }, [isAuthenticated, isLoading, user, router, callbackUrl]);
@@ -71,31 +65,22 @@ function LoginForm() {
       console.log("Attempting login with:", { email: data.email, rememberMe: data.rememberMe });
       const result = await login(data.email, data.password, data.rememberMe);
       
-      console.log("Login result:", result);
       if (result.success) {
-        console.log("Login successful, forcing redirect to admin dashboard");
-        // Hiển thị thông báo đăng nhập thành công
-        alert("Đăng nhập thành công! Đang chuyển hướng...");
-        
-        // Đăng nhập thành công, chuyển đến trang admin
-        // Thêm một timeout ngắn để đảm bảo state được cập nhật và thông báo hiển thị
-        // trước khi chuyển hướng
         setTimeout(() => {
           // Sử dụng window.location.replace thay vì .href để tránh thêm vào history
-          window.location.replace('/admin/dashboard');
+          window.location.replace('/admin');
         }, 500);
       } else {
-        console.error("Login failed with success=false");
-        alert("Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin đăng nhập.");
+        // Display error in the UI instead of alert
+        clearError();
+        clearError(); // Call twice to ensure the error state is reset before setting a new error
+        setError("Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin đăng nhập.");
       }
     } catch (err: any) {
       console.error("Login error:", err);
-      // Đảm bảo hiển thị thông báo lỗi ngay cả khi không được trả về từ API
-      if (!error) {
-        // Có thể thêm logic để hiển thị lỗi tùy chỉnh nếu cần
-        console.error("Unexpected login error:", err);
-        alert(`Lỗi đăng nhập: ${err instanceof Error ? err.message : 'Không thể kết nối đến server'}`);
-      }
+      // Set error message in the UI
+      clearError();
+      setError(err instanceof Error ? err.message : 'Không thể kết nối đến server');
     } finally {
       setIsSubmitting(false);
     }
@@ -118,8 +103,6 @@ function LoginForm() {
     
     setIsSubmitting(true);
     try {
-      console.log("Đang thử đăng nhập trực tiếp với API ở cổng 3001");
-      
       // Kết nối trực tiếp với API backend ở cổng 3001
       const response = await fetch('http://localhost:3001/api/auth/login', {
         method: 'POST',
@@ -133,11 +116,8 @@ function LoginForm() {
       });
       
       const data = await response.json();
-      console.log("Manual login response:", data);
       
       if (response.ok) {
-        alert("Đăng nhập thành công! Đang chuyển hướng...");
-        
         // Lưu token và user info
         if (rememberMe) {
           localStorage.setItem('auth_token', data.token || data.access_token);
@@ -152,22 +132,21 @@ function LoginForm() {
         // Set cookie for middleware
         setCookie('auth_token', data.token || data.access_token, rememberMe ? 7 : undefined);
         
-        // Cập nhật state để hiển thị trạng thái đăng nhập
-        console.log("Đã lưu thông tin đăng nhập, cập nhật state và chuyển hướng");
-        
         // Chuyển hướng sau một khoảng thời gian ngắn để đảm bảo state được cập nhật
         setTimeout(() => {
           // Sử dụng window.location.replace để tránh thêm vào history
-          window.location.replace("/admin/dashboard");
+          window.location.replace("/admin");
         }, 500);
       } else {
-        // Hiển thị thông báo lỗi
-        alert(`Đăng nhập thất bại: ${data.message || 'Không thể kết nối với server'}`);
+        // Display error in the UI
         console.error("Login failed:", data);
+        clearError();
+        setError(data.message || 'Không thể kết nối với server');
       }
     } catch (err) {
       console.error("Manual login error:", err);
-      alert(`Lỗi kết nối: ${err instanceof Error ? err.message : 'Không thể kết nối đến API'}`);
+      clearError();
+      setError(err instanceof Error ? err.message : 'Không thể kết nối đến API');
     } finally {
       setIsSubmitting(false);
     }
@@ -182,27 +161,7 @@ function LoginForm() {
           </div>
         </div>
         <h1 className="text-2xl font-bold tracking-tight">Đăng nhập vào ZBase</h1>
-        <p className="text-muted-foreground">
-          Nhập thông tin đăng nhập của bạn để truy cập vào hệ thống
-        </p>
-        <button 
-          type="button" 
-          className="text-xs text-gray-400"
-          onClick={() => setDebugMode(!debugMode)}
-        >
-          {debugMode ? "Ẩn" : "Hiển thị"} Debug
-        </button>
       </div>
-      
-      {debugMode && (
-        <div className="bg-gray-50 p-3 rounded-md text-xs">
-          <p>isAuthenticated: {isAuthenticated ? "true" : "false"}</p>
-          <p>isLoading: {isLoading ? "true" : "false"}</p>
-          <p>user: {user ? JSON.stringify(user) : "null"}</p>
-          <p>token in localStorage: {localStorage.getItem('auth_token') ? "exists" : "none"}</p>
-          <p>token in sessionStorage: {sessionStorage.getItem('auth_token') ? "exists" : "none"}</p>
-        </div>
-      )}
       
       {error && (
         <div className="bg-destructive/15 text-destructive px-4 py-3 rounded-md text-sm">
@@ -274,16 +233,18 @@ function LoginForm() {
             </div>
           </div>
           
-          <div className="flex items-center space-x-2">
-            <input
-              {...register("rememberMe")}
-              id="rememberMe"
-              type="checkbox"
-              className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-            />
-            <label htmlFor="rememberMe" className="text-sm text-muted-foreground">
-              Ghi nhớ đăng nhập
-            </label>
+          <div className="flex items-center">
+            <div className="flex items-center space-x-2">
+              <input
+                {...register("rememberMe")}
+                id="rememberMe"
+                type="checkbox"
+                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+              />
+              <label htmlFor="rememberMe" className="text-sm text-muted-foreground">
+                Ghi nhớ đăng nhập
+              </label>
+            </div>
           </div>
           
           <Button
@@ -294,8 +255,8 @@ function LoginForm() {
             {isSubmitting ? "Đang xử lý..." : "Đăng nhập"}
           </Button>
           
-          {/* Hiển thị nút đăng nhập thủ công khi có lỗi hoặc đang ở chế độ debug */}
-          {(error || debugMode) && (
+          {/* Manual login button only shown when there's an error */}
+          {error && (
             <Button
               type="button"
               onClick={handleManualLogin}

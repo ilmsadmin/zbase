@@ -27,6 +27,17 @@ export interface RefreshTokenData {
   refreshToken: string;
 }
 
+export interface ForgotPasswordResponse {
+  success: boolean;
+  message: string;
+  token?: string; // Only for testing purposes
+}
+
+export interface ResetPasswordResponse {
+  success: boolean;
+  message: string;
+}
+
 // Auth service functions
 export const authService = {  /**
    * Login with email and password
@@ -110,10 +121,32 @@ export const authService = {  /**
   },
 
   /**
+   * Request a password reset link
+   */
+  forgotPassword: async (email: string): Promise<ForgotPasswordResponse> => {
+    try {
+      const response = await api.post<ForgotPasswordResponse>('/auth/forgot-password', { email });
+      return response.data;
+    } catch (error: any) {
+      if (error.response) {
+        throw new Error(error.response.data.message || 'Failed to send password reset email');
+      }
+      throw new Error('Network error. Please try again later.');
+    }
+  },
+
+  /**
    * Reset password with token
    */
-  resetPassword: async (data: { token: string; password: string }) => {
-    const response = await api.post('/auth/reset-password', data);
-    return response.data;
+  resetPassword: async (token: string, password: string): Promise<ResetPasswordResponse> => {
+    try {
+      const response = await api.post<ResetPasswordResponse>(`/auth/reset-password/${token}`, { password });
+      return response.data;
+    } catch (error: any) {
+      if (error.response) {
+        throw new Error(error.response.data.message || 'Failed to reset password');
+      }
+      throw new Error('Network error. Please try again later.');
+    }
   },
 };

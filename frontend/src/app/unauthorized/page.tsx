@@ -18,7 +18,7 @@ export default function UnauthorizedPage() {
       switch (user.role) {
         case UserRole.ADMIN:
         case UserRole.MANAGER:
-          router.push('/admin/dashboard');
+          router.push('/admin');
           break;
         case UserRole.CASHIER:
           router.push('/pos/sales');

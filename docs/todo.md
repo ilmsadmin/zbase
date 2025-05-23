@@ -308,12 +308,12 @@ Tài liệu này liệt kê các task cần thực hiện để hoàn thiện h�
 - [x] Integration với auth API
 
 #### 3.4.2. Additional Auth Pages
-- [ ] Forgot password page
-  - [ ] Email input form
-  - [ ] Success message
-- [ ] Reset password page
-  - [ ] New password form
-  - [ ] Token validation
+- [x] Forgot password page
+  - [x] Email input form
+  - [x] Success message
+- [x] Reset password page
+  - [x] New password form
+  - [x] Token validation
 
 ### 3.5. Admin Interface
 

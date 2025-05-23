@@ -70,6 +70,26 @@ export class UsersService {
     });
   }
 
+  async updatePassword(userId: number, newPassword: string): Promise<any> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Update the user's password
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: { password: newPassword },
+    });
+
+    // Remove password from response
+    const { password, ...userWithoutPassword } = updatedUser;
+    return userWithoutPassword;
+  }
+
   async update(id: number, updateUserDto: UpdateUserDto): Promise<any> {
     // Check if user exists
     await this.findOne(id);
