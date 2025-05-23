@@ -7,6 +7,7 @@ export interface User {
   firstName: string;
   lastName: string;
   role: UserRole;
+  profileImage?: string; // Optional user profile image URL
   createdAt: string;
   updatedAt: string;
 }
@@ -32,6 +33,7 @@ export interface Product {
   categoryId?: string;
   category?: ProductCategory;
   attributes?: ProductAttribute[];
+  imageUrl?: string; // Optional product image URL
   createdAt: string;
   updatedAt: string;
   inventory?: InventoryItem[];

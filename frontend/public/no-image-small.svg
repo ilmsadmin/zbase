@@ -1,0 +1,17 @@
+<svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="100" height="100" fill="#f0f0f0"/>
+  
+  <!-- Image icon -->
+  <path d="M30 30H70C73.3137 30 76 32.6863 76 36V64C76 67.3137 73.3137 70 70 70H30C26.6863 70 24 67.3137 24 64V36C24 32.6863 26.6863 30 30 30Z" stroke="#9CA3AF" stroke-width="2" fill="none"/>
+  
+  <!-- Mountain shape -->
+  <path d="M24 60L35 49L46 60" stroke="#9CA3AF" stroke-width="2"/>
+  <path d="M46.5 55L55 46.5L76 67.5" stroke="#9CA3AF" stroke-width="2"/>
+  
+  <!-- Sun/circle -->
+  <circle cx="62" cy="38" r="4" fill="#9CA3AF"/>
+  
+  <!-- No image text -->
+  <text x="50" y="84" text-anchor="middle" font-family="sans-serif" font-size="8" fill="#6B7280">No Image</text>
+</svg>

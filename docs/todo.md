@@ -318,44 +318,44 @@ Tài liệu này liệt kê các task cần thực hiện để hoàn thiện h�
 ### 3.5. Admin Interface
 
 #### 3.5.1. Admin Layout và Navigation
-- [ ] Admin layout wrapper
-  - [ ] Header với user menu
-  - [ ] Horizontal navigation menu
-  - [ ] Breadcrumb navigation
-  - [ ] Notification dropdown
-- [ ] Admin navigation
-  - [ ] Main menu items
-  - [ ] Dropdown submenus
-  - [ ] Active state styling
-  - [ ] Permission-based menu filtering
-- [ ] User menu dropdown
-  - [ ] Profile link
-  - [ ] Settings link
-  - [ ] Logout option
+- [x] Admin layout wrapper
+  - [x] Header với user menu
+  - [x] Horizontal navigation menu
+  - [x] Breadcrumb navigation
+  - [x] Notification dropdown
+- [x] Admin navigation
+  - [x] Main menu items
+  - [x] Dropdown submenus
+  - [x] Active state styling
+  - [x] Permission-based menu filtering
+- [x] User menu dropdown
+  - [x] Profile link
+  - [x] Settings link
+  - [x] Logout option
 
 #### 3.5.2. Dashboard
-- [ ] Dashboard page structure
-  - [ ] Stats cards grid
-  - [ ] Charts section
-  - [ ] Recent activity section
-- [ ] Stats cards
-  - [ ] Revenue card
-  - [ ] Orders card
-  - [ ] Customers card
-  - [ ] Low stock alert card
-- [ ] Revenue chart component
-  - [ ] Line/bar chart
-  - [ ] Period selector
-  - [ ] Data fetching
-- [ ] Top products widget
-  - [ ] Product list
-  - [ ] Sales metrics
-- [ ] Recent sales table
-  - [ ] Transaction list
-  - [ ] Quick actions
-- [ ] Low stock alerts
-  - [ ] Product alerts
-  - [ ] Quick reorder actions
+- [x] Dashboard page structure
+  - [x] Stats cards grid
+  - [x] Charts section
+  - [x] Recent activity section
+- [x] Stats cards
+  - [x] Revenue card
+  - [x] Orders card
+  - [x] Customers card
+  - [x] Low stock alert card
+- [x] Revenue chart component
+  - [x] Line/bar chart
+  - [x] Period selector
+  - [x] Data fetching
+- [x] Top products widget
+  - [x] Product list
+  - [x] Sales metrics
+- [x] Recent sales table
+  - [x] Transaction list
+  - [x] Quick actions
+- [x] Low stock alerts
+  - [x] Product alerts
+  - [x] Quick reorder actions
 
 #### 3.5.3. Product Management
 - [ ] Products list page

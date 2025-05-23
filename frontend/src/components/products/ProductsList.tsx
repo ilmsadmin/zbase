@@ -2,6 +2,7 @@
 
 import { useProducts } from '@/hooks/useProducts';
 import { LoadingState } from '@/lib/react-query/hooks';
+import { ProductImage } from '@/components/ui/ImageWithFallback';
 
 export function ProductsList() {
   // Using our custom hook with React Query
@@ -21,19 +22,31 @@ export function ProductsList() {
             <div 
               key={product.id} 
               className="border p-4 rounded-lg shadow-sm bg-white"
-            >
-              <div className="flex justify-between">
-                <h3 className="font-medium text-lg">{product.name}</h3>
-                <span className="font-bold text-emerald-600">
-                  {new Intl.NumberFormat('vi-VN', {
-                    style: 'currency',
-                    currency: 'VND'
-                  }).format(product.price)}
-                </span>
-              </div>
-              <div className="mt-2 text-sm text-gray-500">
-                <span className="mr-4">SKU: {product.sku}</span>
-                {product.barcode && <span>Barcode: {product.barcode}</span>}
+            >              <div className="flex">                <div className="mr-4 flex-shrink-0">
+                  <div className="w-16 h-16 bg-gray-100 rounded-md overflow-hidden">
+                    <ProductImage 
+                      src={product.imageUrl} 
+                      alt={product.name}
+                      size="medium"
+                      className="w-full h-full"
+                    />
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <div className="flex justify-between">
+                    <h3 className="font-medium text-lg">{product.name}</h3>
+                    <span className="font-bold text-emerald-600">
+                      {new Intl.NumberFormat('vi-VN', {
+                        style: 'currency',
+                        currency: 'VND'
+                      }).format(product.price)}
+                    </span>
+                  </div>
+                  <div className="mt-2 text-sm text-gray-500">
+                    <span className="mr-4">SKU: {product.sku}</span>
+                    {product.barcode && <span>Barcode: {product.barcode}</span>}
+                  </div>
+                </div>
               </div>
             </div>
           ))}

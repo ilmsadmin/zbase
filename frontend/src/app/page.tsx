@@ -51,31 +51,7 @@ function HeroImage() {
             alt="ZBase Dashboard Preview" 
             className="w-full h-full object-cover"
             onError={(e) => {
-              e.currentTarget.style.display = 'none';
-              const parent = e.currentTarget.parentElement;
-              if (parent) {
-                parent.innerHTML += `
-                  <div class="h-full w-full flex flex-col items-center justify-center bg-gradient-to-br from-orange-50 to-orange-100 p-8">
-                    <div class="bg-white p-4 rounded-lg shadow-md w-full max-w-md text-center">
-                      <div class="flex items-center justify-between mb-4 bg-orange-50 p-2 rounded">
-                        <div class="w-3 h-3 rounded-full bg-orange-300"></div>
-                        <div class="w-3 h-3 rounded-full bg-orange-300"></div>
-                        <div class="w-3 h-3 rounded-full bg-orange-300"></div>
-                      </div>
-                      <div class="flex justify-between mb-6">
-                        <div class="h-6 bg-orange-200 rounded w-1/3"></div>
-                        <div class="h-6 bg-orange-200 rounded w-1/4"></div>
-                      </div>
-                      <div class="space-y-3 mb-8">
-                        <div class="h-4 bg-orange-100 rounded w-full"></div>
-                        <div class="h-4 bg-orange-100 rounded w-5/6"></div>
-                        <div class="h-4 bg-orange-100 rounded w-4/6"></div>
-                      </div>
-                      <p class="text-orange-500 text-lg font-medium">ZBase Dashboard</p>
-                    </div>
-                  </div>
-                `;
-              }
+              e.currentTarget.src = '/no-image.svg';
             }}
           />
         </div>

@@ -10,6 +10,7 @@ export * from './Spinner';
 export * from './Popover';
 export * from './Command';
 export * from './Calendar';
+export * from './ImageWithFallback';
 
 // Form Components
 export * from './FormInput';

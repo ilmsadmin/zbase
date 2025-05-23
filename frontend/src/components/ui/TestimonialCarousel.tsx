@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Quote } from 'lucide-react';
+import { UserAvatar } from './ImageWithFallback';
 
 export interface Testimonial {
   content: string;
@@ -60,20 +61,14 @@ export function TestimonialCarousel({
           >            <div className="flex flex-col h-full justify-center p-8 bg-white rounded-xl shadow-sm border border-orange-100">
               <Quote className="text-orange-300 w-12 h-12 mb-4" />
               <p className="text-lg mb-6 italic text-gray-700">{testimonial.content}</p>
-              
-              <div className="flex items-center mt-auto">
-                {testimonial.avatar ? (
-                  <div className="w-12 h-12 rounded-full overflow-hidden mr-4">
-                    <img 
-                      src={testimonial.avatar} 
-                      alt={testimonial.author} 
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                ) : (                  <div className="w-12 h-12 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center mr-4">
-                    {testimonial.author.charAt(0)}
-                  </div>
-                )}
+                <div className="flex items-center mt-auto">
+                <UserAvatar
+                  src={testimonial.avatar}
+                  alt={testimonial.author}
+                  size="large"
+                  initials={testimonial.author.charAt(0)}
+                  className="mr-4"
+                />
                 
                 <div>
                   <p className="font-medium text-gray-900">{testimonial.author}</p>
