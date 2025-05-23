@@ -1,16 +1,19 @@
 import { create } from 'zustand';
 import { User } from '@/types';
+import { authService } from '@/lib/services/authService';
+import { setCookie, deleteCookie } from '@/utils/cookies';
 
 interface AuthState {
   user: User | null;
   token: string | null;
+  refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
   
   // Actions
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  login: (email: string, password: string, rememberMe?: boolean) => Promise<{success: boolean}>;
+  logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
   clearError: () => void;
 }
@@ -18,71 +21,84 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   token: null,
+  refreshToken: null,
   isAuthenticated: false,
   isLoading: false,
   error: null,
-  login: async (email: string, 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    password: string
-  ) => {
+  login: async (email: string, password: string, rememberMe = false) => {
     set({ isLoading: true, error: null });
     
     try {
-      // Mock login logic - replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Call the real API
+      const response = await authService.login({ email, password });
       
-      // In a real app, we would verify the password here
-      // For now, we're just using a mock but keeping the parameter for future implementation
-      
-      // Simulated successful login
-      const mockUser = {
-        id: '1',
-        email: email,
-        firstName: 'Admin',
-        lastName: 'User',
-        role: 'ADMIN',
+      // Map the response to our User type
+      const user: User = {
+        id: response.user.id,
+        email: response.user.email,
+        firstName: response.user.name.split(' ')[0],
+        lastName: response.user.name.split(' ').slice(1).join(' '),
+        role: response.user.role as any, // Tạm thời dùng any để vượt qua lỗi TypeScript
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
-      } as User;
+      };
+        // Save to localStorage if rememberMe is true, otherwise session storage
+      const storage = rememberMe ? localStorage : sessionStorage;
+      storage.setItem('auth_token', response.token);
+      storage.setItem('refresh_token', response.refreshToken);
+      storage.setItem('user', JSON.stringify(user));
       
-      const mockToken = 'mock-jwt-token';
-      
-      // Save to localStorage
-      localStorage.setItem('auth_token', mockToken);
-      localStorage.setItem('user', JSON.stringify(mockUser));
+      // Set cookies for middleware authentication
+      setCookie('auth_token', response.token, rememberMe ? 7 : undefined); // 7 days if remember me, session cookie otherwise
       
       set({
-        user: mockUser,
-        token: mockToken,
+        user,
+        token: response.token,
+        refreshToken: response.refreshToken,
         isAuthenticated: true,
         isLoading: false
       });
       
-    } catch (error) {
+      return { success: true };
+        } catch (error) {
       console.error('Login error:', error);
       set({
         error: 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.',
         isLoading: false
       });
+      return { success: false };
     }
   },
-  
-  logout: () => {
-    // Clear localStorage
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('refresh_token');
-    
-    // Update state
-    set({
-      user: null,
-      token: null,
-      isAuthenticated: false
-    });
-    
-    // Redirect to login page if in browser context
-    if (typeof window !== 'undefined') {
-      window.location.href = '/login';
+    logout: async () => {
+    try {
+      // Call the real logout API
+      await authService.logout();
+    } catch (error) {
+      console.error("Error during logout:", error);
+    } finally {
+      // Clear storage regardless of API success/failure
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('refresh_token');
+      sessionStorage.removeItem('auth_token');
+      sessionStorage.removeItem('user');
+      sessionStorage.removeItem('refresh_token');
+      
+      // Delete auth cookie
+      deleteCookie('auth_token');
+      
+      // Update state
+      set({
+        user: null,
+        token: null,
+        refreshToken: null,
+        isAuthenticated: false
+      });
+        // Redirect to login page if in browser context
+      if (typeof window !== 'undefined') {
+        // Use replace instead of href to avoid adding to history
+        window.location.replace('/login');
+      }
     }
   },
   
@@ -90,24 +106,55 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true });
     
     try {
-      // Check for token in localStorage
-      const token = localStorage.getItem('auth_token');
-      const storedUser = localStorage.getItem('user');
+      // Check for token in both localStorage and sessionStorage
+      const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+      const refreshToken = localStorage.getItem('refresh_token') || sessionStorage.getItem('refresh_token');
+      const storedUser = localStorage.getItem('user') || sessionStorage.getItem('user');
       
-      if (token && storedUser) {
-        // In a real app, validate token with the server
-        const user = JSON.parse(storedUser) as User;
-        
-        set({
-          user,
-          token,
-          isAuthenticated: true,
-          isLoading: false
-        });
+      if (token && storedUser) {        try {
+          // Validate token by getting current user profile
+          const profile = await authService.getProfile();
+          const user = JSON.parse(storedUser) as User;
+          
+          // Nếu profile trả về khác null thì token hợp lệ
+          console.log('Auth check successful, profile:', profile);
+          
+          // Ensure cookie is set
+          setCookie('auth_token', token);
+          
+          set({
+            user,
+            token,
+            refreshToken,
+            isAuthenticated: true,
+            isLoading: false
+          });
+        } catch (error) {
+          console.error("Invalid token:", error);
+          // Token validation failed, clear storage and state
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('user');
+          localStorage.removeItem('refresh_token');
+          sessionStorage.removeItem('auth_token');
+          sessionStorage.removeItem('user');
+          sessionStorage.removeItem('refresh_token');
+          
+          // Also delete the cookie
+          deleteCookie('auth_token');
+          
+          set({
+            user: null,
+            token: null,
+            refreshToken: null,
+            isAuthenticated: false,
+            isLoading: false
+          });
+        }
       } else {
         set({
           user: null,
           token: null,
+          refreshToken: null,
           isAuthenticated: false,
           isLoading: false
         });

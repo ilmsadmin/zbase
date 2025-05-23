@@ -4,6 +4,7 @@ import { ReactNode, useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { UserRole } from '@/types';
+import { getCookie } from '@/utils/cookies';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -36,8 +37,17 @@ export default function ProtectedRoute({
       return;
     }
     
-    // Not authenticated - redirect
+    // Not authenticated - check cookies as fallback then redirect if still not authenticated
     if (!isAuthenticated) {
+      const cookieToken = getCookie('auth_token');
+      if (cookieToken) {
+        // Token exists in cookie, trigger a checkAuth to validate
+        console.log('Found auth token in cookie, validating...');
+        // We'll let the normal auth flow handle this
+        return;
+      }
+      
+      // No auth found anywhere, redirect to login
       router.push(redirectTo);
       return;
     }

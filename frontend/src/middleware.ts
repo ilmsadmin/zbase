@@ -15,20 +15,32 @@ const AUTH_ROUTES = [
   '/reset-password',
 ];
 
+// Routes có thể truy cập với bất kỳ trạng thái xác thực nào
+const PUBLIC_ROUTES = [
+  '/logout',
+];
+
 /**
  * Middleware cho route protection
  */
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
-  // Lấy token từ cookies
-  const token = request.cookies.get('auth_token')?.value;
+    // Lấy token từ cookies hoặc header
+  const token = request.cookies.get('auth_token')?.value || request.headers.get('Authorization')?.replace('Bearer ', '');
   
   // Kiểm tra nếu route cần đăng nhập
   const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname.startsWith(route));
   
   // Kiểm tra nếu route là trang đăng nhập/đăng ký
   const isAuthRoute = AUTH_ROUTES.some(route => pathname.startsWith(route));
+  
+  // Kiểm tra nếu route là trang công khai (có thể truy cập với bất kỳ trạng thái xác thực nào)
+  const isPublicRoute = PUBLIC_ROUTES.some(route => pathname.startsWith(route));
+  
+  // Bỏ qua kiểm tra xác thực cho các route công khai
+  if (isPublicRoute) {
+    return NextResponse.next();
+  }
   
   // Nếu truy cập route được bảo vệ mà không có token -> chuyển hướng đến login
   if (isProtectedRoute && !token) {
@@ -52,6 +64,7 @@ export const config = {
     '/pos/:path*',
     '/login',
     '/register',
+    '/logout',
     '/forgot-password',
     '/reset-password',
   ],

@@ -5,66 +5,204 @@ import { useAuth } from '@/hooks/useAuth';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { UserRole } from '@/types';
+import { useForm, FormProvider } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Eye, EyeOff } from 'lucide-react';
+import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
+import { setCookie } from '@/utils/cookies';
+
+// Create a schema for form validation
+const loginFormSchema = z.object({
+  email: z.string().email("Email không hợp lệ").min(1, "Email là bắt buộc"),
+  password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
+  rememberMe: z.boolean().optional().default(false),
+});
+
+// Define the form values type
+type LoginFormValues = z.infer<typeof loginFormSchema>;
 
 function LoginForm() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [remember, setRemember] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [debugMode, setDebugMode] = useState(false); // Thêm state để hiển thị debug
   
-  const { login, isAuthenticated, error, clearError, user } = useAuth();
+  // Initialize form with react-hook-form and zod validation
+  const methods = useForm<LoginFormValues>({
+    resolver: zodResolver(loginFormSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      rememberMe: false,
+    },
+  });
+  
+  const { handleSubmit, formState: { errors }, register } = methods;
+  
+  const { login, isAuthenticated, isLoading, error, clearError, user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl');
+  const callbackUrl = searchParams.get("callbackUrl");
   
-  // Rest of the component logic
-  
-  // Redirect if already authenticated
+  // Kiểm tra xem người dùng đã đăng nhập chưa khi tải trang login
   useEffect(() => {
+    // Thêm console.log để debug
+    console.log("Auth state changed:", { isAuthenticated, isLoading, user });
+    
     if (isAuthenticated && user) {
-      // Redirect to appropriate dashboard based on role
+      console.log("User authenticated, redirecting...");
+      // Nếu đã đăng nhập, tự động chuyển hướng đến trang admin
       if (callbackUrl) {
+        console.log(`Redirecting to callback URL: ${callbackUrl}`);
         router.push(callbackUrl);
       } else {
-        switch (user.role) {
-          case UserRole.ADMIN:
-          case UserRole.MANAGER:
-            router.push('/admin/dashboard');
-            break;
-          case UserRole.CASHIER:
-            router.push('/pos/sales');
-            break;
-          case UserRole.INVENTORY:
-            router.push('/admin/inventory');
-            break;
-          default:
-            router.push('/');
-        }
+        console.log("Redirecting to admin dashboard");
+        router.push("/admin/dashboard");
       }
     }
-  }, [isAuthenticated, user, router, callbackUrl]);
+  }, [isAuthenticated, isLoading, user, router, callbackUrl]);
   
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || !password) return;
+  const onSubmit = async (data: LoginFormValues) => {
+    if (isSubmitting) return;
     
     setIsSubmitting(true);
     try {
-      await login(email, password);
-      // Redirect will happen in the useEffect above
-    } catch (error) {
-      console.error('Login error:', error);
+      console.log("Attempting login with:", { email: data.email, rememberMe: data.rememberMe });
+      const result = await login(data.email, data.password, data.rememberMe);
+      
+      console.log("Login result:", result);
+      if (result.success) {
+        console.log("Login successful, forcing redirect to admin dashboard");
+        // Hiển thị thông báo đăng nhập thành công
+        alert("Đăng nhập thành công! Đang chuyển hướng...");
+        
+        // Đăng nhập thành công, chuyển đến trang admin
+        // Thêm một timeout ngắn để đảm bảo state được cập nhật và thông báo hiển thị
+        // trước khi chuyển hướng
+        setTimeout(() => {
+          // Sử dụng window.location.replace thay vì .href để tránh thêm vào history
+          window.location.replace('/admin/dashboard');
+        }, 500);
+      } else {
+        console.error("Login failed with success=false");
+        alert("Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin đăng nhập.");
+      }
+    } catch (err: any) {
+      console.error("Login error:", err);
+      // Đảm bảo hiển thị thông báo lỗi ngay cả khi không được trả về từ API
+      if (!error) {
+        // Có thể thêm logic để hiển thị lỗi tùy chỉnh nếu cần
+        console.error("Unexpected login error:", err);
+        alert(`Lỗi đăng nhập: ${err instanceof Error ? err.message : 'Không thể kết nối đến server'}`);
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  // Toggle password visibility
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  // Hàm xử lý đăng nhập thủ công nếu phương thức bình thường không hoạt động
+  const handleManualLogin = async () => {
+    const email = methods.getValues("email");
+    const password = methods.getValues("password");
+    const rememberMe = methods.getValues("rememberMe");
+    
+    if (!email || !password) {
+      return;
+    }
+    
+    setIsSubmitting(true);
+    try {
+      console.log("Đang thử đăng nhập trực tiếp với API ở cổng 3001");
+      
+      // Kết nối trực tiếp với API backend ở cổng 3001
+      const response = await fetch('http://localhost:3001/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password
+        }),
+      });
+      
+      const data = await response.json();
+      console.log("Manual login response:", data);
+      
+      if (response.ok) {
+        alert("Đăng nhập thành công! Đang chuyển hướng...");
+        
+        // Lưu token và user info
+        if (rememberMe) {
+          localStorage.setItem('auth_token', data.token || data.access_token);
+          localStorage.setItem('refresh_token', data.refreshToken);
+          localStorage.setItem('user', JSON.stringify(data.user));
+        } else {
+          sessionStorage.setItem('auth_token', data.token || data.access_token);
+          sessionStorage.setItem('refresh_token', data.refreshToken);
+          sessionStorage.setItem('user', JSON.stringify(data.user));
+        }
+        
+        // Set cookie for middleware
+        setCookie('auth_token', data.token || data.access_token, rememberMe ? 7 : undefined);
+        
+        // Cập nhật state để hiển thị trạng thái đăng nhập
+        console.log("Đã lưu thông tin đăng nhập, cập nhật state và chuyển hướng");
+        
+        // Chuyển hướng sau một khoảng thời gian ngắn để đảm bảo state được cập nhật
+        setTimeout(() => {
+          // Sử dụng window.location.replace để tránh thêm vào history
+          window.location.replace("/admin/dashboard");
+        }, 500);
+      } else {
+        // Hiển thị thông báo lỗi
+        alert(`Đăng nhập thất bại: ${data.message || 'Không thể kết nối với server'}`);
+        console.error("Login failed:", data);
+      }
+    } catch (err) {
+      console.error("Manual login error:", err);
+      alert(`Lỗi kết nối: ${err instanceof Error ? err.message : 'Không thể kết nối đến API'}`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
   return (
     <div className="space-y-6">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold">Đăng nhập</h1>
-        <p className="text-muted-foreground mt-2">Nhập thông tin đăng nhập của bạn</p>
+      <div className="space-y-2 text-center">
+        <div className="flex justify-center mb-4">
+          <div className="h-16 w-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center shadow-lg">
+            <span className="text-white text-3xl font-bold">Z</span>
+          </div>
+        </div>
+        <h1 className="text-2xl font-bold tracking-tight">Đăng nhập vào ZBase</h1>
+        <p className="text-muted-foreground">
+          Nhập thông tin đăng nhập của bạn để truy cập vào hệ thống
+        </p>
+        <button 
+          type="button" 
+          className="text-xs text-gray-400"
+          onClick={() => setDebugMode(!debugMode)}
+        >
+          {debugMode ? "Ẩn" : "Hiển thị"} Debug
+        </button>
       </div>
+      
+      {debugMode && (
+        <div className="bg-gray-50 p-3 rounded-md text-xs">
+          <p>isAuthenticated: {isAuthenticated ? "true" : "false"}</p>
+          <p>isLoading: {isLoading ? "true" : "false"}</p>
+          <p>user: {user ? JSON.stringify(user) : "null"}</p>
+          <p>token in localStorage: {localStorage.getItem('auth_token') ? "exists" : "none"}</p>
+          <p>token in sessionStorage: {sessionStorage.getItem('auth_token') ? "exists" : "none"}</p>
+        </div>
+      )}
       
       {error && (
         <div className="bg-destructive/15 text-destructive px-4 py-3 rounded-md text-sm">
@@ -72,76 +210,112 @@ function LoginForm() {
           <button 
             onClick={clearError} 
             className="float-right font-bold"
+            type="button"
+            aria-label="Đóng thông báo lỗi"
           >
             ×
           </button>
         </div>
       )}
       
-      <form className="space-y-4" onSubmit={handleSubmit}>
-        <div className="space-y-2">
-          <label htmlFor="email" className="block text-sm font-medium">
-            Email
-          </label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="your.email@example.com"
-            className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-            required
-          />
-        </div>
-        
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <label htmlFor="password" className="block text-sm font-medium">
-              Mật khẩu
+      <FormProvider {...methods}>
+        <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+          <div className="space-y-2">
+            <label htmlFor="email" className="text-sm font-medium">
+              Email
             </label>
-            <Link href="/forgot-password" className="text-sm text-primary hover:underline">
-              Quên mật khẩu?
-            </Link>
+            <div>
+              <Input
+                {...register("email")}
+                id="email"
+                type="email"
+                placeholder="your.email@example.com"
+                autoComplete="email"
+                className={errors.email ? "border-destructive" : ""}
+              />
+              {errors.email && (
+                <p className="text-destructive text-sm mt-1">{errors.email.message}</p>
+              )}
+            </div>
           </div>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-            required
-          />
-        </div>
-        
-        <div className="flex items-center">
-          <input
-            id="remember"
-            type="checkbox"
-            checked={remember}
-            onChange={(e) => setRemember(e.target.checked)}
-            className="h-4 w-4 text-primary focus:ring-primary border-input rounded"
-          />
-          <label htmlFor="remember" className="ml-2 block text-sm text-muted-foreground">
-            Ghi nhớ đăng nhập
-          </label>
-        </div>
-        
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full py-2 px-4 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isSubmitting ? 'Đang xử lý...' : 'Đăng nhập'}
-        </button>
-      </form>
+          
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label htmlFor="password" className="text-sm font-medium">
+                Mật khẩu
+              </label>
+              <Link href="/forgot-password" className="text-sm text-primary hover:underline">
+                Quên mật khẩu?
+              </Link>
+            </div>
+            <div className="relative">
+              <Input
+                {...register("password")}
+                id="password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                className={errors.password ? "border-destructive pr-10" : "pr-10"}
+              />
+              <button
+                type="button"
+                onClick={togglePasswordVisibility}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+              >
+                {showPassword ? (
+                  <EyeOff size={18} />
+                ) : (
+                  <Eye size={18} />
+                )}
+              </button>
+              {errors.password && (
+                <p className="text-destructive text-sm mt-1">{errors.password.message}</p>
+              )}
+            </div>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <input
+              {...register("rememberMe")}
+              id="rememberMe"
+              type="checkbox"
+              className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+            />
+            <label htmlFor="rememberMe" className="text-sm text-muted-foreground">
+              Ghi nhớ đăng nhập
+            </label>
+          </div>
+          
+          <Button
+            type="submit"
+            className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Đang xử lý..." : "Đăng nhập"}
+          </Button>
+          
+          {/* Hiển thị nút đăng nhập thủ công khi có lỗi hoặc đang ở chế độ debug */}
+          {(error || debugMode) && (
+            <Button
+              type="button"
+              onClick={handleManualLogin}
+              className="w-full mt-2 bg-gray-600"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Đang xử lý..." : "Thử đăng nhập trực tiếp với API"}
+            </Button>
+          )}
+        </form>
+      </FormProvider>
       
       <div className="text-center text-sm">
         <p className="text-muted-foreground">
-          Chưa có tài khoản?{' '}
+          Chưa có tài khoản?{" "}
           <Link href="/register" className="text-primary hover:underline">
             Đăng ký
           </Link>
-        </p>      </div>
+        </p>
+      </div>
     </div>
   );
 }
@@ -149,11 +323,8 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <div className="space-y-6">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold">Đang tải...</h1>
-          <p className="text-muted-foreground mt-2">Vui lòng đợi</p>
-        </div>
+      <div className="flex justify-center items-center h-full p-8">
+        <div className="w-8 h-8 border-t-2 border-primary rounded-full animate-spin"></div>
       </div>
     }>
       <LoginForm />

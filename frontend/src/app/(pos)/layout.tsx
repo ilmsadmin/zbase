@@ -4,6 +4,7 @@ import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { ProtectedRoute } from '@/components/auth';
 import { UserRole } from '@/types';
+import Link from 'next/link';
 
 export default function POSLayout({
   children,
@@ -18,15 +19,14 @@ export default function POSLayout({
         <header className="bg-primary text-primary-foreground py-2 px-4">
           <div className="flex justify-between items-center">
             <h1 className="text-lg font-semibold">ZBase POS</h1>
-            <div className="flex items-center gap-4">
-              <span className="text-xs bg-secondary px-2 py-1 rounded-full">Shift Active</span>
+            <div className="flex items-center gap-4">              <span className="text-xs bg-secondary px-2 py-1 rounded-full">Shift Active</span>
               <span className="text-sm">{user?.firstName} {user?.lastName}</span>
-              <button 
-                onClick={logout} 
+              <Link 
+                href="/logout" 
                 className="text-xs bg-primary-foreground/20 hover:bg-primary-foreground/30 px-2 py-1 rounded"
               >
                 Đăng xuất
-              </button>
+              </Link>
             </div>
           </div>
         </header>

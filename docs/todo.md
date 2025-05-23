@@ -295,17 +295,17 @@ Tài liệu này liệt kê các task cần thực hiện để hoàn thiện h�
 ### 3.4. Authentication Pages
 
 #### 3.4.1. Login Page
-- [ ] Login form component
-  - [ ] Email/password inputs
-  - [ ] Remember me checkbox
-  - [ ] Form validation
-  - [ ] Error handling
-- [ ] Login page layout
-  - [ ] Split screen design
-  - [ ] Branding section
-  - [ ] Responsive design
-- [ ] Forgot password link
-- [ ] Integration với auth API
+- [x] Login form component
+  - [x] Email/password inputs
+  - [x] Remember me checkbox
+  - [x] Form validation
+  - [x] Error handling
+- [x] Login page layout
+  - [x] Split screen design
+  - [x] Branding section
+  - [x] Responsive design
+- [x] Forgot password link
+- [x] Integration với auth API
 
 #### 3.4.2. Additional Auth Pages
 - [ ] Forgot password page
@@ -314,9 +314,6 @@ Tài liệu này liệt kê các task cần thực hiện để hoàn thiện h�
 - [ ] Reset password page
   - [ ] New password form
   - [ ] Token validation
-- [ ] 2FA page (nếu cần)
-  - [ ] OTP input
-  - [ ] Resend functionality
 
 ### 3.5. Admin Interface
 

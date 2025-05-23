@@ -28,13 +28,24 @@ export interface RefreshTokenData {
 }
 
 // Auth service functions
-export const authService = {
-  /**
+export const authService = {  /**
    * Login with email and password
    */
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
-    const response = await api.post<AuthResponse>('/auth/login', credentials);
-    return response.data;
+    const response = await api.post<any>('/auth/login', credentials);
+    
+    // Map backend response structure to our expected AuthResponse format
+    const responseData = response.data;
+    
+    // Check if the response has access_token instead of token and remap
+    const mappedResponse = {
+      token: responseData.access_token || responseData.token,
+      refreshToken: responseData.refreshToken || responseData.refresh_token,
+      user: responseData.user
+    };
+    
+    console.log('Mapped API response:', mappedResponse);
+    return mappedResponse;
   },
 
   /**
@@ -57,9 +68,21 @@ export const authService = {
    * Logout user
    */
   logout: async (): Promise<void> => {
-    await api.post('/auth/logout');
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('refresh_token');
+    try {
+      // Call the API to invalidate the token on the backend
+      await api.post('/auth/logout');
+    } catch (error) {
+      console.error('Logout API error:', error);
+      // Continue with cleanup even if API call fails
+    } finally {
+      // Đảm bảo xóa token từ cả localStorage và sessionStorage
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('user');
+      sessionStorage.removeItem('auth_token');
+      sessionStorage.removeItem('refresh_token');
+      sessionStorage.removeItem('user');
+    }
   },
 
   /**

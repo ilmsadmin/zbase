@@ -19,14 +19,13 @@ export default function AdminLayout({
         <header className="bg-primary text-primary-foreground shadow-sm py-4 px-6">
           <div className="flex justify-between items-center">
             <h1 className="text-lg font-semibold">ZBase Admin</h1>
-            <div className="flex items-center gap-4">
-              <span className="text-sm">{user?.firstName} {user?.lastName}</span>
-              <button 
-                onClick={logout} 
+            <div className="flex items-center gap-4">              <span className="text-sm">{user?.firstName} {user?.lastName}</span>
+              <Link 
+                href="/logout" 
                 className="text-sm bg-primary-foreground/20 hover:bg-primary-foreground/30 px-3 py-1 rounded"
               >
                 Đăng xuất
-              </button>
+              </Link>
             </div>
           </div>
         </header>
