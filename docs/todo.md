@@ -358,27 +358,27 @@ Tài liệu này liệt kê các task cần thực hiện để hoàn thiện h�
   - [x] Quick reorder actions
 
 #### 3.5.3. Product Management
-- [ ] Products list page
-  - [ ] Search và filter bar
-  - [ ] Products data table
-  - [ ] Bulk actions
-  - [ ] Add product button
-- [ ] Product form modal/page
-  - [ ] Basic info fields
-  - [ ] Category selector
-  - [ ] Price inputs
-  - [ ] Attributes management
-  - [ ] Image upload
-  - [ ] Form validation
-- [ ] Product details page
-  - [ ] Product info display
-  - [ ] Inventory by warehouse
-  - [ ] Price history
-  - [ ] Edit/Delete actions
-- [ ] Categories management
-  - [ ] Category tree view
-  - [ ] Add/Edit category modal
-  - [ ] Drag-drop reordering
+- [x] Products list page
+  - [x] Search và filter bar
+  - [x] Products data table
+  - [x] Bulk actions
+  - [x] Add product button
+- [x] Product form modal/page
+  - [x] Basic info fields
+  - [x] Category selector
+  - [x] Price inputs
+  - [x] Attributes management
+  - [x] Image upload
+  - [x] Form validation
+- [x] Product details page
+  - [x] Product info display
+  - [x] Inventory by warehouse
+  - [x] Price history
+  - [x] Edit/Delete actions
+- [x] Categories management
+  - [x] Category tree view
+  - [x] Add/Edit category modal
+  - [x] Drag-drop reordering
 
 #### 3.5.4. Inventory Management
 - [ ] Inventory list page
