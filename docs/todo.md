@@ -3,11 +3,7 @@
 Tài liệu này liệt kê các task cần thực hiện để hoàn thiện hệ thống quản lý bán hàng theo thiết kế đã được mô tả trong `POS_design.md` và `database_design.md`.
 
 ## Tình Trạng Hiện Tại (cập nhật 22/05/2025)
-- **Hoàn thành**: Tất cả các module Backend### 8.1. Phase 1: Cơ Sở Hạ Tầng
-- [x] Hoàn thiện database schemas
-- [x] Setup Redis caching
-- [x] Xây dựng khung API cơ bản
-- [x] Xây dựng layout frontendược phát triển và kiểm thử
+- **Hoàn thành**: Tất cả các module Backend đã được phát triển và kiểm thử
 - **Hoàn thành**: Phần Admin Dashboard, quản lý kho hàng, quản lý sản phẩm, quản lý tồn kho và quản lý bảo hành
 - **Hoàn thành**: Quản lý giao dịch (transactions)
 - **Hoàn thành**: Tích hợp máy quét mã vạch (barcode scanner) cho POS với hỗ trợ đa định dạng mã vạch và chế độ ngoại tuyến
@@ -156,204 +152,703 @@ Tài liệu này liệt kê các task cần thực hiện để hoàn thiện h�
   - [x] Service
   - [x] DTO
 
-## 3. Frontend (NextJS)
+## 3. Frontend (NextJS + Tailwind CSS)
 
-### 3.1. Giao Diện Admin
+### 3.1. Cài Đặt và Cấu Hình Cơ Bản
+- [x] Khởi tạo NextJS 15+ project với App Router
+  - [x] Cài đặt NextJS với TypeScript
+  - [x] Cấu hình tsconfig.json cho strict mode
+  - [x] Setup path aliases (@/components, @/lib, etc.)
+- [x] Cài đặt và cấu hình Tailwind CSS
+  - [x] Install Tailwind CSS và dependencies
+  - [x] Cấu hình tailwind.config.js với custom theme
+  - [x] Setup global styles và CSS variables
+- [x] Cài đặt các dependencies chính
+  - [x] State management: Zustand
+  - [x] Data fetching: TanStack Query (React Query)
+  - [x] Form handling: React Hook Form + Zod
+  - [x] UI components: Headless UI, Radix UI
+  - [x] Icons: Heroicons, Lucide React
+  - [x] Charts: Chart.js hoặc Recharts
+  - [x] Date handling: date-fns
+  - [x] HTTP client: Axios
+- [x] Setup cấu trúc thư mục theo design
+  - [x] Tạo cấu trúc app/, components/, hooks/, lib/, stores/, types/, utils/
+  - [x] Setup layout groups: (auth), (admin), (pos), (public)
 
-#### Công Việc Đã Hoàn Thành Mới (21/05/2025)
-- [x] Hoàn thiện chức năng quản lý giao dịch (transactions)
-  - [x] Danh sách giao dịch với tìm kiếm và lọc nâng cao
-  - [x] Trang chi tiết giao dịch
-  - [x] Chỉnh sửa giao dịch
-  - [x] Tạo giao dịch mới
+### 3.2. Core Infrastructure
 
-- [x] Hoàn thiện chức năng quản lý bảo hành
-  - [x] Xây dựng API client service cho module bảo hành
-  - [x] Trang liệt kê yêu cầu bảo hành với tìm kiếm và lọc
-  - [x] Trang chi tiết yêu cầu bảo hành
-  - [x] Trang chỉnh sửa và cập nhật trạng thái bảo hành
-  - [x] Trang tạo yêu cầu bảo hành mới
+#### 3.2.1. Authentication & Authorization
+- [x] Tạo auth store với Zustand
+  - [x] Define auth state interface
+  - [x] Implement login/logout actions
+  - [x] Token management (localStorage/cookies)
+  - [x] Permission checking utilities
+- [x] Tạo auth hooks
+  - [x] useAuth() hook
+  - [x] usePermission() hook (tích hợp trong useAuth)
+  - [x] useRequireAuth() hook với redirect (tích hợp trong useAuth)
+- [x] Implement ProtectedRoute component
+  - [x] Route protection wrapper
+  - [x] Permission-based rendering
+  - [x] Loading và redirect states
+- [x] Setup axios interceptors
+  - [x] Request interceptor cho auth headers
+  - [x] Response interceptor cho 401 handling
+  - [x] Token refresh logic
 
-#### 3.1.1. Layout và Components
-- [x] Layout admin
-- [x] Sidebar navigation
-- [x] Breadcrumbs
-- [x] Dashboard components
-- [x] Table components với sorting, filtering, pagination
-- [x] Form components
-- [x] Modal components
-- [x] Charts và biểu đồ cho dashboard
+#### 3.2.2. API Integration Layer
+- [x] Tạo base API configuration
+  - [x] Axios instance với base URL
+  - [x] Common request/response types
+  - [x] Error handling utilities
+- [ ] Implement API service modules
+  - [ ] Auth API service
+  - [ ] Products API service
+  - [ ] Inventory API service
+  - [ ] Customers API service
+  - [ ] Invoices API service
+  - [ ] Reports API service
+  - [ ] POS API service
+- [ ] Setup React Query
+  - [ ] QueryClient configuration
+  - [ ] Default options (staleTime, cacheTime, etc.)
+  - [ ] Error và loading handling
 
-#### 3.1.2. Pages Admin
-- [x] Dashboard
-- [x] Quản lý kho hàng
-  - [x] Danh sách kho
-  - [x] Chi tiết kho
-  - [x] Quản lý vị trí lưu trữ
-- [x] Quản lý sản phẩm
-  - [x] Danh sách sản phẩm
-  - [x] Thêm/sửa sản phẩm
-  - [x] Danh mục sản phẩm
-  - [x] Thuộc tính sản phẩm
-- [x] Quản lý tồn kho
-  - [x] Xem tồn kho
-  - [x] Xuất/nhập kho
-  - [x] Lịch sử tồn kho
-- [x] Quản lý khách hàng
-  - [x] Danh sách khách hàng
-  - [x] Chi tiết khách hàng
-  - [x] Nhóm khách hàng
-- [x] Quản lý đối tác
-  - [x] Danh sách đối tác
-  - [x] Chi tiết đối tác
-- [x] Quản lý hóa đơn
-  - [x] Danh sách hóa đơn
-  - [x] Chi tiết hóa đơn
-  - [x] Tạo hóa đơn mới
-- [x] Quản lý phiếu thu/chi
-  - [x] Danh sách phiếu
-  - [x] Tạo phiếu mới
-- [x] Quản lý bảo hành
-  - [x] Danh sách yêu cầu
-  - [x] Chi tiết và xử lý
-  - [x] Tạo và cập nhật yêu cầu bảo hành
-- [x] Báo cáo và phân tích
-  - [x] Báo cáo doanh thu
-  - [x] Báo cáo tồn kho
-  - [x] Báo cáo công nợ
-  - [x] Tùy chỉnh báo cáo
-- [x] Quản lý nhân viên
-  - [x] Danh sách nhân viên
-  - [x] Phân quyền
+#### 3.2.3. UI Component Library
+- [ ] Base UI Components
+  - [ ] Button component với variants
+  - [ ] Input components (text, number, email, etc.)
+  - [ ] Select/Dropdown component
+  - [ ] Modal/Dialog system
+  - [ ] Card component
+  - [ ] Badge component
+  - [ ] Alert/Notification component
+  - [ ] Spinner/Loading component
+- [ ] Form Components
+  - [ ] FormInput với validation
+  - [ ] FormSelect với search
+  - [ ] FormTextarea
+  - [ ] FormCheckbox/Radio
+  - [ ] FormDatePicker
+  - [ ] FormFileUpload
+- [ ] Data Display Components
+  - [ ] DataTable với sorting/filtering
+  - [ ] Pagination component
+  - [ ] EmptyState component
+  - [ ] Skeleton loaders
+- [ ] Layout Components
+  - [ ] Page container
+  - [ ] Section component
+  - [ ] Grid/Flex utilities
 
-### 3.2. Giao Diện POS
+### 3.3. Public Pages (Landing & Marketing)
 
-#### 3.2.1. Layout và Components
-- [x] Layout POS
-- [x] Màn hình bán hàng 
-- [x] Màn hình quản lý ca
-- [x] Màn hình bảo hành
-- [x] Components cho POS (product cards, cart, payment)
-- [x] Tích hợp máy quét mã vạch (barcode scanner)
+#### 3.3.1. Layout và Navigation
+- [ ] Public layout wrapper
+  - [ ] Header với navigation menu
+  - [ ] Footer với links và info
+  - [ ] Responsive mobile menu
+- [ ] Navigation components
+  - [ ] Desktop navigation bar
+  - [ ] Mobile hamburger menu
+  - [ ] Dropdown menus cho sub-items
 
-#### 3.2.2. Pages POS
-- [x] Đăng nhập POS
-- [x] Màn hình chính
-- [x] Quản lý ca làm việc
-  - [x] Mở ca
-  - [x] Đóng ca
-  - [x] Báo cáo ca
-- [x] Bán hàng
-  - [x] Tìm kiếm sản phẩm
-  - [x] Giỏ hàng
-  - [x] Thanh toán
-  - [x] In hóa đơn
-- [x] Tích hợp máy quét mã vạch (barcode scanner)
-  - [x] Quét và nhận diện mã vạch
-  - [x] Hỗ trợ đa định dạng mã vạch (EAN-13, UPC-A, CODE-128, v.v.)
-  - [x] Chế độ ngoại tuyến (offline mode)
-  - [x] Xử lý mã vạch không hoàn chỉnh
-- [x] Kiểm tra bảo hành
-  - [x] Tra cứu bảo hành
-  - [x] Tạo yêu cầu mới
+#### 3.3.2. Landing Page
+- [ ] Hero section
+  - [ ] Banner với CTA buttons
+  - [ ] Background image/gradient
+  - [ ] Responsive typography
+- [ ] Features section
+  - [ ] Feature cards với icons
+  - [ ] Grid layout responsive
+  - [ ] Animations on scroll
+- [ ] Stats section
+  - [ ] Counter animations
+  - [ ] Stats cards
+- [ ] Testimonials section
+  - [ ] Testimonial cards
+  - [ ] Carousel/slider (optional)
+- [ ] CTA section
+  - [ ] Contact form
+  - [ ] CTA buttons
 
-## 4. Tích Hợp và Testing
+#### 3.3.3. Other Public Pages
+- [ ] About page (/about)
+  - [ ] Company info section
+  - [ ] Team section
+  - [ ] Mission/Vision
+- [ ] Features page (/features)
+  - [ ] Detailed feature list
+  - [ ] Feature categories
+  - [ ] Demo videos/images
+- [ ] Pricing page (/pricing)
+  - [ ] Pricing table
+  - [ ] Feature comparison
+  - [ ] FAQ section
+- [ ] Contact page (/contact)
+  - [ ] Contact form
+  - [ ] Office info
+  - [ ] Map integration
 
-### 4.1. API Integration
-- [x] Tạo API client cho frontend
-- [x] Xây dựng hooks cho các API calls
-- [x] Cài đặt state management (React Context/Redux)
-- [x] Authentication flow
+### 3.4. Authentication Pages
 
-### 4.2. Testing
-- [ ] Unit tests cho services
-- [ ] E2E tests cho API
-- [ ] Integration tests
-- [ ] UI testing
-- [ ] Testing máy quét mã vạch với các thiết bị thực tế:
-  - [ ] Kiểm tra với các máy quét thông dụng (Symbol, Honeywell, Datalogic)
-  - [ ] Kiểm tra với các định dạng mã vạch khác nhau
-  - [ ] Kiểm tra khả năng phục hồi từ mã vạch không hoàn chỉnh
-  - [ ] Kiểm tra chế độ ngoại tuyến và đồng bộ hóa
+#### 3.4.1. Login Page
+- [ ] Login form component
+  - [ ] Email/password inputs
+  - [ ] Remember me checkbox
+  - [ ] Form validation
+  - [ ] Error handling
+- [ ] Login page layout
+  - [ ] Split screen design
+  - [ ] Branding section
+  - [ ] Responsive design
+- [ ] Forgot password link
+- [ ] Integration với auth API
 
-## 5. Triển Khai
+#### 3.4.2. Additional Auth Pages
+- [ ] Forgot password page
+  - [ ] Email input form
+  - [ ] Success message
+- [ ] Reset password page
+  - [ ] New password form
+  - [ ] Token validation
+- [ ] 2FA page (nếu cần)
+  - [ ] OTP input
+  - [ ] Resend functionality
 
-### 5.1. Docker
-- [x] Cập nhật docker-compose.yml
-- [x] Cấu hình volumes
-- [x] Tạo Dockerfiles cho frontend và backend
+### 3.5. Admin Interface
 
-### 5.2. CI/CD
-- [ ] Thiết lập CI/CD pipeline
-- [ ] Automated testing
-- [ ] Deployment scripts
+#### 3.5.1. Admin Layout và Navigation
+- [ ] Admin layout wrapper
+  - [ ] Header với user menu
+  - [ ] Horizontal navigation menu
+  - [ ] Breadcrumb navigation
+  - [ ] Notification dropdown
+- [ ] Admin navigation
+  - [ ] Main menu items
+  - [ ] Dropdown submenus
+  - [ ] Active state styling
+  - [ ] Permission-based menu filtering
+- [ ] User menu dropdown
+  - [ ] Profile link
+  - [ ] Settings link
+  - [ ] Logout option
 
-## 6. Tài Liệu
+#### 3.5.2. Dashboard
+- [ ] Dashboard page structure
+  - [ ] Stats cards grid
+  - [ ] Charts section
+  - [ ] Recent activity section
+- [ ] Stats cards
+  - [ ] Revenue card
+  - [ ] Orders card
+  - [ ] Customers card
+  - [ ] Low stock alert card
+- [ ] Revenue chart component
+  - [ ] Line/bar chart
+  - [ ] Period selector
+  - [ ] Data fetching
+- [ ] Top products widget
+  - [ ] Product list
+  - [ ] Sales metrics
+- [ ] Recent sales table
+  - [ ] Transaction list
+  - [ ] Quick actions
+- [ ] Low stock alerts
+  - [ ] Product alerts
+  - [ ] Quick reorder actions
 
-### 6.1. Tài Liệu Kỹ Thuật
-- [ ] API Documentation
-- [ ] Database schema documentation
-- [ ] Architecture diagram
+#### 3.5.3. Product Management
+- [ ] Products list page
+  - [ ] Search và filter bar
+  - [ ] Products data table
+  - [ ] Bulk actions
+  - [ ] Add product button
+- [ ] Product form modal/page
+  - [ ] Basic info fields
+  - [ ] Category selector
+  - [ ] Price inputs
+  - [ ] Attributes management
+  - [ ] Image upload
+  - [ ] Form validation
+- [ ] Product details page
+  - [ ] Product info display
+  - [ ] Inventory by warehouse
+  - [ ] Price history
+  - [ ] Edit/Delete actions
+- [ ] Categories management
+  - [ ] Category tree view
+  - [ ] Add/Edit category modal
+  - [ ] Drag-drop reordering
 
-### 6.2. Tài Liệu Người Dùng
-- [ ] Hướng dẫn sử dụng Admin
-- [ ] Hướng dẫn sử dụng POS
-  - [ ] Hướng dẫn sử dụng máy quét mã vạch
-  - [ ] Xử lý sự cố và tình huống ngoại lệ
-  - [ ] Quy trình bán hàng với mã vạch
-- [ ] FAQs
+#### 3.5.4. Inventory Management
+- [ ] Inventory list page
+  - [ ] Warehouse filter
+  - [ ] Product search
+  - [ ] Stock level filters
+  - [ ] Inventory table
+- [ ] Stock adjustment modal
+  - [ ] Product selector
+  - [ ] Quantity input
+  - [ ] Reason selector
+  - [ ] Notes field
+- [ ] Transfer inventory modal
+  - [ ] Source/destination warehouse
+  - [ ] Products selector
+  - [ ] Quantity inputs
+- [ ] Inventory history
+  - [ ] Transaction list
+  - [ ] Filter by type
+  - [ ] Date range picker
 
-## 7. Tích Hợp Máy Quét Mã Vạch (Barcode Scanner)
+#### 3.5.5. Warehouse Management
+- [ ] Warehouses list page
+  - [ ] Warehouse cards/table
+  - [ ] Add warehouse button
+  - [ ] Quick stats per warehouse
+- [ ] Warehouse form modal
+  - [ ] Basic info fields
+  - [ ] Address inputs
+  - [ ] Manager selector
+- [ ] Warehouse details page
+  - [ ] Warehouse info
+  - [ ] Location tree view
+  - [ ] Inventory summary
+- [ ] Location management
+  - [ ] Location tree (zones/aisles/racks)
+  - [ ] Add location modal
+  - [ ] Edit/Delete actions
 
-### 7.1. Mô Tả
-- [x] Tích hợp máy quét mã vạch vào giao diện bán hàng POS
-- [x] Hỗ trợ đa định dạng mã vạch phổ biến trong bán lẻ
-- [x] Xử lý các trường hợp ngoại tuyến và mã vạch bị lỗi
+#### 3.5.6. Customer Management
+- [ ] Customers list page
+  - [ ] Search bar
+  - [ ] Group filter
+  - [ ] Customer table
+  - [ ] Add customer button
+- [ ] Customer form modal
+  - [ ] Personal info fields
+  - [ ] Contact fields
+  - [ ] Group selector
+  - [ ] Credit limit
+- [ ] Customer details page
+  - [ ] Customer info tabs
+  - [ ] Purchase history
+  - [ ] Credit/debt info
+  - [ ] Notes section
+- [ ] Customer groups page
+  - [ ] Groups list
+  - [ ] Add/Edit group modal
+  - [ ] Discount settings
+  - [ ] Member count
 
-### 7.2. Chức Năng Đã Triển Khai
-- [x] Nhận diện mã vạch từ nhiều định dạng khác nhau: EAN-13, UPC-A, UPC-E, CODE-128, CODE-39, ITF
-- [x] Xác thực và kiểm tra tính hợp lệ của mã vạch
-- [x] Khả năng khôi phục mã vạch không đầy đủ hoặc bị lỗi
-- [x] Chế độ ngoại tuyến (offline mode) cho phép quét mã khi mất kết nối
-- [x] Lưu trữ mã vạch đã quét trong bộ nhớ cục bộ (localStorage) để xử lý sau khi kết nối trở lại
-- [x] Hiển thị thông báo trạng thái quét (thành công/lỗi)
-- [x] Hiển thị thông tin về định dạng mã vạch đã phát hiện
+#### 3.5.7. Invoice Management
+- [ ] Invoices list page
+  - [ ] Date range filter
+  - [ ] Status filter
+  - [ ] Customer search
+  - [ ] Invoices table
+- [ ] Create invoice page
+  - [ ] Customer selector
+  - [ ] Product search/add
+  - [ ] Cart/items list
+  - [ ] Discount inputs
+  - [ ] Payment info
+  - [ ] Save/Print actions
+- [ ] Invoice details page
+  - [ ] Invoice header info
+  - [ ] Items table
+  - [ ] Payment status
+  - [ ] Print/Email actions
+- [ ] Invoice templates
+  - [ ] Default template
+  - [ ] Thermal printer template
+  - [ ] A4 template
 
-### 7.3. Tính Năng Cần Phát Triển Thêm
-- [ ] Kiểm thử với nhiều loại máy quét mã vạch thực tế
-- [ ] Tùy chỉnh cấu hình cho từng loại máy quét cụ thể
-- [ ] Mở rộng hỗ trợ cho mã QR và mã 2D
-- [ ] Tối ưu hóa bộ nhớ cache ngoại tuyến cho dữ liệu sản phẩm
+#### 3.5.8. Financial Management
+- [ ] Transactions list page
+  - [ ] Type filter (receipt/payment)
+  - [ ] Date range picker
+  - [ ] Transactions table
+  - [ ] Add transaction button
+- [ ] Transaction form modal
+  - [ ] Type selector
+  - [ ] Amount input
+  - [ ] Customer/Partner selector
+  - [ ] Payment method
+  - [ ] Notes field
+- [ ] Debt management
+  - [ ] Customer debts tab
+  - [ ] Partner debts tab
+  - [ ] Aging analysis
+  - [ ] Collection actions
 
-## 8. Kế Hoạch Triển Khai Theo Phases
+#### 3.5.9. Reports & Analytics
+- [ ] Reports dashboard
+  - [ ] Report categories
+  - [ ] Quick stats
+  - [ ] Saved reports
+- [ ] Revenue reports
+  - [ ] Date range selector
+  - [ ] Group by options
+  - [ ] Revenue chart
+  - [ ] Detailed table
+  - [ ] Export actions
+- [ ] Inventory reports
+  - [ ] Stock value report
+  - [ ] Movement report
+  - [ ] Low stock report
+  - [ ] Expiry report
+- [ ] Customer reports
+  - [ ] Customer ranking
+  - [ ] Purchase analysis
+  - [ ] Debt reports
+- [ ] Custom report builder
+  - [ ] Metric selector
+  - [ ] Filter builder
+  - [ ] Visualization options
+  - [ ] Save/Schedule options
 
-### 8.1. Phase 1: Cơ Sở Hạ Tầng
-- [x] Hoàn thiện database schemas
-- [x] Setup Redis caching
-- [x] Xây dựng khung API cơ bản
-- [x] Xây dựng layout frontend
+#### 3.5.10. System Settings
+- [ ] User management
+  - [ ] Users list
+  - [ ] Add/Edit user modal
+  - [ ] Role assignment
+  - [ ] Active/Inactive toggle
+- [ ] Role management
+  - [ ] Roles list
+  - [ ] Permission matrix
+  - [ ] Add/Edit role modal
+- [ ] Company settings
+  - [ ] Company info form
+  - [ ] Logo upload
+  - [ ] Tax settings
+  - [ ] Currency settings
+- [ ] System configuration
+  - [ ] Email settings
+  - [ ] Notification preferences
+  - [ ] Backup settings
+  - [ ] API keys management
 
-### 8.2. Phase 2: Core Features Admin
-- [x] Quản lý kho hàng
-- [x] Quản lý sản phẩm
-- [x] Quản lý tồn kho
-- [ ] Quản lý khách hàng
-- [ ] Quản lý đối tác
+### 3.6. POS Interface
 
-### 8.3. Phase 3: Core Features POS
-- [x] Quản lý ca làm việc
-- [x] Bán hàng
-  - [x] Tích hợp máy quét mã vạch
-  - [x] Giỏ hàng và thanh toán
-  - [x] Tìm kiếm sản phẩm
-- [ ] Quản lý hóa đơn đầy đủ
+#### 3.6.1. POS Layout
+- [ ] POS layout wrapper
+  - [ ] Simplified header
+  - [ ] Touch-optimized design
+  - [ ] Full-screen mode
+- [ ] POS navigation
+  - [ ] Main action buttons
+  - [ ] Shift info display
+  - [ ] Quick access menu
 
-### 8.4. Phase 4: Advanced Features
-- [x] Báo cáo và phân tích
-- [x] Bảo hành
-- [ ] Tùy chỉnh giá theo nhóm khách hàng
+#### 3.6.2. Shift Management
+- [ ] Open shift modal
+  - [ ] Starting cash input
+  - [ ] Warehouse selector
+  - [ ] Notes field
+- [ ] Close shift page
+  - [ ] Sales summary
+  - [ ] Cash reconciliation
+  - [ ] Closing notes
+  - [ ] Print report option
+- [ ] Shift info display
+  - [ ] Current shift stats
+  - [ ] Quick actions
 
-### 8.5. Phase 5: Hoàn Thiện
-- [ ] Testing và sửa lỗi
-- [ ] Tối ưu hiệu năng
-- [ ] Viết tài liệu
+#### 3.6.3. POS Sales Interface
+- [ ] Product grid/list
+  - [ ] Category tabs
+  - [ ] Product cards
+  - [ ] Quick search bar
+  - [ ] Barcode scanner input
+- [ ] Shopping cart
+  - [ ] Cart items list
+  - [ ] Quantity controls
+  - [ ] Item removal
+  - [ ] Discount inputs
+  - [ ] Subtotal display
+- [ ] Customer section
+  - [ ] Customer search
+  - [ ] Quick add customer
+  - [ ] Customer info display
+  - [ ] Loyalty points (if applicable)
+- [ ] Payment section
+  - [ ] Total amount display
+  - [ ] Payment method selector
+  - [ ] Cash calculator
+  - [ ] Change display
+  - [ ] Complete sale button
+- [ ] Quick actions
+  - [ ] Hold sale
+  - [ ] Retrieve held sale
+  - [ ] Void item
+  - [ ] Apply discount
+
+#### 3.6.4. POS Additional Features
+- [ ] Product quick view
+  - [ ] Product details modal
+  - [ ] Stock availability
+  - [ ] Price variations
+- [ ] Receipt preview
+  - [ ] Receipt template
+  - [ ] Print options
+  - [ ] Email receipt option
+- [ ] Sales history
+  - [ ] Today's sales list
+  - [ ] Quick filters
+  - [ ] Reprint receipt
+- [ ] Offline mode
+  - [ ] Local storage sync
+  - [ ] Offline indicator
+  - [ ] Queue management
+  - [ ] Sync on reconnect
+
+### 3.7. Shared Features
+
+#### 3.7.1. Search Components
+- [ ] Global search
+  - [ ] Search modal
+  - [ ] Multi-entity search
+  - [ ] Recent searches
+  - [ ] Quick results
+- [ ] Product search
+  - [ ] Autocomplete
+  - [ ] Barcode support
+  - [ ] Filter options
+- [ ] Customer search
+  - [ ] Name/phone/email search
+  - [ ] Quick add option
+  - [ ] Recent customers
+
+#### 3.7.2. Notification System
+- [ ] Toast notifications
+  - [ ] Success messages
+  - [ ] Error messages
+  - [ ] Info messages
+  - [ ] Auto-dismiss
+- [ ] Push notifications
+  - [ ] Low stock alerts
+  - [ ] New orders
+  - [ ] System updates
+- [ ] Notification center
+  - [ ] Notification list
+  - [ ] Mark as read
+  - [ ] Filter by type
+
+#### 3.7.3. Print System
+- [ ] Print preview modal
+  - [ ] Template preview
+  - [ ] Print options
+  - [ ] Page setup
+- [ ] Print templates
+  - [ ] Invoice templates
+  - [ ] Receipt templates
+  - [ ] Report templates
+- [ ] Printer configuration
+  - [ ] Default printer
+  - [ ] Paper size options
+  - [ ] Thermal printer support
+
+### 3.8. Mobile Responsive
+
+#### 3.8.1. Responsive Components
+- [ ] Mobile navigation
+  - [ ] Bottom tab bar
+  - [ ] Slide-out menu
+  - [ ] Touch gestures
+- [ ] Mobile-optimized tables
+  - [ ] Card view on mobile
+  - [ ] Horizontal scroll
+  - [ ] Collapsed columns
+- [ ] Mobile forms
+  - [ ] Full-width inputs
+  - [ ] Native selectors
+  - [ ] Touch-friendly buttons
+
+#### 3.8.2. Progressive Web App
+- [ ] PWA configuration
+  - [ ] Manifest file
+  - [ ] Service worker
+  - [ ] Offline pages
+- [ ] Install prompts
+  - [ ] Add to home screen
+  - [ ] Update notifications
+- [ ] Push notifications
+  - [ ] Permission request
+  - [ ] Notification handling
+
+### 3.9. Performance Optimization
+
+#### 3.9.1. Code Optimization
+- [ ] Route-based code splitting
+  - [ ] Lazy load admin routes
+  - [ ] Lazy load POS routes
+  - [ ] Dynamic imports
+- [ ] Component optimization
+  - [ ] React.memo cho expensive components
+  - [ ] useMemo/useCallback optimization
+  - [ ] Virtual scrolling cho long lists
+- [ ] Image optimization
+  - [ ] Next.js Image component
+  - [ ] Lazy loading images
+  - [ ] Responsive images
+  - [ ] WebP format support
+
+#### 3.9.2. Data Optimization
+- [ ] API response caching
+  - [ ] React Query cache config
+  - [ ] Stale-while-revalidate
+  - [ ] Background refetch
+- [ ] Pagination implementation
+  - [ ] Server-side pagination
+  - [ ] Infinite scroll option
+  - [ ] Page size options
+- [ ] Data prefetching
+  - [ ] Prefetch on hover
+  - [ ] Route prefetching
+  - [ ] Related data prefetch
+
+### 3.10. Testing
+
+#### 3.10.1. Unit Tests
+- [ ] Component tests
+  - [ ] UI component tests
+  - [ ] Form component tests
+  - [ ] Utility function tests
+- [ ] Hook tests
+  - [ ] Custom hook tests
+  - [ ] API hook tests
+- [ ] Store tests
+  - [ ] Zustand store tests
+  - [ ] Action tests
+
+#### 3.10.2. Integration Tests
+- [ ] Page tests
+  - [ ] Page rendering tests
+  - [ ] User flow tests
+  - [ ] API integration tests
+- [ ] E2E tests
+  - [ ] Critical user paths
+  - [ ] Form submissions
+  - [ ] Payment flows
+
+### 3.11. Documentation
+
+#### 3.11.1. Component Documentation
+- [ ] Storybook setup
+  - [ ] Component stories
+  - [ ] Props documentation
+  - [ ] Usage examples
+- [ ] README files
+  - [ ] Setup instructions
+  - [ ] Development guide
+  - [ ] Deployment guide
+
+#### 3.11.2. API Documentation
+- [ ] API usage guide
+  - [ ] Authentication flow
+  - [ ] Common patterns
+  - [ ] Error handling
+- [ ] Type definitions
+  - [ ] API response types
+  - [ ] Component prop types
+  - [ ] Store state types
+
+### 3.12. Deployment
+
+#### 3.12.1. Build Configuration
+- [ ] Environment setup
+  - [ ] Development env
+  - [ ] Staging env
+  - [ ] Production env
+- [ ] Build optimization
+  - [ ] Bundle analysis
+  - [ ] Tree shaking
+  - [ ] Minification
+
+#### 3.12.2. CI/CD Pipeline
+- [ ] GitHub Actions setup
+  - [ ] Test pipeline
+  - [ ] Build pipeline
+  - [ ] Deploy pipeline
+- [ ] Docker configuration
+  - [ ] Dockerfile for frontend
+  - [ ] Multi-stage build
+  - [ ] Nginx configuration
+
+## 4. Integration Testing
+
+### 4.1. Frontend-Backend Integration
+- [ ] API endpoint testing
+- [ ] Authentication flow testing
+- [ ] Real-time updates testing
+- [ ] File upload testing
+
+### 4.2. Third-party Integrations
+- [ ] Payment gateway integration
+- [ ] Email service integration
+- [ ] SMS service integration
+- [ ] Barcode scanner integration
+
+## 5. Deployment và DevOps
+
+### 5.1. Docker Setup
+- [ ] Update docker-compose.yml for frontend service
+- [ ] Configure nginx reverse proxy
+- [ ] Setup SSL certificates
+- [ ] Configure environment variables
+
+### 5.2. Production Deployment
+- [ ] Setup production server
+- [ ] Configure domain và DNS
+- [ ] Setup monitoring (PM2, logs)
+- [ ] Backup strategy implementation
+
+## 6. Post-Launch
+
+### 6.1. Monitoring và Maintenance
+- [ ] Setup error tracking (Sentry)
+- [ ] Performance monitoring
+- [ ] User analytics
+- [ ] Regular security updates
+
+### 6.2. Continuous Improvement
+- [ ] User feedback collection
+- [ ] Feature prioritization
+- [ ] Performance optimization
+- [ ] Security audits
+
+## Ưu tiên triển khai Frontend
+
+### Phase 1: Foundation (Tuần 1-2)
+1. Setup NextJS project và dependencies
+2. Core infrastructure (auth, API, stores)
+3. Base UI components
+4. Public pages (landing, pricing)
+
+### Phase 2: Authentication & Admin Base (Tuần 3-4)
+1. Login/Auth pages
+2. Admin layout và navigation
+3. Dashboard page
+4. Basic CRUD pages (products, customers)
+
+### Phase 3: Core Features (Tuần 5-6)
+1. Complete product management
+2. Inventory management
+3. Invoice creation và management
+4. Basic reports
+
+### Phase 4: POS & Advanced Features (Tuần 7-8)
+1. POS interface
+2. Advanced reports và analytics
+3. System settings
+4. Mobile optimization
+
+### Phase 5: Polish & Deploy (Tuần 9-10)
+1. Testing và bug fixes
+2. Performance optimization
+3. Documentation
+4. Production deployment
+
+

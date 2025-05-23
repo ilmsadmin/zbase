@@ -1,5 +1,7 @@
-import LandingPage from '@/components/ui/LandingPage';
+import { redirect } from 'next/navigation';
 
 export default function Home() {
-  return <LandingPage />;
+  // Redirect from the root route to the admin dashboard if authenticated or login if not
+  // Using /admin/dashboard as target - middleware will handle redirect to login if needed
+  redirect('/admin/dashboard');
 }
