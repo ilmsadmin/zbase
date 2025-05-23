@@ -15,7 +15,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     // For root admin path or admin/dashboard, return dashboard
     if (path === '/admin' || path === '/admin/dashboard') return 'dashboard';
     
-    if (path.includes('/admin/warehouse')) return 'warehouse';
+    if (path.includes('/admin/warehouses')) return 'warehouse';
     if (path.includes('/admin/products')) return 'products';
     if (path.includes('/admin/customers')) return 'customers';
     if (path.includes('/admin/sales')) return 'sales';

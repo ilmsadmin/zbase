@@ -18,15 +18,28 @@ export default function WarehouseDetailPage({ params }: PageProps) {
   const t = useTranslations('admin.warehouses');
   const { id } = params;
   const warehouseId = parseInt(id, 10);
+  
+  // Validate that warehouseId is a valid number
+  if (isNaN(warehouseId)) {
+    console.error('Invalid warehouse ID:', id);
+  }
 
   const [warehouse, setWarehouse] = useState<Warehouse | null>(null);
   const [locations, setLocations] = useState<WarehouseLocation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
   const fetchWarehouseData = async () => {
     setLoading(true);
     setError(null);
+    
+    // Check if warehouseId is valid before making API calls
+    if (isNaN(warehouseId)) {
+      console.error('Invalid warehouse ID:', id);
+      setError(t('errors.invalidId'));
+      setLoading(false);
+      return;
+    }
+    
     try {
       const [warehouseData, locationsData] = await Promise.all([
         warehouseService.getWarehouseById(warehouseId),

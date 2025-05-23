@@ -1,37 +1,40 @@
 import { apiClient } from '../client';
 
 export interface DashboardStats {
-  revenue: {
-    today: number;
-    thisWeek: number;
-    thisMonth: number;
-    previousPeriod: {
-      value: number;
-      percentage: number;
-    };
-  };
-  orders: {
-    total: number;
-    pending: number;
-    completed: number;
-    previousPeriod: {
-      value: number;
-      percentage: number;
-    };
-  };
-  customers: {
-    total: number;
-    new: number;
-    previousPeriod: {
-      value: number;
-      percentage: number;
-    };
-  };
-  inventory: {
-    total: number;
-    lowStock: number;
-    outOfStock: number;
-  };
+  revenue: number;
+  orders: number;
+  customers: number;
+  lowStock: number;
+}
+
+export interface RecentSale {
+  id: number;
+  customer: string;
+  email: string;
+  date: string; // ISO date string
+  amount: number;
+  status: string;
+  itemCount?: number; // Number of items in the invoice
+}
+
+export interface TopProduct {
+  id: number;
+  name: string;
+  code: string;
+  price: number;
+  totalQuantity: number;
+  totalRevenue: number;
+  stockQuantity?: number; // Current stock quantity
+}
+
+export interface LowStockItem {
+  id: number;
+  name: string;
+  price: number;
+  quantity: number;
+  code: string;
+  category: string;
+  warehouse: string;
 }
 
 export interface RecentActivity {
@@ -61,12 +64,24 @@ export interface InventoryStatusData {
 }
 
 export const dashboardService = {
-  getStats: async (): Promise<DashboardStats> => {
-    return await apiClient.get('/reports/dashboard/stats');
+  getStats: async (period: 'day' | 'week' | 'month' | 'year' = 'day'): Promise<DashboardStats> => {
+    return await apiClient.get(`/reports/dashboard/stats?period=${period}`);
   },
   
   getRecentActivity: async (limit: number = 10): Promise<RecentActivity[]> => {
     return await apiClient.get(`/reports/dashboard/activity?limit=${limit}`);
+  },
+    getRecentSales: async (period: 'day' | 'week' | 'month' | 'year' = 'day'): Promise<RecentSale[]> => {
+    return await apiClient.get(`/reports/dashboard/recent-sales?period=${period}`);
+  },
+  
+  getTopProducts: async (period: 'day' | 'week' | 'month' | 'year' = 'day'): Promise<TopProduct[]> => {
+    return await apiClient.get(`/reports/dashboard/top-products?period=${period}`);
+  },
+  
+  getLowStockItems: async (threshold?: number): Promise<LowStockItem[]> => {
+    const query = threshold ? `?threshold=${threshold}` : '';
+    return await apiClient.get(`/reports/dashboard/low-stock${query}`);
   },
   
   getSalesData: async (period: 'day' | 'week' | 'month' | 'year' = 'month'): Promise<SalesData> => {

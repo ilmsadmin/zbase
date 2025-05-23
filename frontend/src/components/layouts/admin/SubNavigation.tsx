@@ -35,9 +35,9 @@ const moduleConfig: Record<string, { title: string, items: { href: string, title
   'warehouse': {
     title: 'Quản lý Kho',
     items: [
-      { href: '/admin/warehouse/list', title: 'Danh sách kho' },
-      { href: '/admin/warehouse/inventory', title: 'Quản lý tồn kho' },
-      { href: '/admin/warehouse/transfer', title: 'Xuất/Nhập kho' }
+      { href: '/admin/warehouses/list', title: 'Danh sách kho' },
+      { href: '/admin/warehouses/inventory', title: 'Quản lý tồn kho' },
+      { href: '/admin/warehouses/transfer', title: 'Xuất/Nhập kho' }
     ]
   },
   'products': {

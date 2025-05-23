@@ -7,8 +7,15 @@ import AdminLayout from "@/components/layouts/AdminLayout";
 import { 
   FiDownload, FiRefreshCw, FiFilter, FiCalendar, 
   FiPieChart, FiBarChart2, FiGrid, FiList, FiShare2, 
-  FiSave, FiPlus, FiAlertTriangle, FiChevronDown
-} from "react-icons/fi";
+  FiSave, FiPlus, FiAlertTriangle, FiChevronD                  ) : localReportData ? (
+                    <>
+                      {chartType === 'bar' && (
+                        <BarChart 
+                          data={localReportData.data || []}
+                          xKey="period"
+                          yKeys={[{ key: "revenue", name: t("revenue") }]}
+                        />
+                      )}om "react-icons/fi";
 import { 
   ReportType, ReportFormat, ReportFrequency,
   Report, reportService, SalesReportParams
@@ -17,6 +24,7 @@ import { DateRangePicker } from "@/components/ui/DateRangePicker";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -44,15 +52,14 @@ import { BarChart, LineChart, PieChart } from "@/components/ui/charts";
 import { DataTable, Column } from "@/components/ui/Table/DataTable";
 
 export default function SalesReportsPage() {
-  const t = useTranslations("admin.reports");
-  const { 
+  const t = useTranslations("admin.reports");  const { 
     loading: reportLoading, 
     error: reportError,
     reportData: contextReportData,
     recentReports,
-    fetchReportData: fetchContextReportData,
-    fetchRecentReports: fetchContextRecentReports,
-    generateReport: generateContextReport,
+    fetchReportData,
+    fetchRecentReports,
+    generateReport,
     downloadReport,
     shareReport,
     optimizedChartData
@@ -78,13 +85,14 @@ export default function SalesReportsPage() {
   
   // State for chart type
   const [chartType, setChartType] = useState<'bar' | 'line' | 'pie'>('bar');
+
+  // Loading state
+  const [loading, setLoading] = useState(false);
   
-  // State for loading
-  const [loading, setLoading] = useState<boolean>(false);
-    // State for local recent reports
-  const [localRecentReports, setLocalRecentReports] = useState<Report[]>([]);
+  // Recent reports
+  const [recentReports, setRecentReports] = useState<Report[]>([]);
   
-  // Custom implementation to fetch report data with specific parameters
+  // Fetch report data
   const fetchReportData = async () => {
     setLoading(true);
     try {
@@ -106,30 +114,31 @@ export default function SalesReportsPage() {
       setLoading(false);
     }
   };
-    // Fetch recent reports
-  const fetchLocalRecentReports = async () => {
+  
+  // Fetch recent reports
+  const fetchRecentReports = async () => {
     try {
       const { recentReports } = await reportService.getReportsSummary();
-      setLocalRecentReports(recentReports.filter(report => report.type === ReportType.SALES));
+      setRecentReports(recentReports.filter(report => report.type === ReportType.SALES));
     } catch (error) {
       console.error("Failed to fetch recent reports:", error);
     }
   };
   
   // Generate report file
-  const generateLocalReport = async (format: ReportFormat) => {
+  const generateReport = async (format: ReportFormat) => {
     try {
       const reportData = {
         name: `Sales Report - ${formatDate(dateRange.from)} to ${formatDate(dateRange.to)}`,
         description: `Sales report grouped by ${groupBy}`,
         type: ReportType.SALES,
         format: format,
-        frequency: ReportFrequency.ONCE,
         parameters: {
           startDate: dateRange.from.toISOString(),
           endDate: dateRange.to.toISOString(),
           groupBy: groupBy,
         },
+        frequency: ReportFrequency.ONCE,
       };
       
       const result = await reportService.createReport(reportData);
@@ -146,17 +155,18 @@ export default function SalesReportsPage() {
         document.body.removeChild(link);
         
         // Refresh recent reports
-        fetchLocalRecentReports();
+        fetchRecentReports();
       }
     } catch (error) {
       console.error("Failed to generate report:", error);
     }
   };
-    // Download existing report
+  
+  // Download existing report
   const downloadExistingReport = async (id: string) => {
     try {
       const blob = await reportService.downloadReport(id);
-      const report = localRecentReports.find(r => r.id === id);
+      const report = recentReports.find(r => r.id === id);
       
       if (report && report.fileUrl) {
         const url = URL.createObjectURL(blob);
@@ -173,10 +183,9 @@ export default function SalesReportsPage() {
     }
   };
   
-  // Initialize data
   useEffect(() => {
     fetchReportData();
-    fetchLocalRecentReports();
+    fetchRecentReports();
   }, []);
   
   // Table columns for sales data
@@ -188,15 +197,15 @@ export default function SalesReportsPage() {
       sortable: true,
     },
     {
-      key: 'revenue',
+      key: 'totalSales',
       header: t('totalSales'),
-      render: (row) => <span>{formatCurrency(row.revenue)}</span>,
+      render: (row) => <span>{formatCurrency(row.totalSales)}</span>,
       sortable: true,
       align: 'right',
     },
     {
       key: 'invoiceCount',
-      header: t('invoices'),
+      header: t('invoiceCount'),
       render: (row) => <span>{row.invoiceCount}</span>,
       sortable: true,
       align: 'right',
@@ -271,7 +280,7 @@ export default function SalesReportsPage() {
           
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle>{t('totalInvoices')}</CardTitle>
+              <CardTitle>{t('invoicesIssued')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">
@@ -298,75 +307,36 @@ export default function SalesReportsPage() {
               <CardTitle>{t('salesAnalysis')}</CardTitle>
               
               <div className="flex flex-wrap gap-2">
-                <div className="flex">
-                  <Button
-                    variant={viewMode === 'chart' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setViewMode('chart')}
-                    className="rounded-r-none"
-                  >
-                    <FiBarChart2 className="mr-1" /> {t('chart')}
-                  </Button>
-                  <Button
-                    variant={viewMode === 'table' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setViewMode('table')}
-                    className="rounded-l-none"
-                  >
-                    <FiList className="mr-1" /> {t('table')}
-                  </Button>
-                </div>
-                
-                {viewMode === 'chart' && (
-                  <div className="flex">
-                    <Button
-                      variant={chartType === 'bar' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setChartType('bar')}
-                      className="rounded-r-none rounded-l-md"
-                    >
-                      <FiBarChart2 className="mr-1" /> {t('bar')}
-                    </Button>
-                    <Button
-                      variant={chartType === 'line' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setChartType('line')}
-                      className="rounded-none border-l-0 border-r-0"
-                    >
-                      {t('line')}
-                    </Button>
-                    <Button
-                      variant={chartType === 'pie' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setChartType('pie')}
-                      className="rounded-l-none rounded-r-md"
-                    >
-                      <FiPieChart className="mr-1" /> {t('pie')}
-                    </Button>
-                  </div>
-                )}
+                <Button
+                  variant={viewMode === 'chart' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('chart')}
+                >
+                  <FiBarChart2 className="mr-1" /> {t('chart')}
+                </Button>
+                <Button
+                  variant={viewMode === 'table' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('table')}
+                >
+                  <FiList className="mr-1" /> {t('table')}
+                </Button>
               </div>
             </div>
           </CardHeader>
           
           <CardContent>
             <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="md:col-span-2">
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t('dateRange')}
-                </label>                <DateRangePicker
+                </label>
+                <DateRangePicker
                   value={{
                     from: dateRange.from,
-                    to: dateRange.to
+                    to: dateRange.to,
                   }}
-                  onChange={(range) => {
-                    if (range?.from && range?.to) {
-                      setDateRange({
-                        from: range.from,
-                        to: range.to
-                      });
-                    }
-                  }}
+                  onChange={setDateRange}
                 />
               </div>
               
@@ -374,8 +344,8 @@ export default function SalesReportsPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t('groupBy')}
                 </label>
-                <Select
-                  value={groupBy}
+                <Select 
+                  value={groupBy} 
                   onValueChange={(value) => setGroupBy(value as any)}
                 >
                   <SelectTrigger>
@@ -389,7 +359,7 @@ export default function SalesReportsPage() {
                 </Select>
               </div>
               
-              <div className="flex items-end md:col-span-3">
+              <div className="flex items-end">
                 <Button onClick={fetchReportData} className="w-full">
                   <FiRefreshCw className="mr-2" />
                   {t('updateReport')}
@@ -398,50 +368,81 @@ export default function SalesReportsPage() {
             </div>
             
             {viewMode === 'chart' && (
-              <div className="h-80">
-                {loading ? (
-                  <div className="h-full flex items-center justify-center">
-                    <Loading />
+              <div>
+                <div className="mb-4 flex justify-center">
+                  <div className="inline-flex rounded-md shadow-sm" role="group">
+                    <button
+                      type="button"
+                      onClick={() => setChartType('bar')}
+                      className={`px-4 py-2 text-sm font-medium ${
+                        chartType === 'bar'
+                          ? 'bg-primary text-white'
+                          : 'bg-white text-gray-700 hover:bg-gray-100'
+                      } border border-gray-200 rounded-l-lg`}
+                    >
+                      <FiBarChart2 className="inline mr-1" /> {t('bar')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setChartType('line')}
+                      className={`px-4 py-2 text-sm font-medium ${
+                        chartType === 'line'
+                          ? 'bg-primary text-white'
+                          : 'bg-white text-gray-700 hover:bg-gray-100'
+                      } border-t border-b border-gray-200`}
+                    >
+                      <FiShare2 className="inline mr-1" /> {t('line')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setChartType('pie')}
+                      className={`px-4 py-2 text-sm font-medium ${
+                        chartType === 'pie'
+                          ? 'bg-primary text-white'
+                          : 'bg-white text-gray-700 hover:bg-gray-100'
+                      } border border-gray-200 rounded-r-lg`}
+                    >
+                      <FiPieChart className="inline mr-1" /> {t('pie')}
+                    </button>
                   </div>
-                ) : localReportData ? (
-                  <>                    {chartType === 'bar' && (
-                      <BarChart 
-                        title={t("salesAnalysis")}
-                        labels={localReportData.data.map((item: any) => item.period)}
-                        datasets={[
-                          {
-                            label: t("revenue"),
-                            data: localReportData.data.map((item: any) => item.revenue)
-                          }
-                        ]}
-                      />
-                    )}
-                    {chartType === 'line' && (
-                      <LineChart 
-                        title={t("salesAnalysis")}
-                        labels={localReportData.data.map((item: any) => item.period)}
-                        datasets={[
-                          {
-                            label: t("revenue"),
-                            data: localReportData.data.map((item: any) => item.revenue)
-                          }
-                        ]}
-                      />
-                    )}
-                    {chartType === 'pie' && (
-                      <PieChart 
-                        title={t("salesByPeriod")}
-                        labels={localReportData.data.map((item: any) => item.period)}
-                        data={localReportData.data.map((item: any) => item.revenue)}
-                      />
-                    )}
-                  </>
-                ) : (
-                  <div className="h-full flex flex-col items-center justify-center text-gray-500">
-                    <FiBarChart2 size={48} />
-                    <p className="mt-2">{t('noReportData')}</p>
-                  </div>
-                )}
+                </div>
+                
+                <div className="h-80">
+                  {loading ? (
+                    <div className="h-full flex items-center justify-center">
+                      <Loading />
+                    </div>
+                  ) : localReportData ? (
+                    <>                      {chartType === 'bar' && (
+                        <BarChart 
+                          data={localReportData.data || []}
+                          xKey="period"
+                          yKeys={[{ key: "totalSales", name: t("revenue") }]}
+                        />
+                      )}
+                      {chartType === 'line' && (
+                        <LineChart 
+                          data={reportData.data || []}
+                          xKey="period"
+                          yKeys={[{ key: "totalSales", name: t("revenue") }]}
+                        />
+                      )}
+                      {chartType === 'pie' && (
+                        <PieChart 
+                          data={reportData.data?.map(item => ({
+                            name: item.period,
+                            value: item.totalSales
+                          })) || []}
+                        />
+                      )}
+                    </>
+                  ) : (
+                    <div className="h-full flex flex-col items-center justify-center text-gray-500">
+                      <FiBarChart2 size={48} />
+                      <p className="mt-2">{t('noReportData')}</p>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
             
@@ -451,10 +452,10 @@ export default function SalesReportsPage() {
                   <div className="h-80 flex items-center justify-center">
                     <Loading />
                   </div>
-                ) : localReportData ? (
+                ) : reportData ? (
                   <DataTable
                     columns={salesColumns}
-                    data={localReportData.data || []}
+                    data={reportData.data || []}
                     pagination
                     initialPageSize={10}
                   />
@@ -477,29 +478,24 @@ export default function SalesReportsPage() {
               <div className="dropdown-menu shadow-md rounded-md bg-white p-2 mt-1">
                 <button 
                   className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 rounded"
-                  onClick={() => generateLocalReport(ReportFormat.PDF)}
+                  onClick={() => generateReport(ReportFormat.PDF)}
                 >
                   PDF
                 </button>
                 <button 
                   className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 rounded"
-                  onClick={() => generateLocalReport(ReportFormat.EXCEL)}
+                  onClick={() => generateReport(ReportFormat.EXCEL)}
                 >
                   Excel
                 </button>
                 <button 
                   className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 rounded"
-                  onClick={() => generateLocalReport(ReportFormat.CSV)}
+                  onClick={() => generateReport(ReportFormat.CSV)}
                 >
                   CSV
                 </button>
               </div>
             </div>
-            
-            <Button>
-              <FiShare2 className="mr-2" />
-              {t('share')}
-            </Button>
             
             <Button>
               <FiSave className="mr-2" />
@@ -513,9 +509,10 @@ export default function SalesReportsPage() {
           <h2 className="text-xl font-bold text-gray-800 mb-4">{t('recentReports')}</h2>
           
           <Card>
-            <CardContent className="p-0">              <DataTable
+            <CardContent className="p-0">
+              <DataTable
                 columns={recentReportsColumns}
-                data={localRecentReports}
+                data={recentReports}
                 pagination
                 initialPageSize={5}
               />

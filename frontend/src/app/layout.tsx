@@ -38,10 +38,23 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Get locale from cookie
-  const cookieStore = cookies();
-  const cookieLocale = cookieStore.get('NEXT_LOCALE')?.value;
-  const locale = cookieLocale && locales.includes(cookieLocale as any) ? cookieLocale : defaultLocale;
+  // Từ Next.js 14.1 trở lên, việc sử dụng cookies() trả về Promise<ReadonlyRequestCookies>
+  // https://nextjs.org/docs/messages/sync-dynamic-apis
+  let locale = defaultLocale;
+  
+  try {
+    // Properly await the cookies API
+    const cookieStore = await cookies();
+    
+    const cookieLocale = cookieStore.get('NEXT_LOCALE')?.value;
+    if (cookieLocale && locales.includes(cookieLocale as any)) {
+      // Use type assertion to handle the locale string
+      locale = cookieLocale as typeof defaultLocale;
+    }
+  } catch (error) {
+    console.error('Error reading locale from cookies:', error);
+    // Fallback to default locale if there's an error
+  }
   
   // Get messages for the current locale
   const messages = await getMessages(locale);

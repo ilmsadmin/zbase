@@ -1,5 +1,6 @@
 export default {
   title: 'Trang Quản trị',
+  dashboard: 'Bảng điều khiển',
   welcome: 'Xin chào, {name}',
   controlPanel: {
     title: 'Bảng điều khiển quản trị',

@@ -3,9 +3,15 @@ import { defaultLocale, locales } from '../i18n';
 import { cookies } from 'next/headers';
  
 export default getRequestConfig(async ({ locale: defaultLocaleParam }) => {
-  // Get locale from cookie if available
-  const cookieStore = cookies();
-  const cookieLocale = cookieStore.get('NEXT_LOCALE')?.value;
+  let cookieLocale: string | undefined;
+  
+  try {
+    // Properly await the cookies API
+    const cookieStore = await cookies();
+    cookieLocale = cookieStore.get('NEXT_LOCALE')?.value;
+  } catch (error) {
+    console.error('Error reading cookies:', error);
+  }
   
   // Use cookie locale if it's valid, otherwise use the default
   const resolvedLocale = 

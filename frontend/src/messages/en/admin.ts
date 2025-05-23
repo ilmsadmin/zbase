@@ -1,5 +1,6 @@
 export default {
   title: 'Admin Page',
+  dashboard: 'Dashboard',
   welcome: 'Hello, {name}',
   controlPanel: {
     title: 'Admin Control Panel',

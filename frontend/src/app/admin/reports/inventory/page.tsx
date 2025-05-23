@@ -110,12 +110,12 @@ export default function InventoryReportsPage() {
     };
     
     fetchFilters();
-    fetchReportData();
+    handleFetchReportData();
     fetchRecentReports();
   }, []);
   
-  // Fetch report data
-  const fetchReportData = async () => {
+  // Custom implementation to fetch report data with specific parameters
+  const handleFetchReportData = async () => {
     setLoading(true);
     try {
       const params: InventoryReportParams = {
@@ -143,9 +143,8 @@ export default function InventoryReportsPage() {
       setLoading(false);
     }
   };
-  
-  // Fetch recent reports
-  const fetchRecentReports = async () => {
+    // Fetch recent inventory reports - renamed to avoid conflict with context function
+  const fetchLocalRecentReports = async () => {
     try {
       const { recentReports } = await reportService.getReportsSummary();
       setRecentReports(recentReports.filter(report => report.type === ReportType.INVENTORY));
@@ -153,9 +152,8 @@ export default function InventoryReportsPage() {
       console.error("Failed to fetch recent reports:", error);
     }
   };
-  
-  // Generate report file
-  const generateReport = async (format: ReportFormat) => {
+    // Generate report file - renamed to avoid conflict with context function
+  const generateLocalReport = async (format: ReportFormat) => {
     try {
       const params: InventoryReportParams = {
         warehouseId,
@@ -189,11 +187,10 @@ export default function InventoryReportsPage() {
         link.href = fileUrl;
         link.download = `inventory_report_${new Date().getTime()}.${format.toLowerCase()}`;
         document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        link.click();        document.body.removeChild(link);
         
         // Refresh recent reports
-        fetchRecentReports();
+        fetchLocalRecentReports();
       }
     } catch (error) {
       console.error("Failed to generate report:", error);
@@ -568,9 +565,8 @@ export default function InventoryReportsPage() {
                   </div>
                 </>
               )}
-              
-              <div className="flex items-end md:col-span-4">
-                <Button onClick={fetchReportData} className="w-full md:w-auto">
+                <div className="flex items-end md:col-span-4">
+                <Button onClick={handleFetchReportData} className="w-full md:w-auto">
                   <FiRefreshCw className="mr-2" />
                   {t('updateReport')}
                 </Button>
@@ -717,19 +713,19 @@ export default function InventoryReportsPage() {
               <div className="dropdown-menu shadow-md rounded-md bg-white p-2 mt-1">
                 <button 
                   className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 rounded"
-                  onClick={() => generateReport(ReportFormat.PDF)}
+                  onClick={() => generateLocalReport(ReportFormat.PDF)}
                 >
                   PDF
                 </button>
                 <button 
                   className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 rounded"
-                  onClick={() => generateReport(ReportFormat.EXCEL)}
+                  onClick={() => generateLocalReport(ReportFormat.EXCEL)}
                 >
                   Excel
                 </button>
                 <button 
                   className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 rounded"
-                  onClick={() => generateReport(ReportFormat.CSV)}
+                  onClick={() => generateLocalReport(ReportFormat.CSV)}
                 >
                   CSV
                 </button>
