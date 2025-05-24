@@ -34,11 +34,11 @@ export const productsApi = {
   bulkDeleteProducts: async (ids) => {
     return productsService.bulkDeleteProducts(ids);
   },
-
   // Get product categories
   getCategories: async () => {
     const response = await productsService.getCategories();
-    return response.items || [];
+    // The response is already an array, no need to access .items
+    return response || [];
   },
 
   // Create a product category

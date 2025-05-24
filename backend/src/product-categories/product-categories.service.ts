@@ -22,32 +22,53 @@ export class ProductCategoriesService {
       data: createProductCategoryDto,
       include: {
         parent: true,
-      },
-    });
-  }
-
-  async findAll(parentId?: number) {
-    const where = parentId !== undefined ? { parentId } : {};
-    return this.prisma.productCategory.findMany({
-      where,
-      include: {
-        parent: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
+        children: true,
         _count: {
           select: {
             products: true,
             children: true,
-          },
-        },
-      },
-      orderBy: {
-        name: 'asc',
+          }
+        }
       },
     });
+  }
+  async findAll() {
+    // Get all categories with their relationships and counts
+    const allCategories = await this.prisma.productCategory.findMany({
+      include: {
+        _count: {
+          select: {
+            products: true,
+            children: true
+          }
+        }
+      },
+      orderBy: [
+        { parentId: 'asc' },
+        { name: 'asc' }
+      ]
+    });
+
+    // Helper function to build tree structure with proper typing
+    const buildCategoryTree = (categories: any[], parentId: number | null = null): any[] => {
+      const filteredCategories = categories.filter(category => category.parentId === parentId);
+      
+      return filteredCategories.map(category => {
+        // Find direct children
+        const children = buildCategoryTree(categories, category.id);
+        
+        // Return category with children property only if it has children
+        return {
+          ...category,
+          children: children.length > 0 ? children : undefined,
+          level: parentId === null ? 0 : categories.find(c => c.id === parentId)?.level + 1 || 0
+        };
+      });
+    };
+
+    // Generate the tree structure starting from root categories
+    const categoryTree = buildCategoryTree(allCategories);
+    return categoryTree;
   }
 
   async findOne(id: number) {
@@ -61,15 +82,14 @@ export class ProductCategoriesService {
           },
         },
         children: {
-          select: {
-            id: true,
-            name: true,
+          include: {
             _count: {
               select: {
                 products: true,
-              },
-            },
-          },
+                children: true
+              }
+            }
+          }
         },
         _count: {
           select: {
@@ -88,19 +108,15 @@ export class ProductCategoriesService {
   }
 
   async update(id: number, updateProductCategoryDto: UpdateProductCategoryDto) {
-    // Check if category exists
     await this.findOne(id);
     
-    // Prevent circular reference: A category cannot be its own parent
     if (updateProductCategoryDto.parentId === id) {
       throw new BadRequestException('A category cannot be its own parent');
     }
 
-    // Prevent circular reference: A category cannot have one of its descendants as its parent
     if (updateProductCategoryDto.parentId) {
       await this.validateNoCircularReference(id, updateProductCategoryDto.parentId);
       
-      // Check if parent category exists
       const parentCategory = await this.prisma.productCategory.findUnique({
         where: { id: updateProductCategoryDto.parentId },
       });
@@ -115,6 +131,13 @@ export class ProductCategoriesService {
       data: updateProductCategoryDto,
       include: {
         parent: true,
+        children: true,
+        _count: {
+          select: {
+            products: true,
+            children: true
+          }
+        }
       },
     });
   }
@@ -146,12 +169,8 @@ export class ProductCategoriesService {
     });
   }
   
-  // Utility methods
   private async validateNoCircularReference(categoryId: number, newParentId: number) {
-    // Get all descendants of the category
     const descendants = await this.getAllDescendants(categoryId);
-    
-    // Check if the new parent is among the descendants
     if (descendants.some(desc => desc.id === newParentId)) {
       throw new BadRequestException('Circular category reference detected');
     }

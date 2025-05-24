@@ -16,15 +16,14 @@ export const inventoryApi = {
   getInventoryItem: async (id) => {
     return inventoryService.getInventoryItem(id);
   },
-
   // Stock adjustments
   createStockAdjustment: async (adjustmentData) => {
-    return inventoryService.adjustStock(adjustmentData);
+    return inventoryService.createStockAdjustment(adjustmentData);
   },
 
   // Stock transfers
   createStockTransfer: async (transferData) => {
-    return inventoryService.transferStock(transferData);
+    return inventoryService.createStockTransfer(transferData);
   },
 
   // Inventory history

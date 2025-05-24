@@ -249,13 +249,22 @@ export const reportsService = {
     const response = await api.get('/reports/saved');
     return response.data;
   },
-
   /**
    * Get inventory value report
    */
   getInventoryValueReport: async () => {
-    const response = await api.get('/reports/inventory/value');
-    return response.data;
+    try {
+      const response = await api.get('/reports/inventory/value');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching inventory value report:', error);
+      // Return empty data structure that matches expected format
+      return {
+        totalValue: 0,
+        warehouseValues: [],
+        categoryValues: []
+      };
+    }
   },
 
   /**

@@ -23,12 +23,16 @@ export interface Product {
 }
 
 export interface ProductCategory {
-  id: string;
+  id: number;
   name: string;
   description?: string;
-  parentId?: string;
+  parentId?: number | null;
   parent?: ProductCategory;
   children?: ProductCategory[];
+  _count?: {
+    products: number;
+    children: number;
+  }
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

@@ -62,8 +62,10 @@ export const warehousesService = {
   },
   /**
    * Get warehouse by ID
-   */
-  getWarehouseById: async (id: string) => {
+   */  getWarehouseById: async (id: string) => {
+    if (!id || isNaN(parseInt(id, 10))) {
+      throw new Error('Invalid warehouse ID');
+    }
     // Convert id to number since the backend expects integer IDs
     const numericId = parseInt(id, 10);
     const response = await api.get(`/warehouses/${numericId}`);
@@ -96,6 +98,9 @@ export const warehousesService = {
   },  /**
    * Get warehouse stats
    */  getWarehouseStats: async (id: string) => {
+    if (!id || isNaN(parseInt(id, 10))) {
+      throw new Error('Invalid warehouse ID');
+    }
     // Convert id to number since the backend expects integer IDs
     const numericId = parseInt(id, 10);
     const response = await api.get(`/warehouses/${numericId}/stats`);
@@ -110,6 +115,9 @@ export const warehousesService = {
   },  /**
    * Get location by ID
    */  getLocationById: async (id: string) => {
+    if (!id || isNaN(parseInt(id, 10))) {
+      throw new Error('Invalid location ID');
+    }
     // Convert id to number since the backend expects integer IDs
     const numericId = parseInt(id, 10);
     const response = await api.get(`/warehouse-locations/${numericId}`);
@@ -138,10 +146,12 @@ export const warehousesService = {
     const response = await api.delete(`/warehouse-locations/${numericId}`);
     return response.data;
   },
-
   /**
    * Get inventory summary by warehouse
    */  getInventorySummary: async (id: string) => {
+    if (!id || isNaN(parseInt(id, 10))) {
+      throw new Error('Invalid warehouse ID');
+    }
     // Convert id to number since the backend expects integer IDs
     const numericId = parseInt(id, 10);
     const response = await api.get(`/warehouses/${numericId}/inventory`);

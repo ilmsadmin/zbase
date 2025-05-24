@@ -143,14 +143,15 @@ model WarehouseLocation {
 
 // Danh mục sản phẩm
 model ProductCategory {
-  id        Int               @id @default(autoincrement())
-  name      String
-  parent    ProductCategory?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
-  parentId  Int?
-  children  ProductCategory[] @relation("CategoryHierarchy")
-  products  Product[]
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
+  id          Int               @id @default(autoincrement())
+  name        String
+  description String?
+  parent      ProductCategory?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  parentId    Int?
+  children    ProductCategory[] @relation("CategoryHierarchy")
+  products    Product[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
 }
 
 // Sản phẩm
@@ -208,19 +209,19 @@ model CustomerGroup {
 
 // Khách hàng
 model Customer {
-  id            Int            @id @default(autoincrement())
-  code          String?        @unique
-  name          String
-  phone         String?
-  email         String?
-  address       String?
-  group         CustomerGroup? @relation(fields: [groupId], references: [id])
-  groupId       Int?
-  invoices      Invoice[]
-  transactions  Transaction[]
-  warranties    Warranty[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id           Int            @id @default(autoincrement())
+  code         String?        @unique
+  name         String
+  phone        String?
+  email        String?
+  address      String?
+  group        CustomerGroup? @relation(fields: [groupId], references: [id])
+  groupId      Int?
+  invoices     Invoice[]
+  transactions Transaction[]
+  warranties   Warranty[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
 }
 
 // Đối tác/nhà cung cấp
@@ -304,31 +305,31 @@ model InventoryTransaction {
 
 // Hóa đơn
 model Invoice {
-  id             Int             @id @default(autoincrement())
-  code           String          @unique
-  customer       Customer?       @relation(fields: [customerId], references: [id])
+  id             Int              @id @default(autoincrement())
+  code           String           @unique
+  customer       Customer?        @relation(fields: [customerId], references: [id])
   customerId     Int?
-  user           User            @relation(fields: [userId], references: [id])
+  user           User             @relation(fields: [userId], references: [id])
   userId         Int
-  shift          Shift?          @relation(fields: [shiftId], references: [id])
+  shift          Shift?           @relation(fields: [shiftId], references: [id])
   shiftId        Int?
-  warehouse      Warehouse       @relation(fields: [warehouseId], references: [id])
+  warehouse      Warehouse        @relation(fields: [warehouseId], references: [id])
   warehouseId    Int
-  invoiceDate    DateTime        @default(now())
-  subtotal       Decimal         @db.Decimal(15, 2)
-  taxAmount      Decimal         @default(0) @db.Decimal(15, 2)
-  discountAmount Decimal         @default(0) @db.Decimal(15, 2)
-  totalAmount    Decimal         @db.Decimal(15, 2)
-  paidAmount     Decimal         @default(0) @db.Decimal(15, 2)
+  invoiceDate    DateTime         @default(now())
+  subtotal       Decimal          @db.Decimal(15, 2)
+  taxAmount      Decimal          @default(0) @db.Decimal(15, 2)
+  discountAmount Decimal          @default(0) @db.Decimal(15, 2)
+  totalAmount    Decimal          @db.Decimal(15, 2)
+  paidAmount     Decimal          @default(0) @db.Decimal(15, 2)
   paymentMethod  String? // 'cash', 'card', 'bank_transfer', etc.
-  status         String          @default("pending") // 'pending', 'paid', 'canceled'
+  status         String           @default("pending") // 'pending', 'paid', 'canceled'
   notes          String?
   items          InvoiceItem[]
   payments       InvoicePayment[]
   transactions   Transaction[]
   warranties     Warranty[]
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
 
   @@index([customerId])
   @@index([userId])

@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from 'react';
 import { Card, DataTable } from '@/components/ui';
 import { PieChart } from '@/components/ui/Charts';
@@ -95,26 +97,21 @@ export default function DebtReports() {
       ),
     },
   ];
-
   // Prepare chart data for aging summary
   const agingSummary = {
-    current: displayData.reduce((sum, c) => sum + c.agingBuckets[0].amount, 0),
-    days30to60: displayData.reduce((sum, c) => sum + c.agingBuckets[1].amount, 0),
-    days61to90: displayData.reduce((sum, c) => sum + c.agingBuckets[2].amount, 0),
-    days90plus: displayData.reduce((sum, c) => sum + c.agingBuckets[3].amount, 0),
+    current: displayData.reduce((sum: number, c: any) => sum + c.agingBuckets[0].amount, 0),
+    days30to60: displayData.reduce((sum: number, c: any) => sum + c.agingBuckets[1].amount, 0),
+    days61to90: displayData.reduce((sum: number, c: any) => sum + c.agingBuckets[2].amount, 0),
+    days90plus: displayData.reduce((sum: number, c: any) => sum + c.agingBuckets[3].amount, 0),
   };
 
-  const chartData = {
-    labels: ['0-30 Days', '31-60 Days', '61-90 Days', '90+ Days'],
-    datasets: [
-      {
-        data: [
-          agingSummary.current,
-          agingSummary.days30to60,
-          agingSummary.days61to90,
-          agingSummary.days90plus,
-        ],
-        backgroundColor: [
+  // Format data for the PieChart component
+  const chartData = [
+    { name: '0-30 Days', value: agingSummary.current },
+    { name: '31-60 Days', value: agingSummary.days30to60 },
+    { name: '61-90 Days', value: agingSummary.days61to90 },
+    { name: '90+ Days', value: agingSummary.days90plus },
+  ];
           'rgba(16, 185, 129, 0.7)',  // Green
           'rgba(234, 179, 8, 0.7)',   // Yellow
           'rgba(249, 115, 22, 0.7)',  // Orange

@@ -1,10 +1,10 @@
 import React from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { productsApi } from '@/services/api/products';
-import { Dialog } from '@/components/ui/Dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import { FormInput } from '@/components/ui/FormInput';
 import { FormSelect } from '@/components/ui/FormSelect';
@@ -29,28 +29,112 @@ type CategoryFormData = z.infer<typeof categorySchema>;
 export function CategoryFormModal({ isOpen, onClose, category, categories }: CategoryFormModalProps) {
   const queryClient = useQueryClient();
 
-  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<CategoryFormData>({
+  // Filter out the current category and its descendants from parent options
+  const isDescendant = (parentId: number | null, childId: number): boolean => {
+    if (parentId === childId) return true;
+    
+    const parent = categories.find((c: ProductCategory) => c.id === parentId);
+    if (!parent || !parent.children) return false;
+    
+    return parent.children.some((child: ProductCategory) => 
+      child.id === childId || isDescendant(child.id, childId)
+    );
+  };
+
+  const availableParents = categories.filter((c: ProductCategory) => 
+    !category || !isDescendant(c.id, category.id)
+  );  // Build indented category label with hierarchy level
+  const buildOptionLabel = (category: ProductCategory, level = 0): string => {
+    const indent = '⎯'.repeat(level);
+    const prefix = level > 0 ? `${indent} ` : '';
+    return `${prefix}${category.name}`;
+  };
+
+  // Build flattened category options with proper hierarchy
+  const buildFlatOptions = (
+    categories: ProductCategory[],
+    currentPath: string[] = [],
+    exclude: string[] = []
+  ): { value: string; label: string; isDisabled: boolean }[] => {
+    const options: { value: string; label: string; isDisabled: boolean }[] = [];
+
+    categories.forEach(category => {
+      // Skip if category is in exclude list (self or descendant)
+      if (!exclude.includes(category.id)) {
+        const level = currentPath.length;
+        const fullPath = [...currentPath, category.name];
+        
+        // Add current category
+        options.push({
+          value: String(category.id),
+          label: buildOptionLabel(category, level),
+          isDisabled: false
+        });
+
+        // Recursively add children with updated path
+        if (category.children?.length) {
+          options.push(...buildFlatOptions(
+            category.children,
+            fullPath,
+            exclude
+          ));
+        }
+      }
+    });
+
+    return options;
+  };
+
+  // Tạo mảng ID categories cần loại trừ (category hiện tại và con cháu)
+  const excludeIds = category ? [category.id] : [];
+  if (category) {
+    const getDescendantIds = (cat: ProductCategory): string[] => {
+      let ids: string[] = [];
+      cat.children?.forEach(child => {
+        ids.push(child.id);
+        ids = [...ids, ...getDescendantIds(child)];
+      });
+      return ids;
+    };
+    excludeIds.push(...getDescendantIds(category));
+  }
+
+  const parentOptions = [
+    { value: '', label: '(No parent - Root category)' },
+    ...buildFlatOptions(categories, 0, excludeIds)
+  ];
+
+  const methods = useForm<CategoryFormData>({
     resolver: zodResolver(categorySchema),
     defaultValues: {
       name: category?.name || '',
       description: category?.description || '',
-      parentId: category?.parentId || '',
+      parentId: category?.parentId ? String(category.parentId) : '', // Empty string represents "None"
     },
   });
 
-  // Create category mutation
   const createMutation = useMutation({
-    mutationFn: (data: CategoryFormData) => productsApi.createCategory(data),
+    mutationFn: async (data: CategoryFormData) => {
+      const payload = {
+        ...data,
+        parentId: data.parentId ? Number(data.parentId) : null,
+      };
+      return productsApi.createCategory(payload);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['productCategories'] });
       onClose();
     },
   });
 
-  // Update category mutation
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: CategoryFormData }) => 
-      productsApi.updateCategory(id, data),
+    mutationFn: async ({ id, data }: { id: number; data: CategoryFormData }) => {
+      const payload = {
+        ...data,
+        parentId: data.parentId ? Number(data.parentId) : null,
+      };
+      return productsApi.updateCategory(id, payload);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['productCategories'] });
       onClose();
@@ -58,75 +142,69 @@ export function CategoryFormModal({ isOpen, onClose, category, categories }: Cat
   });
 
   const onSubmit = async (data: CategoryFormData) => {
-    if (category) {
-      updateMutation.mutate({ id: category.id, data });
-    } else {
-      createMutation.mutate(data);
+    try {
+      if (category) {
+        await updateMutation.mutateAsync({ id: category.id, data });
+      } else {
+        await createMutation.mutateAsync(data);
+      }
+    } catch (error) {
+      console.error('Failed to save category:', error);
     }
   };
 
-  // Filter out the current category and its descendants from parent options
-  const isDescendant = (parentId: string, childId: string): boolean => {
-    if (parentId === childId) return true;
-    
-    const parent = categories.find(c => c.id === parentId);
-    if (!parent || !parent.children) return false;
-    
-    return parent.children.some(child => 
-      child.id === childId || isDescendant(child.id, childId)
-    );
-  };
-
-  const availableParents = categories.filter(c => 
-    !category || !isDescendant(c.id, category.id)
-  );
-
   return (
-    <Dialog
-      isOpen={isOpen}
-      onClose={onClose}
-      title={category ? 'Edit Category' : 'Add New Category'}
-    >
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <FormInput
-          label="Category Name"
-          placeholder="Enter category name"
-          error={errors.name?.message}
-          {...register('name')}
-        />
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{category ? 'Edit' : 'New'} Category</DialogTitle>
+        </DialogHeader>
+        <FormProvider {...methods}>
+          <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
+            <FormInput
+              name="name"
+              label="Name"
+              placeholder="Enter category name"
+            />
+            
+            <FormTextarea
+              name="description"
+              label="Description"
+              placeholder="Enter category description (optional)"
+            />
+              <FormSelect
+              name="parentId"
+              label="Parent Category"
+              placeholder="None"
+              options={parentOptions}
+              isClearable
+            />
 
-        <FormTextarea
-          label="Description (optional)"
-          placeholder="Enter category description"
-          error={errors.description?.message}
-          {...register('description')}
-        />
-
-        <FormSelect
-          label="Parent Category (optional)"
-          placeholder="Select parent category"
-          options={availableParents.map(category => ({
-            label: category.name,
-            value: category.id
-          }))}
-          value={watch('parentId') || ''}
-          onChange={(value) => setValue('parentId', value || '')}
-          error={errors.parentId?.message}
-          isClearable
-        />
-
-        <div className="flex justify-end space-x-3 pt-5">
-          <Button type="button" variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button 
-            type="submit" 
-            isLoading={createMutation.isPending || updateMutation.isPending}
-          >
-            {category ? 'Update Category' : 'Create Category'}
-          </Button>
-        </div>
-      </form>
+            <div className="flex justify-end space-x-2">
+              <Button type="button" variant="outline" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={createMutation.isPending || updateMutation.isPending}
+                variant={createMutation.isError || updateMutation.isError ? "destructive" : "default"}
+              >
+                {createMutation.isPending || updateMutation.isPending 
+                  ? 'Saving...' 
+                  : createMutation.isError || updateMutation.isError
+                    ? 'Failed - Try Again'
+                    : 'Save'
+                }
+              </Button>
+            </div>
+            {(createMutation.isError || updateMutation.isError) && (
+              <p className="text-sm text-red-500 mt-2">
+                Failed to save category. Please try again.
+              </p>
+            )}
+          </form>
+        </FormProvider>
+      </DialogContent>
     </Dialog>
   );
 }

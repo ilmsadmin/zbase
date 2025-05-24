@@ -1,3 +1,5 @@
+"use client";
+
 import { Card } from '@/components/ui';
 import { QuickStat } from '@/services/api/reports';
 import { useQuery } from '@tanstack/react-query';

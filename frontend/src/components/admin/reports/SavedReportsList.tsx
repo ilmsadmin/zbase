@@ -1,3 +1,5 @@
+"use client";
+
 import { useQuery } from '@tanstack/react-query';
 import { getSavedReports, SavedReport } from '@/services/api/reports';
 import Link from 'next/link';

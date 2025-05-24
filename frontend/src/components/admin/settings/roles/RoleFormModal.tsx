@@ -47,8 +47,6 @@ export function RoleFormModal({ open, onClose, title, role }: RoleFormModalProps
   const onSubmit = async (data: RoleFormValues) => {
     setIsSubmitting(true);
     try {
-      // Implement API call to create/update role
-      console.log('Submitting role data:', data);
       
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 1000));

@@ -9,23 +9,39 @@ import { Card } from '@/components/ui/Card';
 import { CategoryFormModal } from '@/components/admin/products/CategoryFormModal';
 import { CategoryTreeItem } from '@/components/admin/products/CategoryTreeItem';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { useAuth } from '@/hooks/useAuth';
+import { useRouter } from 'next/navigation';
 
 export default function CategoriesPage() {
+  const { isAuthenticated, isLoading } = useAuth();
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<ProductCategory | null>(null);
   const [draggedCategory, setDraggedCategory] = useState<ProductCategory | null>(null);
-  
+  // Redirect to login if not authenticated
+  React.useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push('/login');
+    }
+  }, [isLoading, isAuthenticated, router]);
   // Fetch all categories
-  const { data: categories, isLoading, isError } = useQuery({
+  const { data: categories, isLoading: categoriesLoading, isError } = useQuery({
     queryKey: ['productCategories'],
-    queryFn: () => productsApi.getCategories(),
+    queryFn: async () => {
+      const result = await productsApi.getCategories();
+      console.log('Categories API raw response:', JSON.stringify(result, null, 2));
+      return result;
+    },
+    enabled: !isLoading && isAuthenticated, // Only run query when auth state is resolved and user is authenticated
+    retry: 1, // Only retry once to avoid excessive retries
   });
 
   // Mutation to update category order
   const reorderMutation = useMutation({
-    mutationFn: (data: { id: string; parentId?: string; order: number }[]) => 
-      productsApi.reorderCategories(data),
+    mutationFn: async (data: { id: string; parentId?: string | null }[]) => {
+      return productsApi.updateCategory(data[0].id, data[0].parentId ? { parentId: data[0].parentId } : { parentId: null });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['productCategories'] });
     },
@@ -51,53 +67,77 @@ export default function CategoriesPage() {
       queryClient.invalidateQueries({ queryKey: ['productCategories'] });
     }
   };
-
-  // Build a tree of root categories
-  const rootCategories = categories?.filter(category => !category.parentId) || [];
+  // Build a tree of root categories 
+  const rootCategories = categories?.filter((category: ProductCategory) => !category.parentId) || [];
+  console.log('Raw categories:', categories?.map((c: ProductCategory) => ({ id: c.id, name: c.name, parentId: c.parentId })));
+  console.log('Root categories:', rootCategories.map((c: ProductCategory) => ({ id: c.id, name: c.name, parentId: c.parentId })));
 
   // Organize categories into a nested structure
-  const buildCategoryTree = (categories: ProductCategory[], parentId?: string): ProductCategory[] => {
-    return categories
-      .filter(category => category.parentId === parentId)
-      .map(category => ({
-        ...category,
-        children: buildCategoryTree(categories, category.id),
-      }));
+  const buildCategoryTree = (categories: ProductCategory[] | undefined, parentId?: string | null): ProductCategory[] => {
+    if (!categories) return [];
+    const filtered = categories.filter(category => parentId === null ? !category.parentId : category.parentId === parentId);
+    console.log('Building tree for parentId:', parentId, 'found children:', filtered.map((c: ProductCategory) => ({ id: c.id, name: c.name, parentId: c.parentId })));
+    return filtered.map(category => ({
+      ...category,
+      children: buildCategoryTree(categories, category.id),
+    }));
   };
 
-  const categoryTree = categories ? buildCategoryTree(categories) : [];
+  const categoryTree = buildCategoryTree(categories, null);
+  console.log('Built category tree:', { 
+    totalCategories: categories?.length,
+    rootCategories: categoryTree.length,
+    tree: categoryTree 
+  });
 
   const handleDragStart = (category: ProductCategory) => {
     setDraggedCategory(category);
   };
 
-  const handleDrop = (targetCategory: ProductCategory | null) => {
+  // Modify the drop handler to accept a category
+  const handleDrop = async (targetCategory: ProductCategory | null) => {
     if (!draggedCategory) return;
 
-    // Don't allow dropping a category into its own descendant
-    const isDescendant = (parent: ProductCategory, child: ProductCategory): boolean => {
-      if (!parent.children || parent.children.length === 0) return false;
-      return parent.children.some(c => 
-        c.id === child.id || isDescendant(c, child)
-      );
+    // If target is null, make it a root category, otherwise use target's ID
+    const targetId = targetCategory?.id || null;
+
+    // Don't allow dropping on self
+    if (draggedCategory.id === targetId) return;
+
+    // Don't allow dropping on own child
+    const isChild = (parent: ProductCategory, childId: string): boolean => {
+      if (parent.id === childId) return true;
+      return (parent.children || []).some(child => isChild(child, childId));
     };
+    
+    if (targetCategory && isChild(draggedCategory, targetCategory.id)) return;
 
-    if (targetCategory && isDescendant(draggedCategory, targetCategory)) {
-      setDraggedCategory(null);
-      return;
-    }
-
-    // Prepare the updated category
-    const updatedCategory = {
+    const data = [{
       id: draggedCategory.id,
-      parentId: targetCategory?.id,
-      order: targetCategory?.children?.length || 0,
-    };
+      parentId: targetId
+    }];
 
-    // Update the category order
-    reorderMutation.mutate([updatedCategory]);
+    await reorderMutation.mutateAsync(data);
     setDraggedCategory(null);
   };
+
+  // Don't render anything while checking auth
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  // Redirect if not authenticated 
+  if (!isAuthenticated) {
+    return null;
+  }
+  // Add debug logging for state changes
+  console.log('Rendering categories page:', { 
+    isAuthenticated, 
+    isLoading, 
+    categories, 
+    categoriesLoading,
+    categoryTreeLength: categoryTree.length
+  });
 
   return (
     <div className="space-y-6">
@@ -110,7 +150,7 @@ export default function CategoriesPage() {
         <div className="p-6">
           <h2 className="text-lg font-semibold mb-4">Category Tree</h2>
           
-          {isLoading ? (
+          {categoriesLoading ? (
             <div className="text-center p-4">Loading categories...</div>
           ) : isError ? (
             <div className="text-center p-4 text-red-500">Error loading categories</div>
@@ -118,11 +158,7 @@ export default function CategoriesPage() {
             <EmptyState
               title="No categories found"
               description="Create your first product category to get started"
-              action={
-                <Button onClick={handleAddCategory}>
-                  Add Category
-                </Button>
-              }
+              onAction={handleAddCategory}
             />
           ) : (
             <div className="border rounded-md">

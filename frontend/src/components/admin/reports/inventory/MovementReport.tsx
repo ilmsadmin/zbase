@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from 'react';
 import { Card, DataTable, DateRangePicker } from '@/components/ui';
 import { useQuery } from '@tanstack/react-query';
