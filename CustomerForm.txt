@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
@@ -25,8 +25,14 @@ const customerSchema = z.object({
   phone: z.string().optional(),
   email: z.string().email("Invalid email format").optional().or(z.literal('')),
   address: z.string().optional(),
+  city: z.string().optional(),
+  province: z.string().optional(),
+  postalCode: z.string().optional(),
+  country: z.string().optional(),
   notes: z.string().optional(),
+  taxId: z.string().optional(), // This maps to taxCode in backend
   groupId: z.string().optional(), // Will be converted to number in service layer
+  creditLimit: z.number().nonnegative("Credit limit must be positive").optional(),
 });
 
 type CustomerFormValues = z.infer<typeof customerSchema>;
@@ -41,100 +47,59 @@ export function CustomerForm({ isOpen, onClose, customer }: CustomerFormProps) {
   const isEditing = !!customer;
   const { success, error } = useToast();
   
-  // Debug customer information
-  console.log('Customer data in form:', customer);
-  if (customer && customer.group) {
-    console.log('Customer group data:', customer.group, 'groupId:', customer.groupId);
-  }
-  
   // Fetch customer groups
   const { data: groups, isLoading: loadingGroups } = useCustomerGroups();
-  console.log('Customer groups data:', groups);
   
   // Setup form
-  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<CustomerFormValues>({
-    resolver: zodResolver(customerSchema),
+  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<CustomerFormValues>({    resolver: zodResolver(customerSchema),
     defaultValues: {
       name: '',
       phone: '',
       email: '',
       address: '',
+      city: '',
+      province: '',
+      postalCode: '',
+      country: '',
       notes: '',
+      taxId: '',
       groupId: '',
+      creditLimit: undefined,
     }
-  });  // Set form values when editing
+  });
+
+  // Set form values when editing
   useEffect(() => {
-    if (customer) {
-      console.log('Setting form values from customer:', customer);
-      
-      // Handle group data properly - check all possible ways the group data might be provided
-      let groupId = '';
-      if (customer.groupId) {
-        groupId = customer.groupId;
-      } else if (customer.group && customer.group.id) {
-        groupId = String(customer.group.id);
-      }
-      
-      console.log('Setting groupId in form to:', groupId);
-      
-      reset({
+    if (customer) {      reset({
         name: customer.name,
         phone: customer.phone || '',
         email: customer.email || '',
         address: customer.address || '',
+        city: customer.city || '',
+        province: customer.province || '',
+        postalCode: customer.postalCode || '',
+        country: customer.country || '',
         notes: customer.notes || '',
-        groupId: groupId,
+        taxId: customer.taxId || '',
+        groupId: customer.groupId || '',
+        creditLimit: customer.creditLimit,
       });
     }
   }, [customer, reset]);
-    // Update form values when groups are loaded (to ensure the group select is populated)
-  useEffect(() => {
-    if (customer && groups && groups.items) {
-      // Reapply the groupId after groups are loaded
-      let groupId = '';
-      if (customer.groupId) {
-        groupId = customer.groupId;
-      } else if (customer.group && customer.group.id) {
-        groupId = String(customer.group.id);
-      }
-      
-      if (groupId) {
-        console.log('Updating groupId after groups loaded:', groupId);
-        setValue('groupId', groupId);
-      }
-    }
-  }, [groups, customer, setValue]);
-  
-  // Update form values when groups are loaded (to ensure the group select is populated)
-  useEffect(() => {
-    if (customer && groups && groups.length > 0) {
-      // Reapply the groupId after groups are loaded
-      let groupId = '';
-      if (customer.groupId) {
-        groupId = customer.groupId;
-      } else if (customer.group && customer.group.id) {
-        groupId = String(customer.group.id);
-      }
-      
-      if (groupId) {
-        console.log('Updating groupId after groups loaded:', groupId);
-        setValue('groupId', groupId);
-      }
-    }
-  }, [groups, customer, setValue]);
 
   // Mutations
   const createCustomer = useCreateCustomer();
-  const updateCustomer = useUpdateCustomer();  // Form submission
+  const updateCustomer = useUpdateCustomer();    // Form submission
   const onSubmit = async (data: CustomerFormValues) => {
     try {
       // Process data to match backend expectations
       const processedData = {
         ...data,
+        // Convert credit limit to a number if defined
+        creditLimit: data.creditLimit === undefined ? undefined : Number(data.creditLimit),
         // Note: groupId will be converted to number in the service layer
-        // Note: isActive is intentionally omitted as it's not supported in the backend DTO
-        code: customer?.code || `C-${Date.now()}`, // Make sure we keep the existing code or generate a temporary one
-        isActive: true, // Keep isActive field
+        // Set active status for new customers
+        isActive: true
       };
       
       if (isEditing && customer) {
@@ -142,8 +107,12 @@ export function CustomerForm({ isOpen, onClose, customer }: CustomerFormProps) {
           id: customer.id,
           data: processedData
         });
-        success("Customer updated successfully");      } else {
-        await createCustomer.mutateAsync(processedData);
+        success("Customer updated successfully");
+      } else {
+        await createCustomer.mutateAsync({
+          ...processedData,
+          code: `C-${Date.now()}` // Generate a temporary code if needed
+        });
         success("Customer created successfully");
       }
       onClose();} catch (err) {
@@ -201,30 +170,95 @@ export function CustomerForm({ isOpen, onClose, customer }: CustomerFormProps) {
                 )}
               </div>
             </div>
-              <div className="space-y-2">
+            
+            <div className="space-y-2">
               <label htmlFor="address" className="text-sm font-medium">Address</label>
               <Input
                 id="address"
                 {...register('address')}
                 placeholder="Street address"
               />
-            </div>            <div className="space-y-2">
-              <label htmlFor="groupId" className="text-sm font-medium">Customer Group</label>
-              <select
-                id="groupId"
-                {...register('groupId')}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <option value="">No Group</option>
-                {groups && Array.isArray(groups.items) && groups.items.map((group) => {
-                  console.log('Group option:', group.id, group.name, 'Selected:', customer?.groupId === String(group.id));
-                  return (
-                    <option key={group.id} value={String(group.id)}>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label htmlFor="city" className="text-sm font-medium">City</label>
+                <Input
+                  id="city"
+                  {...register('city')}
+                  placeholder="City"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label htmlFor="province" className="text-sm font-medium">Province/State</label>
+                <Input
+                  id="province"
+                  {...register('province')}
+                  placeholder="Province/State"
+                />
+              </div>            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label htmlFor="postalCode" className="text-sm font-medium">Postal Code</label>
+                <Input
+                  id="postalCode"
+                  {...register('postalCode')}
+                  placeholder="Postal Code"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label htmlFor="country" className="text-sm font-medium">Country</label>
+                <Input
+                  id="country"
+                  {...register('country')}
+                  placeholder="Country"
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label htmlFor="taxId" className="text-sm font-medium">Tax ID/VAT</label>
+                <Input
+                  id="taxId"
+                  {...register('taxId')}
+                  placeholder="Tax identification number"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label htmlFor="groupId" className="text-sm font-medium">Customer Group</label>
+                <select
+                  id="groupId"
+                  {...register('groupId')}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="">No Group</option>
+                  {groups && Array.isArray(groups) && groups.map((group) => (
+                    <option key={group.id} value={group.id}>
                       {group.name}
                     </option>
-                  );
-                })}
-              </select>
+                  ))}
+                </select>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <label htmlFor="creditLimit" className="text-sm font-medium">Credit Limit</label>
+              <Input
+                  id="creditLimit"
+                  type="number"
+                  {...register('creditLimit', { valueAsNumber: true })}
+                  placeholder="Credit limit"
+                  className={errors.creditLimit ? 'border-red-500' : ''}
+                />
+                {errors.creditLimit && (
+                  <p className="text-red-500 text-xs mt-1">{errors.creditLimit.message}</p>
+                )}
+              </div>
             </div>
             
             <div className="space-y-2">

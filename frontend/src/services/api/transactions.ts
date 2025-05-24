@@ -1,36 +1,47 @@
-import { apiClient } from '@/lib/api-client';
-import { Transaction, TransactionFilters, CreateTransactionDto } from '@/types/transaction';
+// This file provides backward compatibility for components still importing from @/services/api/transactions
+// It re-exports the services from @/lib/services/transactionsService
+
+import { transactionsService } from '@/lib/services/transactionsService';
 
 export const transactionsApi = {
-  getTransactions: async (filters?: TransactionFilters): Promise<{ data: Transaction[], total: number }> => {
-    return apiClient.get('/api/transactions', { params: filters });
+  // Get all transactions with filters
+  getTransactions: async (filters = {}) => {
+    const data = await transactionsService.getTransactions(filters);
+    return { data: data.items || [], meta: data.meta };
   },
-  
-  getTransaction: async (id: string): Promise<Transaction> => {
-    return apiClient.get(`/api/transactions/${id}`);
+
+  // Get a single transaction by ID
+  getTransaction: async (id) => {
+    return transactionsService.getTransactionById(id);
   },
-  
-  createTransaction: async (transaction: CreateTransactionDto): Promise<Transaction> => {
-    return apiClient.post('/api/transactions', transaction);
+
+  // Create a new transaction
+  createTransaction: async (transactionData) => {
+    return transactionsService.createTransaction(transactionData);
   },
-  
-  updateTransaction: async (id: string, transaction: Partial<CreateTransactionDto>): Promise<Transaction> => {
-    return apiClient.patch(`/api/transactions/${id}`, transaction);
+
+  // Update an existing transaction
+  updateTransaction: async (id, transactionData) => {
+    return transactionsService.updateTransaction(id, transactionData);
   },
-  
-  deleteTransaction: async (id: string): Promise<void> => {
-    await apiClient.delete(`/api/transactions/${id}`);
+
+  // Delete a transaction
+  deleteTransaction: async (id) => {
+    return transactionsService.deleteTransaction(id);
   },
-  // Debt management
-  getCustomerDebts: async (customerId?: string): Promise<{ data: any[], total: number }> => {
-    return apiClient.get('/api/transactions/debts/customers', { params: { customerId } });
+
+  // Get transaction statistics
+  getStatistics: async (params = {}) => {
+    return transactionsService.getTransactionStatistics(params);
   },
-  
-  getPartnerDebts: async (partnerId?: string): Promise<{ data: any[], total: number }> => {
-    return apiClient.get('/api/transactions/debts/partners', { params: { partnerId } });
+
+  // Get aging analysis (overdue payments)
+  getAgingAnalysis: async () => {
+    return transactionsService.getAgingAnalysis();
   },
-  
-  getAgingAnalysis: async (type: 'customers' | 'partners'): Promise<any> => {
-    return apiClient.get(`/api/transactions/aging/${type}`);
+
+  // Get debt summary by customer
+  getDebtSummary: async () => {
+    return transactionsService.getDebtSummary();
   }
 };

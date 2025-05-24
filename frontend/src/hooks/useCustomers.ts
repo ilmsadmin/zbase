@@ -28,7 +28,24 @@ export function useCustomers(params?: CustomerQueryParams) {
 export function useCustomer(id: string | undefined) {
   return useQueryWithErrorHandling(
     ['customer', id],
-    () => customersService.getCustomerById(id!),
+    async () => {
+      const data = await customersService.getCustomerById(id!);
+      console.log('Fetched customer data:', data);
+      
+      // Ensure groupId is properly formatted
+      if (data.group && data.group.id !== undefined) {
+        // Make sure groupId is a string for the frontend
+        data.groupId = String(data.group.id);
+        data.groupName = data.group.name || '';
+        console.log('Setting groupId to:', data.groupId, 'from group.id:', data.group.id);
+      } else if (data.groupId !== undefined) {
+        // Make sure existing groupId is a string
+        data.groupId = String(data.groupId);
+        console.log('Using existing groupId:', data.groupId);
+      }
+      
+      return data;
+    },
     {
       enabled: !!id,
     }
@@ -70,7 +87,21 @@ export function useDeleteCustomer() {
 export function useCustomerGroups() {
   return useQueryWithErrorHandling(
     ['customer-groups'],
-    () => customersService.getCustomerGroups()
+    async () => {
+      const response = await customersService.getCustomerGroups();
+      console.log('Fetched customer groups:', response);
+      
+      // Ensure we return the data in a consistent format
+      // If the API returns items directly, make sure it's properly formatted
+      if (Array.isArray(response)) {
+        return { items: response };
+      } else if (response && response.items) {
+        return response;
+      } else {
+        // Fallback to empty array if format is unexpected
+        return { items: [] };
+      }
+    }
   );
 }
 

@@ -1,50 +1,53 @@
-import { apiClient } from '@/lib/api-client';
-import { Invoice, InvoiceFilters, CreateInvoiceDto } from '@/types/invoice';
+// This file provides backward compatibility for components still importing from @/services/api/invoices
+// It re-exports the services from @/lib/services/invoicesService
+
+import { invoicesService } from '@/lib/services/invoicesService';
+import { Invoice, InvoiceFilters } from '@/types/invoice';
 
 export const invoicesApi = {
-  getInvoices: async (filters?: InvoiceFilters): Promise<{ data: Invoice[], total: number }> => {
-    return apiClient.get('/api/invoices', { params: filters });
+  // Get all invoices with filters
+  getInvoices: async (filters = {}) => {
+    const data = await invoicesService.getInvoices(filters);
+    return { data: data.items || [], meta: data.meta };
   },
-  
-  getInvoice: async (id: string): Promise<Invoice> => {
-    return apiClient.get(`/api/invoices/${id}`);
+
+  // Get a single invoice by ID
+  getInvoice: async (id) => {
+    return invoicesService.getInvoiceById(id);
   },
-  
-  createInvoice: async (invoice: CreateInvoiceDto): Promise<Invoice> => {
-    return apiClient.post('/api/invoices', invoice);
+
+  // Create a new invoice
+  createInvoice: async (invoiceData) => {
+    return invoicesService.createInvoice(invoiceData);
   },
-  
-  updateInvoice: async (id: string, invoice: Partial<CreateInvoiceDto>): Promise<Invoice> => {
-    return apiClient.patch(`/api/invoices/${id}`, invoice);
+
+  // Update an existing invoice
+  updateInvoice: async (id, invoiceData) => {
+    return invoicesService.updateInvoice(id, invoiceData);
   },
-  
-  deleteInvoice: async (id: string): Promise<void> => {
-    return apiClient.delete(`/api/invoices/${id}`);
+
+  // Delete an invoice
+  deleteInvoice: async (id) => {
+    return invoicesService.deleteInvoice(id);
   },
-  
-  markAsPaid: async (id: string, paymentData: any): Promise<Invoice> => {
-    return apiClient.post(`/api/invoices/${id}/mark-as-paid`, paymentData);
+
+  // Mark invoice as paid
+  markAsPaid: async (id, paymentData) => {
+    return invoicesService.markAsPaid(id, paymentData);
   },
-  
-  cancelInvoice: async (id: string, reason?: string): Promise<Invoice> => {
-    return apiClient.post(`/api/invoices/${id}/cancel`, { reason });
+
+  // Generate invoice PDF
+  generatePdf: async (id) => {
+    return invoicesService.generateInvoicePdf(id);
   },
-    printInvoice: async (id: string, templateId?: string): Promise<string> => {
-    const response = await apiClient.get(`/api/invoices/${id}/print`, { 
-      params: { templateId },
-      responseType: 'blob'
-    });
-    
-    // Create a URL for the blob
-    const url = window.URL.createObjectURL(new Blob([response.data]));
-    return url;
+
+  // Send invoice by email
+  sendInvoice: async (id, emailData) => {
+    return invoicesService.sendInvoice(id, emailData);
   },
-  
-  emailInvoice: async (id: string, email: string, templateId?: string): Promise<void> => {
-    return apiClient.post(`/api/invoices/${id}/email`, { email, templateId });
-  },
-  
-  getInvoiceTemplates: async (): Promise<any[]> => {
-    return apiClient.get('/api/invoices/templates');
+
+  // Get invoice statistics
+  getStatistics: async (params = {}) => {
+    return invoicesService.getInvoiceStatistics(params);
   }
 };

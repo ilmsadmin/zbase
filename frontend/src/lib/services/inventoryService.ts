@@ -58,21 +58,80 @@ export interface InventoryQueryParams {
   limit?: number;
 }
 
+// Thêm interfaces từ src/services/inventory.ts
+export interface StockAdjustment {
+  productId: string;
+  warehouseId: string;
+  locationId?: string;
+  quantity: number;
+  adjustmentType: 'INCREMENT' | 'DECREMENT' | 'SET';
+  reason: string;
+  notes?: string;
+}
+
+export interface StockTransfer {
+  productId: string;
+  sourceWarehouseId: string;
+  sourceLocationId?: string;
+  destinationWarehouseId: string;
+  destinationLocationId?: string;
+  quantity: number;
+  notes?: string;
+}
+
+export interface InventoryFilters {
+  warehouseId?: string;
+  productId?: string;
+  locationId?: string;
+  lowStock?: boolean;
+}
+
 // Inventory API service
 export const inventoryService = {
   /**
-   * Get inventory items with optional filtering
-   */
-  getInventoryItems: async (params?: InventoryQueryParams) => {
-    const response = await api.get('/inventory', { params });
+   * Get inventory items
+   */  getInventoryItems: async (params?: InventoryQueryParams) => {
+    const response = await api.get('inventory', { params });
     return response.data;
   },
 
   /**
-   * Get inventory item for a specific product and warehouse
+   * Get a single inventory item
    */
-  getInventoryItem: async (productId: string, warehouseId: string) => {
-    const response = await api.get(`/inventory/product/${productId}/warehouse/${warehouseId}`);
+  getInventoryItem: async (id: string) => {
+    const response = await api.get(`inventory/${id}`);
+    return response.data;
+  },
+
+  /**
+   * Get inventory for a product across warehouses
+   */
+  getProductInventory: async (productId: string) => {
+    const response = await api.get(`inventory/product/${productId}`);
+    return response.data;
+  },
+
+  /**
+   * Get warehouse inventory
+   */
+  getWarehouseInventory: async (warehouseId: string, params?: InventoryQueryParams) => {
+    const requestParams = { ...params, warehouseId };
+    const response = await api.get('inventory', { params: requestParams });
+    return response.data;
+  },
+  /**
+   * Create a stock adjustment
+   */
+  createStockAdjustment: async (adjustment: StockAdjustment) => {
+    const response = await api.post('inventory/adjust', adjustment);
+    return response.data;
+  },
+
+  /**
+   * Create a stock transfer
+   */
+  createStockTransfer: async (transfer: StockTransfer) => {
+    const response = await api.post('inventory/transfer', transfer);
     return response.data;
   },
 
@@ -88,38 +147,15 @@ export const inventoryService = {
     page?: number;
     limit?: number;
   }) => {
-    const response = await api.get('/inventory/transactions', { params });
+    const response = await api.get('inventory/transactions', { params });
     return response.data;
   },
 
   /**
-   * Create an inventory transaction
+   * Get a single inventory transaction
    */
-  createInventoryTransaction: async (data: InventoryTransactionCreate) => {
-    const response = await api.post('/inventory/transactions', data);
-    return response.data;
-  },
-
-  /**
-   * Adjust stock quantity
-   */
-  adjustStock: async (data: {
-    productId: string;
-    warehouseId: string;
-    locationId?: string;
-    quantity: number;
-    reason?: string;
-    notes?: string;
-  }) => {
-    const response = await api.post('/inventory/adjust', data);
-    return response.data;
-  },
-
-  /**
-   * Transfer stock between warehouses or locations
-   */
-  transferStock: async (data: InventoryTransferData) => {
-    const response = await api.post('/inventory/transfer', data);
+  getInventoryTransaction: async (id: string) => {
+    const response = await api.get(`inventory/transactions/${id}`);
     return response.data;
   },
 
@@ -127,47 +163,18 @@ export const inventoryService = {
    * Get low stock items
    */
   getLowStockItems: async (params?: { warehouseId?: string; limit?: number }) => {
-    const response = await api.get('/inventory/low-stock', { params });
+    const response = await api.get('inventory/low-stock', { params });
     return response.data;
   },
 
   /**
-   * Perform inventory count
+   * Export inventory report
    */
-  performInventoryCount: async (data: {
-    warehouseId: string;
-    locationId?: string;
-    items: { productId: string; countedQuantity: number }[];
-    notes?: string;
-  }) => {
-    const response = await api.post('/inventory/count', data);
+  exportInventoryReport: async (params?: InventoryQueryParams) => {
+    const response = await api.get('inventory/export', {
+      params,
+      responseType: 'blob'
+    });
     return response.data;
-  },
-
-  /**
-   * Get inventory counts history
-   */
-  getInventoryCounts: async (params?: {
-    warehouseId?: string;
-    startDate?: string;
-    endDate?: string;
-    page?: number;
-    limit?: number;
-  }) => {
-    const response = await api.get('/inventory/counts', { params });
-    return response.data;
-  },
-
-  /**
-   * Get stock movement history for a product
-   */
-  getProductStockMovement: async (productId: string, params?: {
-    startDate?: string;
-    endDate?: string;
-    page?: number;
-    limit?: number;
-  }) => {
-    const response = await api.get(`/inventory/product/${productId}/movement`, { params });
-    return response.data;
-  },
+  }
 };

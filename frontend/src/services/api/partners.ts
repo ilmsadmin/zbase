@@ -1,44 +1,37 @@
-import { apiClient } from '@/lib/api-client';
+// This file provides backward compatibility for components still importing from @/services/api/partners
+// It re-exports the services from @/lib/services/partnersService
 
-export interface Partner {
-  id: string;
-  code: string;
-  name: string;
-  type: string; // supplier, distributor, etc.
-  contactPerson: string;
-  phone?: string;
-  email?: string;
-  address?: string;
-  taxId?: string;
-  paymentTerms?: string;
-  notes?: string;
-  isActive: boolean;
-}
-
-export interface PartnerFilters {
-  search?: string;
-  type?: string;
-  isActive?: boolean;
-}
+import { partnersService } from '@/lib/services/partnersService';
 
 export const partnersApi = {
-  getPartners: async (filters?: PartnerFilters): Promise<{ data: Partner[], total: number }> => {
-    return apiClient.get('/api/partners', { params: filters });
+  // Get all partners with filters
+  getPartners: async (filters = {}) => {
+    const data = await partnersService.getPartners(filters);
+    return { data: data.items || [], meta: data.meta };
   },
-  
-  getPartner: async (id: string): Promise<Partner> => {
-    return apiClient.get(`/api/partners/${id}`);
+
+  // Get a single partner by ID
+  getPartner: async (id) => {
+    return partnersService.getPartnerById(id);
   },
-  
-  createPartner: async (partner: Omit<Partner, 'id'>): Promise<Partner> => {
-    return apiClient.post('/api/partners', partner);
+
+  // Create a new partner
+  createPartner: async (partnerData) => {
+    return partnersService.createPartner(partnerData);
   },
-  
-  updatePartner: async (id: string, partner: Partial<Partner>): Promise<Partner> => {
-    return apiClient.patch(`/api/partners/${id}`, partner);
+
+  // Update an existing partner
+  updatePartner: async (id, partnerData) => {
+    return partnersService.updatePartner(id, partnerData);
   },
-  
-  deletePartner: async (id: string): Promise<void> => {
-    return apiClient.delete(`/api/partners/${id}`);
+
+  // Delete a partner
+  deletePartner: async (id) => {
+    return partnersService.deletePartner(id);
+  },
+
+  // Bulk delete partners
+  bulkDeletePartners: async (ids) => {
+    return partnersService.bulkDeletePartners(ids);
   }
 };

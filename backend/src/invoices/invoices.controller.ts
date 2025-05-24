@@ -10,12 +10,14 @@ import {
   Query,
   ParseIntPipe,
   DefaultValuePipe,
+  Res,
 } from '@nestjs/common';
 import { InvoicesService } from './invoices.service';
-import { CreateInvoiceDto, UpdateInvoiceDto, CancelInvoiceDto } from './dto';
+import { CreateInvoiceDto, UpdateInvoiceDto, CancelInvoiceDto, CreatePaymentDto, SendEmailDto } from './dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../permissions/permissions.guard';
 import { RequirePermissions } from '../permissions/permissions.decorator';
+import { Response } from 'express';
 
 @Controller('invoices')
 @UseGuards(JwtAuthGuard, PermissionsGuard)
@@ -83,10 +85,83 @@ export class InvoicesController {
   ) {
     return this.invoicesService.cancelInvoice(id, cancelInvoiceDto.reason);
   }
-
   @Delete(':id')
   @RequirePermissions('invoices.delete')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.invoicesService.remove(id);
+  }
+
+  @Post(':id/payments')
+  @RequirePermissions('invoices.payments.create')
+  addPayment(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() createPaymentDto: CreatePaymentDto,
+  ) {
+    return this.invoicesService.addPayment(id, createPaymentDto);
+  }
+
+  @Get(':id/payments')
+  @RequirePermissions('invoices.payments.read')
+  getInvoicePayments(@Param('id', ParseIntPipe) id: number) {
+    return this.invoicesService.getInvoicePayments(id);
+  }
+  @Get(':id/pdf')
+  @RequirePermissions('invoices.generate.pdf')
+  async generatePdf(
+    @Param('id', ParseIntPipe) id: number,
+    @Res() res: Response,
+  ) {
+    const pdfBuffer = await this.invoicesService.generatePdf(id);
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="invoice-${id}.pdf"`,
+      'Content-Length': pdfBuffer.length,
+    });
+    res.end(pdfBuffer);
+  }
+
+  @Get(':id/pdf-with-template/:templateId')
+  @RequirePermissions('invoices.generate.pdf')
+  async generatePdfWithTemplate(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('templateId', ParseIntPipe) templateId: number,
+    @Res() res: Response,
+  ) {
+    const pdfBuffer = await this.invoicesService.generatePdf(id, templateId);
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="invoice-${id}-template-${templateId}.pdf"`,
+      'Content-Length': pdfBuffer.length,
+    });
+    res.end(pdfBuffer);
+  }
+
+  @Post(':id/send-email')
+  @RequirePermissions('invoices.send.email')
+  sendInvoiceByEmail(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() sendEmailDto: SendEmailDto,
+  ) {
+    return this.invoicesService.sendInvoiceByEmail(id, sendEmailDto);
+  }
+
+  @Get('statistics')
+  @RequirePermissions('invoices.statistics.read')
+  getInvoiceStatistics(
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.invoicesService.getInvoiceStatistics(
+      startDate ? new Date(startDate) : undefined,
+      endDate ? new Date(endDate) : undefined,
+    );
+  }
+  @Post(':id/mark-as-paid')
+  @RequirePermissions('invoices.update')
+  markAsPaid(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() paymentData: CreatePaymentDto,
+  ) {
+    return this.invoicesService.markAsPaid(id, paymentData);
   }
 }

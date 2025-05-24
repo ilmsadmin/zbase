@@ -10,10 +10,10 @@ interface FormTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaEle
   helperText?: string;
 }
 
-const FormTextarea = React.forwardRef<HTMLTextAreaElement, FormTextareaProps>(
-  ({ className, name, label, helperText, ...props }, ref) => {
-    const { control, formState: { errors } } = useFormContext();
-    const error = errors[name];
+const FormTextarea = React.forwardRef<HTMLTextAreaElement, FormTextareaProps>(  ({ className, name, label, helperText, ...props }, ref) => {
+    const formContext = useFormContext();
+    const { control, formState } = formContext || { formState: { errors: {} } };
+    const error = formState?.errors?.[name as any];
 
     return (
       <div className="space-y-2">
@@ -25,25 +25,38 @@ const FormTextarea = React.forwardRef<HTMLTextAreaElement, FormTextareaProps>(
             {label}
           </label>
         )}
-        <Controller
-          control={control}
-          name={name}
-          render={({ field }) => (
-            <textarea
-              {...field}
-              {...props}
-              id={name}
-              ref={ref}
-              className={cn(
-                'flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
-                error && 'border-red-500 focus-visible:ring-red-500',
-                className
-              )}
-              aria-invalid={!!error}
-              value={field.value || ''}
-            />
-          )}
-        />
+        {!control ? (
+          <textarea
+            id={name}
+            name={name}
+            ref={ref}
+            className={cn(
+              'flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+              className
+            )}
+            {...props}
+          />
+        ) : (
+          <Controller
+            control={control}
+            name={name}
+            render={({ field }) => (
+              <textarea
+                {...field}
+                {...props}
+                id={name}
+                ref={ref}
+                className={cn(
+                  'flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+                  error && 'border-red-500 focus-visible:ring-red-500',
+                  className
+                )}
+                aria-invalid={!!error}
+                value={field.value || ''}
+              />
+            )}
+          />
+        )}
         {helperText && !error && (
           <p className="text-sm text-muted-foreground">{helperText}</p>
         )}

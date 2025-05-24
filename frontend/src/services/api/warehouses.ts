@@ -1,53 +1,58 @@
-import { apiClient } from '@/lib/api-client';
-import { Warehouse, WarehouseLocation } from '@/types/warehouse';
-import { PaginatedResponse } from '@/types/common';
+// This file provides backward compatibility for components still importing from @/services/api/warehouses
+// It re-exports the services from @/lib/services/warehousesService
+
+import { warehousesService } from '@/lib/services/warehousesService';
 
 export const warehousesApi = {
-  // Warehouses
-  getWarehouses: (params?: { isActive?: boolean; search?: string }): Promise<Warehouse[]> =>
-    apiClient.get('/warehouses', { params }),
+  // Get all warehouses with filters
+  getWarehouses: async (filters = {}) => {
+    const data = await warehousesService.getWarehouses(filters);
+    return data.items || [];
+  },
 
-  getWarehouse: (id: string): Promise<Warehouse> =>
-    apiClient.get(`/warehouses/${id}`),
+  // Get a single warehouse by ID
+  getWarehouse: async (id) => {
+    return warehousesService.getWarehouseById(id);
+  },
 
-  createWarehouse: (data: { 
-    name: string; 
-    code: string; 
-    address: string;
-    city?: string;
-    state?: string;
-    country?: string;
-    zipCode?: string;
-    managerId?: string;
-    isActive?: boolean;
-  }): Promise<Warehouse> =>
-    apiClient.post('/warehouses', data),
+  // Create a new warehouse
+  createWarehouse: async (warehouseData) => {
+    return warehousesService.createWarehouse(warehouseData);
+  },
 
-  updateWarehouse: (id: string, data: Partial<Warehouse>): Promise<Warehouse> =>
-    apiClient.put(`/warehouses/${id}`, data),
+  // Update an existing warehouse
+  updateWarehouse: async (id, warehouseData) => {
+    return warehousesService.updateWarehouse(id, warehouseData);
+  },
 
-  deleteWarehouse: (id: string): Promise<void> =>
-    apiClient.delete(`/warehouses/${id}`),
+  // Delete a warehouse
+  deleteWarehouse: async (id) => {
+    return warehousesService.deleteWarehouse(id);
+  },
 
-  // Warehouse Locations
-  getWarehouseLocations: (warehouseId: string): Promise<WarehouseLocation[]> =>
-    apiClient.get(`/warehouse-locations?warehouseId=${warehouseId}`),
+  // Get warehouse locations
+  getLocations: async (warehouseId, params = {}) => {
+    const data = await warehousesService.getLocations({ warehouseId, ...params });
+    return data.items || [];
+  },
 
-  getWarehouseLocation: (id: string): Promise<WarehouseLocation> =>
-    apiClient.get(`/warehouse-locations/${id}`),
+  // Create a warehouse location
+  createLocation: async (locationData) => {
+    return warehousesService.createLocation(locationData);
+  },
 
-  createWarehouseLocation: (data: {
-    warehouseId: string;
-    name: string;
-    code: string;
-    type: 'ZONE' | 'AISLE' | 'RACK' | 'SHELF' | 'BIN';
-    parentId?: string;
-  }): Promise<WarehouseLocation> =>
-    apiClient.post('/warehouse-locations', data),
+  // Update a warehouse location
+  updateLocation: async (id, locationData) => {
+    return warehousesService.updateLocation(id, locationData);
+  },
 
-  updateWarehouseLocation: (id: string, data: Partial<Omit<WarehouseLocation, 'id' | 'warehouseId'>>): Promise<WarehouseLocation> =>
-    apiClient.put(`/warehouse-locations/${id}`, data),
-
-  deleteWarehouseLocation: (id: string): Promise<void> =>
-    apiClient.delete(`/warehouse-locations/${id}`),
+  // Delete a warehouse location
+  deleteLocation: async (id) => {
+    return warehousesService.deleteLocation(id);
+  },
+  
+  // Get warehouse stats
+  getWarehouseStats: async (id) => {
+    return warehousesService.getWarehouseStats(id);
+  }
 };

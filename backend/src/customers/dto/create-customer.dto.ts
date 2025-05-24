@@ -15,20 +15,11 @@ export class CreateCustomerDto {
   @IsEmail()
   @IsOptional()
   email?: string;
-
   @IsString()
   @IsOptional()
   address?: string;
 
-  @IsString()
-  @IsOptional()
-  taxCode?: string;
-
   @IsInt()
   @IsOptional()
   groupId?: number;
-
-  @IsNumber()
-  @IsOptional()
-  creditBalance?: number = 0;
 }

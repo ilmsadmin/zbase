@@ -26,8 +26,9 @@ const FormDatePicker = ({
   className,
   disabled = false,
 }: FormDatePickerProps) => {
-  const { control, formState: { errors } } = useFormContext();
-  const error = errors[name];
+  const formContext = useFormContext();
+  const { control, formState } = formContext || { formState: { errors: {} } };
+  const error = formState?.errors?.[name as any];
 
   return (
     <div className="space-y-2">

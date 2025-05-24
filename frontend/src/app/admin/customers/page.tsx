@@ -1,6 +1,6 @@
 "use client";
 
-import { CustomersList } from '@/components/customers/CustomersList';
+import { CustomersList } from '@/components/admin/customers/CustomersList';
 
 export default function CustomersPage() {
   return <CustomersList />;

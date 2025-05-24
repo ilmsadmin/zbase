@@ -49,12 +49,12 @@ const FormSelect = React.forwardRef<HTMLDivElement, FormSelectProps>(
               <Select
                 onValueChange={(value) => {
                   if (value === "_empty_" && isClearable) {
-                    field.onChange(undefined);
+                    field.onChange("");
                   } else {
                     field.onChange(value);
                   }
                 }}
-                value={field.value || "_empty_"}
+                value={field.value === undefined || field.value === "" ? "_empty_" : field.value}
                 {...props}
               >
                 <SelectTrigger className={cn(error && 'border-red-500 focus-visible:ring-red-500')}>
@@ -67,7 +67,7 @@ const FormSelect = React.forwardRef<HTMLDivElement, FormSelectProps>(
                     </SelectItem>
                   )}
                   {options.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
+                    <SelectItem key={option.value} value={option.value || "_empty_value"}>
                       {option.label}
                     </SelectItem>
                   ))}
@@ -79,12 +79,12 @@ const FormSelect = React.forwardRef<HTMLDivElement, FormSelectProps>(
           <Select
             onValueChange={(newValue) => {
               if (newValue === "_empty_" && isClearable) {
-                onChange?.(undefined);
+                onChange?.("");
               } else {
                 onChange?.(newValue);
               }
             }}
-            value={value || "_empty_"}
+            value={value === undefined || value === "" ? "_empty_" : value}
             {...props}
           >
             <SelectTrigger>
@@ -97,12 +97,13 @@ const FormSelect = React.forwardRef<HTMLDivElement, FormSelectProps>(
                 </SelectItem>
               )}
               {options.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
+                <SelectItem key={option.value} value={option.value || "_empty_value"}>
                   {option.label}
                 </SelectItem>
               ))}
             </SelectContent>
-          </Select>        )}
+          </Select>
+        )}
         
         {helperText && !error && (
           <p className="text-sm text-muted-foreground">{helperText}</p>

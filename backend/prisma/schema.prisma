@@ -29,6 +29,7 @@ model User {
   transactions          Transaction[]
   inventoryTransactions InventoryTransaction[]
   reportTemplates       ReportTemplate[]
+  invoiceTemplates      InvoiceTemplate[]
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
 }
@@ -213,10 +214,8 @@ model Customer {
   phone         String?
   email         String?
   address       String?
-  taxCode       String?
   group         CustomerGroup? @relation(fields: [groupId], references: [id])
   groupId       Int?
-  creditBalance Decimal        @default(0) @db.Decimal(15, 2)
   invoices      Invoice[]
   transactions  Transaction[]
   warranties    Warranty[]
@@ -305,30 +304,31 @@ model InventoryTransaction {
 
 // Hóa đơn
 model Invoice {
-  id             Int           @id @default(autoincrement())
-  code           String        @unique
-  customer       Customer?     @relation(fields: [customerId], references: [id])
+  id             Int             @id @default(autoincrement())
+  code           String          @unique
+  customer       Customer?       @relation(fields: [customerId], references: [id])
   customerId     Int?
-  user           User          @relation(fields: [userId], references: [id])
+  user           User            @relation(fields: [userId], references: [id])
   userId         Int
-  shift          Shift?        @relation(fields: [shiftId], references: [id])
+  shift          Shift?          @relation(fields: [shiftId], references: [id])
   shiftId        Int?
-  warehouse      Warehouse     @relation(fields: [warehouseId], references: [id])
+  warehouse      Warehouse       @relation(fields: [warehouseId], references: [id])
   warehouseId    Int
-  invoiceDate    DateTime      @default(now())
-  subtotal       Decimal       @db.Decimal(15, 2)
-  taxAmount      Decimal       @default(0) @db.Decimal(15, 2)
-  discountAmount Decimal       @default(0) @db.Decimal(15, 2)
-  totalAmount    Decimal       @db.Decimal(15, 2)
-  paidAmount     Decimal       @default(0) @db.Decimal(15, 2)
+  invoiceDate    DateTime        @default(now())
+  subtotal       Decimal         @db.Decimal(15, 2)
+  taxAmount      Decimal         @default(0) @db.Decimal(15, 2)
+  discountAmount Decimal         @default(0) @db.Decimal(15, 2)
+  totalAmount    Decimal         @db.Decimal(15, 2)
+  paidAmount     Decimal         @default(0) @db.Decimal(15, 2)
   paymentMethod  String? // 'cash', 'card', 'bank_transfer', etc.
-  status         String        @default("pending") // 'pending', 'paid', 'canceled'
+  status         String          @default("pending") // 'pending', 'paid', 'canceled'
   notes          String?
   items          InvoiceItem[]
+  payments       InvoicePayment[]
   transactions   Transaction[]
   warranties     Warranty[]
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 
   @@index([customerId])
   @@index([userId])
@@ -362,6 +362,21 @@ model InvoiceItem {
   @@index([invoiceId])
   @@index([productId])
   @@index([locationId])
+}
+
+// Thanh toán hóa đơn
+model InvoicePayment {
+  id              Int      @id @default(autoincrement())
+  invoice         Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoiceId       Int
+  amount          Decimal  @db.Decimal(15, 2)
+  paymentMethod   String // 'cash', 'card', 'bank_transfer', etc.
+  referenceNumber String?
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([invoiceId])
 }
 
 // Bảng giá theo nhóm khách hàng
@@ -502,4 +517,18 @@ model ReportTemplate {
   createdById   Int
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+// Mẫu hóa đơn
+model InvoiceTemplate {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  content     String
+  type        String // 'default', 'thermal', 'a4', etc.
+  isDefault   Boolean  @default(false)
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdById Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

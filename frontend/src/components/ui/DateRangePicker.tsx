@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/Calendar';
 import { Button } from '@/components/ui/Button';
-import { FormInput } from '@/components/ui/FormInput';
-import { Dialog } from '@/components/ui/Dialog';
+import { Dialog } from '@/components/ui/DialogCustom';
+import { cn } from '@/lib/utils';
 
 interface DateRange {
   from: Date;
@@ -13,9 +13,10 @@ interface DateRange {
 interface DateRangePickerProps {
   onChange: (range: DateRange | undefined) => void;
   initialRange?: DateRange;
+  className?: string;
 }
 
-export function DateRangePicker({ onChange, initialRange }: DateRangePickerProps) {
+export function DateRangePicker({ onChange, initialRange, className }: DateRangePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [range, setRange] = useState<DateRange | undefined>(initialRange);
   const [tempRange, setTempRange] = useState<{
@@ -79,124 +80,136 @@ export function DateRangePicker({ onChange, initialRange }: DateRangePickerProps
   };
 
   return (
-    <div>
-      <FormInput
-        readOnly
-        placeholder="Select date range"
-        value={
-          range
-            ? `${format(range.from, 'MMM dd, yyyy')} - ${format(range.to, 'MMM dd, yyyy')}`
-            : ''
-        }
+    <div className="relative">
+      <div 
+        className={cn(
+          "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors cursor-pointer hover:bg-slate-50", 
+          className
+        )}
         onClick={() => setIsOpen(true)}
-      />
+      >
+        <div className="flex-1">
+          {range 
+            ? `${format(range.from, 'dd/MM/yyyy')} - ${format(range.to, 'dd/MM/yyyy')}` 
+            : <span className="text-muted-foreground">Chọn khoảng thời gian</span>
+          }
+        </div>
+        <div className="flex items-center text-gray-400">
+          📅
+        </div>
+      </div>
 
       <Dialog
-        title="Select Date Range"
+        title="Chọn Khoảng Thời Gian"
         isOpen={isOpen}
         onClose={handleCancel}
+        maxWidth="max-w-3xl"
       >
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="md:w-1/2">
-            <h3 className="font-medium mb-2">Predefined Ranges</h3>
+        <div className="flex flex-col md:flex-row gap-8">
+          <div className="md:w-1/4">
+            <h3 className="font-medium mb-4">Khoảng thời gian</h3>
             <div className="space-y-2">
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full justify-start"
+                className="w-full justify-start text-left pl-3"
                 onClick={() => handleSetPredefined(today, today)}
               >
-                Today
+                Hôm nay
               </Button>
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full justify-start"
+                className="w-full justify-start text-left pl-3"
                 onClick={() => handleSetPredefined(yesterday, yesterday)}
               >
-                Yesterday
+                Hôm qua
               </Button>
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full justify-start"
+                className="w-full justify-start text-left pl-3"
                 onClick={() => handleSetPredefined(last7Days, today)}
               >
-                Last 7 Days
+                7 ngày qua
               </Button>
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full justify-start"
+                className="w-full justify-start text-left pl-3"
                 onClick={() => handleSetPredefined(last30Days, today)}
               >
-                Last 30 Days
+                30 ngày qua
               </Button>
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full justify-start"
+                className="w-full justify-start text-left pl-3"
                 onClick={() => handleSetPredefined(thisMonth, today)}
               >
-                This Month
+                Tháng này
               </Button>
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full justify-start"
+                className="w-full justify-start text-left pl-3"
                 onClick={() => handleSetPredefined(lastMonth, lastMonthEnd)}
               >
-                Last Month
+                Tháng trước
               </Button>
             </div>
           </div>
 
-          <div className="md:w-1/2">
-            <div className="text-center mb-2">
+          <div className="md:w-3/4">
+            <div className="text-center mb-4 p-2 bg-gray-50 rounded-md">
               {tempRange.from ? (
                 tempRange.to ? (
-                  <span>
-                    {format(tempRange.from, 'MMM dd, yyyy')} - {format(tempRange.to, 'MMM dd, yyyy')}
+                  <span className="font-medium">
+                    {format(tempRange.from, 'dd MMM, yyyy')} - {format(tempRange.to, 'dd MMM, yyyy')}
                   </span>
                 ) : (
-                  <span>From: {format(tempRange.from, 'MMM dd, yyyy')}</span>
+                  <span className="font-medium">Từ: {format(tempRange.from, 'dd MMM, yyyy')}</span>
                 )
               ) : (
-                <span>Select start date</span>
+                <span className="text-gray-500">Chọn ngày bắt đầu</span>
               )}
             </div>
-            <Calendar
-              mode="range"
-              selected={{
-                from: tempRange.from,
-                to: tempRange.to,
-              }}
-              onSelect={(range) => {
-                if (range?.from) {
-                  setTempRange({
-                    from: range.from,
-                    to: range.to,
-                  });
-                }
-              }}
-              numberOfMonths={1}
-              disabled={{ after: new Date() }}
-            />
+            <div className="border rounded-md p-4 flex justify-center">
+              <Calendar
+                mode="range"
+                selected={{
+                  from: tempRange.from,
+                  to: tempRange.to,
+                }}
+                onSelect={(range) => {
+                  if (range?.from) {
+                    setTempRange({
+                      from: range.from,
+                      to: range.to,
+                    });
+                  }
+                }}
+                numberOfMonths={1}
+                disabled={{ after: new Date() }}
+                className="mx-auto"
+              />
+            </div>
           </div>
         </div>
 
-        <div className="flex justify-end mt-4 gap-2">
-          <Button variant="outline" onClick={handleClear}>
-            Clear
+        <div className="flex justify-end mt-6 gap-3">
+          <Button variant="outline" onClick={handleClear} size="sm">
+            Xóa
           </Button>
-          <Button variant="outline" onClick={handleCancel}>
-            Cancel
+          <Button variant="outline" onClick={handleCancel} size="sm">
+            Hủy
           </Button>
           <Button 
             onClick={handleApply}
             disabled={!tempRange.from || !tempRange.to}
+            size="sm"
           >
-            Apply
+            Áp dụng
           </Button>
         </div>
       </Dialog>

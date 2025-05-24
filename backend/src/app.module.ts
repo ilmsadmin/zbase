@@ -29,6 +29,7 @@ import { TransactionsModule } from './transactions/transactions.module';
 import { WarrantiesModule } from './warranties/warranties.module';
 import { ReportsModule } from './reports/reports.module';
 import { ReportTemplatesModule } from './report-templates/report-templates.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({  imports: [
     ConfigModule, 
@@ -53,11 +54,11 @@ import { ReportTemplatesModule } from './report-templates/report-templates.modul
     InvoicesModule,
     ShiftsModule,
     PosModule,
-    PriceListsModule,
-    TransactionsModule,
+    PriceListsModule,    TransactionsModule,
     WarrantiesModule,
     ReportsModule,
     ReportTemplatesModule,
+    MailModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService, HealthService],

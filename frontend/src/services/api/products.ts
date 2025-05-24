@@ -1,39 +1,58 @@
-import { apiClient } from '@/lib/api-client';
-import { Product, ProductCategory, CreateProductDto, UpdateProductDto, ProductFilters } from '@/types/product';
-import { PaginatedResponse } from '@/types/common';
+// This file provides backward compatibility for components still importing from @/services/api/products
+// It re-exports the services from @/lib/services/productsService
 
-export const productsApi = {  // Products
-  getProducts: (params?: ProductFilters & { page?: number; limit?: number }): Promise<PaginatedResponse<Product>> =>
-    apiClient.get('/api/products', { params }),
-  getProduct: (id: string): Promise<Product> =>
-    apiClient.get(`/api/products/${id}`),
+import { productsService } from '@/lib/services/productsService';
 
-  createProduct: (data: CreateProductDto): Promise<Product> =>
-    apiClient.post('/api/products', data),
+export const productsApi = {
+  // Get all products with filters
+  getProducts: async (filters = {}) => {
+    const data = await productsService.getProducts(filters);
+    return { data: data.items || [], meta: data.meta };
+  },
 
-  updateProduct: (id: string, data: UpdateProductDto): Promise<Product> =>
-    apiClient.put(`/api/products/${id}`, data),
+  // Get a single product by ID
+  getProduct: async (id) => {
+    return productsService.getProductById(id);
+  },
 
-  deleteProduct: (id: string): Promise<void> =>
-    apiClient.delete(`/api/products/${id}`),
+  // Create a new product
+  createProduct: async (productData) => {
+    return productsService.createProduct(productData);
+  },
 
-  bulkDeleteProducts: (ids: string[]): Promise<void> =>
-    apiClient.post('/api/products/bulk-delete', { ids }),  // Categories
-  getCategories: (): Promise<ProductCategory[]> =>
-    apiClient.get('/api/product-categories'),
+  // Update an existing product
+  updateProduct: async (id, productData) => {
+    return productsService.updateProduct(id, productData);
+  },
 
-  getCategory: (id: string): Promise<ProductCategory> =>
-    apiClient.get(`/api/product-categories/${id}`),
+  // Delete a product
+  deleteProduct: async (id) => {
+    return productsService.deleteProduct(id);
+  },
 
-  createCategory: (data: { name: string; description?: string; parentId?: string }): Promise<ProductCategory> =>
-    apiClient.post('/api/product-categories', data),
+  // Bulk delete products
+  bulkDeleteProducts: async (ids) => {
+    return productsService.bulkDeleteProducts(ids);
+  },
 
-  updateCategory: (id: string, data: { name?: string; description?: string; parentId?: string }): Promise<ProductCategory> =>
-    apiClient.put(`/api/product-categories/${id}`, data),
+  // Get product categories
+  getCategories: async () => {
+    const response = await productsService.getCategories();
+    return response.items || [];
+  },
 
-  deleteCategory: (id: string): Promise<void> =>
-    apiClient.delete(`/api/product-categories/${id}`),
+  // Create a product category
+  createCategory: async (categoryData) => {
+    return productsService.createCategory(categoryData);
+  },
 
-  reorderCategories: (data: { id: string; parentId?: string; order: number }[]): Promise<void> =>
-    apiClient.post('/api/product-categories/reorder', { categories: data }),
+  // Update a product category
+  updateCategory: async (id, categoryData) => {
+    return productsService.updateCategory(id, categoryData);
+  },
+
+  // Delete a product category
+  deleteCategory: async (id) => {
+    return productsService.deleteCategory(id);
+  }
 };

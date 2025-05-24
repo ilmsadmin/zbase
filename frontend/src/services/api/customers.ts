@@ -1,49 +1,53 @@
-import { apiClient } from '@/lib/api-client';
+// This file provides backward compatibility for components still importing from @/services/api/customers
+// It re-exports the services from @/lib/services/customersService
 
-export interface Customer {
-  id: string;
-  code: string;
-  name: string;
-  phone?: string;
-  email?: string;
-  address?: string;
-  groupId?: string;
-  groupName?: string;
-  creditLimit?: number;
-  balance?: number;
-  taxId?: string;
-  notes?: string;
-  isActive: boolean;
-}
-
-export interface CustomerFilters {
-  search?: string;
-  groupId?: string;
-  isActive?: boolean;
-}
+import { customersService } from '@/lib/services/customersService';
 
 export const customersApi = {
-  getCustomers: async (filters?: CustomerFilters): Promise<{ data: Customer[], total: number }> => {
-    return apiClient.get('/api/customers', { params: filters });
+  // Get all customers with filters
+  getCustomers: async (filters = {}) => {
+    const data = await customersService.getCustomers(filters);
+    return { data: data.items || [], meta: data.meta };
+  },
+
+  // Get a single customer by ID
+  getCustomer: async (id) => {
+    return customersService.getCustomerById(id);
+  },
+
+  // Create a new customer
+  createCustomer: async (customerData) => {
+    return customersService.createCustomer(customerData);
+  },
+
+  // Update an existing customer
+  updateCustomer: async (id, customerData) => {
+    return customersService.updateCustomer(id, customerData);
+  },
+
+  // Delete a customer
+  deleteCustomer: async (id) => {
+    return customersService.deleteCustomer(id);
+  },
+
+  // Get customer groups
+  getCustomerGroups: async () => {
+    const response = await customersService.getCustomerGroups();
+    return response.items || [];
   },
   
-  getCustomer: async (id: string): Promise<Customer> => {
-    return apiClient.get(`/api/customers/${id}`);
+  // Create a customer group
+  createCustomerGroup: async (groupData) => {
+    return customersService.createCustomerGroup(groupData);
   },
   
-  createCustomer: async (customer: Omit<Customer, 'id'>): Promise<Customer> => {
-    return apiClient.post('/api/customers', customer);
+  // Update a customer group
+  updateCustomerGroup: async (id, groupData) => {
+    return customersService.updateCustomerGroup(id, groupData);
   },
   
-  updateCustomer: async (id: string, customer: Partial<Customer>): Promise<Customer> => {
-    return apiClient.patch(`/api/customers/${id}`, customer);
-  },
-  
-  deleteCustomer: async (id: string): Promise<void> => {
-    return apiClient.delete(`/api/customers/${id}`);
-  },
-  
-  getCustomerGroups: async (): Promise<any[]> => {
-    return apiClient.get('/api/customer-groups');
+  // Delete a customer group
+  deleteCustomerGroup: async (id) => {
+    return customersService.deleteCustomerGroup(id);
   }
 };

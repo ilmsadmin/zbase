@@ -1,5 +1,6 @@
 import api from '../api';
 
+// Define interfaces
 export interface Transaction {
   id: string;
   code: string;
@@ -63,12 +64,12 @@ export interface CreateTransactionDto {
 }
 
 const transactionsApi = {
-  getTransactions: async (filters?: TransactionFilters): Promise<{ data: Transaction[], total: number }> => {
+  getTransactions: async (filters?: TransactionFilters): Promise<{ items: Transaction[], meta: any }> => {
     const response = await api.get('/transactions', { params: filters });
     return response.data;
   },
   
-  getTransaction: async (id: string): Promise<Transaction> => {
+  getTransactionById: async (id: string): Promise<Transaction> => {
     const response = await api.get(`/transactions/${id}`);
     return response.data;
   },
@@ -98,10 +99,22 @@ const transactionsApi = {
     return response.data;
   },
   
-  getAgingAnalysis: async (type: 'customers' | 'partners'): Promise<any> => {
-    const response = await api.get(`/transactions/aging/${type}`);
+  getAgingAnalysis: async (): Promise<any> => {
+    const response = await api.get(`/transactions/aging/customers`);
+    return response.data;
+  },
+  
+  getTransactionStatistics: async (params: any): Promise<any> => {
+    const response = await api.get('/transactions/statistics', { params });
+    return response.data;
+  },
+  
+  getDebtSummary: async (): Promise<any> => {
+    const response = await api.get('/transactions/debts/summary');
     return response.data;
   }
 };
 
+// Export both as named export and default export to support different import styles
+export const transactionsService = transactionsApi;
 export default transactionsApi;

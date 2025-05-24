@@ -52,12 +52,10 @@ export class CustomerGroupsService {
         customers: {
           take: 10,
           select: {
-            id: true,
-            name: true,
+            id: true,            name: true,
             code: true,
             phone: true,
             email: true,
-            creditBalance: true,
           },
         },
         priceLists: {

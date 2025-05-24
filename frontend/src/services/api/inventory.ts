@@ -1,35 +1,41 @@
-import { apiClient } from '@/lib/api-client';
-import { InventoryItem, InventoryTransaction, StockAdjustment, StockTransfer, InventoryFilters } from '@/types/inventory';
+// This file provides backward compatibility for components still importing from @/services/api/inventory
+// It re-exports the services from @/lib/services/inventoryService
+
+import { inventoryService } from '@/lib/services/inventoryService';
+import { InventoryFilters } from '@/types/inventory';
 import { PaginatedResponse } from '@/types/common';
 
 export const inventoryApi = {
-  // Inventory Items
-  getInventoryItems: (params?: InventoryFilters & { page?: number; limit?: number }): Promise<PaginatedResponse<InventoryItem>> =>
-    apiClient.get('/inventory', { params }),
+  // Get all inventory items with filters
+  getInventoryItems: async (filters = {}) => {
+    const data = await inventoryService.getInventoryItems(filters);
+    return { data: data.items || [], meta: data.meta };
+  },
 
-  getInventoryItem: (id: string): Promise<InventoryItem> =>
-    apiClient.get(`/inventory/${id}`),
+  // Get a single inventory item
+  getInventoryItem: async (id) => {
+    return inventoryService.getInventoryItem(id);
+  },
 
   // Stock adjustments
-  createStockAdjustment: (data: StockAdjustment): Promise<InventoryTransaction> =>
-    apiClient.post('/inventory/adjust', data),
+  createStockAdjustment: async (adjustmentData) => {
+    return inventoryService.adjustStock(adjustmentData);
+  },
 
   // Stock transfers
-  createStockTransfer: (data: StockTransfer): Promise<InventoryTransaction> =>
-    apiClient.post('/inventory/transfer', data),
+  createStockTransfer: async (transferData) => {
+    return inventoryService.transferStock(transferData);
+  },
 
   // Inventory history
-  getInventoryTransactions: (params?: { 
-    productId?: string; 
-    warehouseId?: string; 
-    type?: string; 
-    startDate?: string; 
-    endDate?: string;
-    page?: number; 
-    limit?: number 
-  }): Promise<PaginatedResponse<InventoryTransaction>> =>
-    apiClient.get('/inventory/transactions', { params }),
+  getInventoryTransactions: async (params = {}) => {
+    const data = await inventoryService.getInventoryTransactions(params);
+    return { data: data.items || [], meta: data.meta };
+  },
 
-  getInventoryTransaction: (id: string): Promise<InventoryTransaction> =>
-    apiClient.get(`/inventory/transactions/${id}`),
+  // Low stock items
+  getLowStockItems: async (params = {}) => {
+    const data = await inventoryService.getLowStockItems(params);
+    return { data: data.items || [], meta: data.meta };
+  }
 };

@@ -1,34 +1,59 @@
 import api from '../api';
 
+// Import types from types/invoice.ts
 export interface InvoiceItem {
   id?: string;
   productId: string;
-  name: string;
+  name?: string;
+  productName?: string;
   quantity: number;
   unitPrice: number;
   discount?: number;
+  discountRate?: number;
+  discountAmount?: number;
   tax?: number;
-  total: number;
+  taxRate?: number;
+  taxAmount?: number;
+  totalAmount: number;
+  total?: number;
+  locationId?: string;
+  locationName?: string;
+  serialNumbers?: string;
+  serialNumber?: string;
+  warrantyExpiration?: string;
+  notes?: string;
 }
 
 export interface Invoice {
   id: string;
-  invoiceNumber: string;
+  invoiceNumber?: string;
+  code?: string;
   customerId: string;
-  customerName: string;
-  status: 'DRAFT' | 'PENDING' | 'PAID' | 'OVERDUE' | 'CANCELLED';
-  issueDate: string;
-  dueDate: string;
+  customerName?: string;
+  userId?: string;
+  userName?: string;
+  shiftId?: string;
+  warehouseId?: string;
+  warehouseName?: string;
+  status: 'DRAFT' | 'PENDING' | 'PAID' | 'OVERDUE' | 'CANCELLED' | 'pending' | 'paid' | 'canceled' | 'overdue';
+  issueDate?: string;
+  invoiceDate?: string;
+  dueDate?: string;
   subtotal: number;
   discount?: number;
+  discountAmount?: number;
   tax?: number;
+  taxAmount?: number;
   shipping?: number;
-  total: number;
-  amountPaid: number;
-  balance: number;
+  total?: number;
+  totalAmount?: number;
+  amountPaid?: number;
+  paidAmount?: number;
+  balance?: number;
+  paymentMethod?: string;
   notes?: string;
   termsAndConditions?: string;
-  createdBy: string;
+  createdBy?: string;
   createdAt: string;
   updatedAt: string;
   items: InvoiceItem[];
@@ -36,25 +61,36 @@ export interface Invoice {
 
 export interface InvoiceCreate {
   customerId: string;
-  issueDate: string;
-  dueDate: string;
-  status?: 'DRAFT' | 'PENDING' | 'PAID';
+  issueDate?: string;
+  invoiceDate?: string;
+  dueDate?: string;
+  warehouseId?: string;
+  status?: 'DRAFT' | 'PENDING' | 'PAID' | 'pending' | 'paid';
   notes?: string;
   termsAndConditions?: string;
   discount?: number;
+  discountAmount?: number;
   tax?: number;
+  taxAmount?: number;
   shipping?: number;
+  subtotal?: number;
+  totalAmount?: number;
+  paidAmount?: number;
+  paymentMethod?: string;
   items: Omit<InvoiceItem, 'id'>[];
 }
 
-export interface InvoiceQueryParams {
+export interface InvoiceFilters {
   customerId?: string;
-  status?: 'DRAFT' | 'PENDING' | 'PAID' | 'OVERDUE' | 'CANCELLED';
+  status?: string;
   startDate?: string;
   endDate?: string;
+  dateFrom?: string;
+  dateTo?: string;
   search?: string;
   minAmount?: number;
   maxAmount?: number;
+  warehouseId?: string;
   page?: number;
   limit?: number;
 }
@@ -74,7 +110,7 @@ export const invoicesService = {
   /**
    * Get all invoices with optional filtering
    */
-  getInvoices: async (params?: InvoiceQueryParams) => {
+  getInvoices: async (params?: InvoiceFilters) => {
     const response = await api.get('/invoices', { params });
     return response.data;
   },
@@ -85,6 +121,13 @@ export const invoicesService = {
   getInvoiceById: async (id: string) => {
     const response = await api.get(`/invoices/${id}`);
     return response.data;
+  },
+
+  /**
+   * Get invoice - compatibility alias for getInvoiceById
+   */
+  getInvoice: async (id: string) => {
+    return invoicesService.getInvoiceById(id);
   },
 
   /**
@@ -170,11 +213,32 @@ export const invoicesService = {
   },
 
   /**
+   * Print invoice - similar to generatePdf but returns URL
+   */
+  printInvoice: async (id: string, templateId?: string) => {
+    const response = await api.get(`/invoices/${id}/print`, { 
+      params: { templateId },
+      responseType: 'blob'
+    });
+    
+    // Create a URL for the blob
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    return url;
+  },
+
+  /**
    * Send invoice by email
    */
   sendInvoiceByEmail: async (id: string, data: { to: string; subject?: string; message?: string; }) => {
     const response = await api.post(`/invoices/${id}/send-email`, data);
     return response.data;
+  },
+
+  /**
+   * Email invoice with template
+   */
+  emailInvoice: async (id: string, email: string, templateId?: string) => {
+    return api.post(`/invoices/${id}/email`, { email, templateId });
   },
 
   /**
@@ -184,4 +248,11 @@ export const invoicesService = {
     const response = await api.get('/invoices/statistics', { params });
     return response.data;
   },
+
+  /**
+   * Get invoice templates
+   */
+  getInvoiceTemplates: async () => {
+    return api.get('/invoices/templates');
+  }
 };

@@ -89,68 +89,7 @@ function LoginForm() {
   // Toggle password visibility
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
-  };
-
-  // Hàm xử lý đăng nhập thủ công nếu phương thức bình thường không hoạt động
-  const handleManualLogin = async () => {
-    const email = methods.getValues("email");
-    const password = methods.getValues("password");
-    const rememberMe = methods.getValues("rememberMe");
-    
-    if (!email || !password) {
-      return;
-    }
-    
-    setIsSubmitting(true);
-    try {
-      // Kết nối trực tiếp với API backend ở cổng 3001
-      const response = await fetch('http://localhost:3001/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email,
-          password
-        }),
-      });
-      
-      const data = await response.json();
-      
-      if (response.ok) {
-        // Lưu token và user info
-        if (rememberMe) {
-          localStorage.setItem('auth_token', data.token || data.access_token);
-          localStorage.setItem('refresh_token', data.refreshToken);
-          localStorage.setItem('user', JSON.stringify(data.user));
-        } else {
-          sessionStorage.setItem('auth_token', data.token || data.access_token);
-          sessionStorage.setItem('refresh_token', data.refreshToken);
-          sessionStorage.setItem('user', JSON.stringify(data.user));
-        }
-        
-        // Set cookie for middleware
-        setCookie('auth_token', data.token || data.access_token, rememberMe ? 7 : undefined);
-        
-        // Chuyển hướng sau một khoảng thời gian ngắn để đảm bảo state được cập nhật
-        setTimeout(() => {
-          // Sử dụng window.location.replace để tránh thêm vào history
-          window.location.replace("/admin");
-        }, 500);
-      } else {
-        // Display error in the UI
-        console.error("Login failed:", data);
-        clearError();
-        setError(data.message || 'Không thể kết nối với server');
-      }
-    } catch (err) {
-      console.error("Manual login error:", err);
-      clearError();
-      setError(err instanceof Error ? err.message : 'Không thể kết nối đến API');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  }
   
   return (
     <div className="space-y-6">
@@ -256,16 +195,6 @@ function LoginForm() {
           </Button>
           
           {/* Manual login button only shown when there's an error */}
-          {error && (
-            <Button
-              type="button"
-              onClick={handleManualLogin}
-              className="w-full mt-2 bg-gray-600"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Đang xử lý..." : "Thử đăng nhập trực tiếp với API"}
-            </Button>
-          )}
         </form>
       </FormProvider>
       

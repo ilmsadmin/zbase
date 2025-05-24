@@ -52,7 +52,7 @@ export default function InvoicesPage() {
   const handleStatusChange = (value: string) => {
     setFilters({
       ...filters,
-      status: value,
+      status: value === 'all' ? '' : value,
     });
   };
 
@@ -77,14 +77,13 @@ export default function InvoicesPage() {
   const handleViewInvoice = (invoice: Invoice) => {
     router.push(`/admin/invoices/${invoice.id}`);
   };
-
   const statusOptions = [
-    { value: '', label: 'All Statuses' },
+    { value: 'all', label: 'All Statuses' },
     { value: 'pending', label: 'Pending' },
     { value: 'paid', label: 'Paid' },
     { value: 'canceled', label: 'Canceled' },
     { value: 'overdue', label: 'Overdue' },
-  ];  const getStatusBadge = (status: string) => {
+  ];const getStatusBadge = (status: string) => {
     const statusMap: Record<string, { variant: "default" | "secondary" | "destructive" | "outline" | "success" | "warning" | "info"; label: string }> = {
       pending: { variant: 'warning', label: 'Pending' },
       paid: { variant: 'success', label: 'Paid' },
