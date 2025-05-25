@@ -12,24 +12,34 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../../permissions/permissions.guard';
+import { RequirePermissions } from '../../permissions/permissions.decorator';
 import { FacebookMessagesService } from '../services/facebook-messages.service';
 import {
   SendMessageDto,
   MessageFiltersDto,
   BulkActionDto,
 } from '../dto/facebook-message.dto';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiTags('Facebook Messages')
+@ApiBearerAuth()
 @Controller('facebook/messages')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class FacebookMessagesController {
   constructor(
     private readonly facebookMessagesService: FacebookMessagesService,
   ) {}
-
   /**
    * Get conversations for a page
    */
   @Get('conversations')
+  @RequirePermissions('facebook.messages.read')
+  @ApiOperation({ summary: 'Get conversations for a page' })
+  @ApiResponse({ status: 200, description: 'Conversations retrieved successfully' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   async getPageConversations(
     @Request() req: any,
     @Query('pageId') pageId: string,
@@ -65,11 +75,16 @@ export class FacebookMessagesController {
       );
     }
   }
-
   /**
    * Get messages from a conversation
    */
   @Get('conversations/:conversationId/messages')
+  @RequirePermissions('facebook.messages.read')
+  @ApiOperation({ summary: 'Get messages from a conversation' })
+  @ApiResponse({ status: 200, description: 'Messages retrieved successfully' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   async getConversationMessages(
     @Request() req: any,
     @Param('conversationId') conversationId: string,
@@ -107,11 +122,16 @@ export class FacebookMessagesController {
       );
     }
   }
-
   /**
    * Send a message to a conversation
    */
   @Post('conversations/:conversationId/send')
+  @RequirePermissions('facebook.messages.send')
+  @ApiOperation({ summary: 'Send a message to a conversation' })
+  @ApiResponse({ status: 200, description: 'Message sent successfully' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   async sendMessage(
     @Request() req: any,
     @Param('conversationId') conversationId: string,
@@ -147,11 +167,16 @@ export class FacebookMessagesController {
       );
     }
   }
-
   /**
    * Mark messages as read
    */
   @Put('mark-read')
+  @RequirePermissions('facebook.messages.reply')
+  @ApiOperation({ summary: 'Mark messages as read' })
+  @ApiResponse({ status: 200, description: 'Messages marked as read successfully' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   async markAsRead(
     @Request() req: any,
     @Query('pageId') pageId: string,
@@ -189,11 +214,16 @@ export class FacebookMessagesController {
       );
     }
   }
-
   /**
    * Get messages with filters
    */
   @Get()
+  @RequirePermissions('facebook.messages.read')
+  @ApiOperation({ summary: 'Get messages with filters' })
+  @ApiResponse({ status: 200, description: 'Messages retrieved successfully' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   async getMessages(
     @Request() req: any,
     @Query() filters: MessageFiltersDto,

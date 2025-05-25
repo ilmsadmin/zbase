@@ -81,14 +81,27 @@ export class PermissionsService {
       await this.redis.del(`permissions:user:${userId}`);
     }
   }
-
   async hasPermission(userId: number, action: string): Promise<boolean> {
+    const debugMode = process.env.PERMISSIONS_DEBUG === 'true';
+    
+    if (debugMode) {
+      console.log(`🔍 [PermissionsService] Checking permission for user ${userId}: "${action}"`);
+    }
+
     // Try to get from cache
     const cacheKey = `permissions:user:${userId}:has:${action}`;
     const cachedResult = await this.redis.get(cacheKey);
     
     if (cachedResult !== null) {
-      return cachedResult === 'true';
+      const result = cachedResult === 'true';
+      if (debugMode) {
+        console.log(`💾 [PermissionsService] Cache hit for ${userId}:${action} = ${result ? '✅ GRANTED' : '❌ DENIED'}`);
+      }
+      return result;
+    }
+
+    if (debugMode) {
+      console.log(`🔄 [PermissionsService] Cache miss for ${userId}:${action}, checking database...`);
     }
 
     // Get user roles
@@ -98,6 +111,10 @@ export class PermissionsService {
     });
 
     const roleIds = userRoles.map(ur => ur.roleId);
+
+    if (debugMode) {
+      console.log(`👥 [PermissionsService] User ${userId} has roles:`, roleIds);
+    }
 
     // Get permissions for these roles
     const hasPermission = await this.prisma.permission.count({
@@ -112,6 +129,16 @@ export class PermissionsService {
         },
       },
     }) > 0;
+
+    if (debugMode) {
+      console.log(`🎯 [PermissionsService] Permission check result for ${userId}:${action} = ${hasPermission ? '✅ GRANTED' : '❌ DENIED'}`, {
+        userId,
+        action,
+        userRoles: roleIds,
+        hasPermission,
+        cacheKey
+      });
+    }
 
     // Cache for 10 minutes
     await this.redis.set(cacheKey, hasPermission ? 'true' : 'false', 600);

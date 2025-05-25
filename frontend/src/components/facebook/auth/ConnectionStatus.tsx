@@ -22,6 +22,8 @@ interface ConnectionStatusProps {
     lastSync?: string;
     permissions?: string[];
     tokenExpiresAt?: string;
+    isActive?: boolean;
+    isConnected?: boolean;
   };
   error?: string;
   onRefresh?: () => void;
@@ -37,6 +39,17 @@ export const ConnectionStatus: React.FC<ConnectionStatusProps> = ({
   onReconnect,
   onDisconnect
 }) => {
+  // Helper function to determine the actual connection status from the backend data
+  const getConnectionStatusFromData = (data?: ConnectionStatusProps['connectionData']): boolean => {
+    if (!data) return false;
+    // Check for isConnected first (newer backend implementation)
+    if (typeof data.isConnected === 'boolean') return data.isConnected;
+    // Fall back to isActive (older backend implementation)
+    if (typeof data.isActive === 'boolean') return data.isActive;
+    // If neither is present, assume disconnected
+    return false;
+  };
+
   const getStatusIcon = () => {
     switch (status) {
       case 'connected':

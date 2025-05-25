@@ -9,12 +9,16 @@ import { Button } from '@/components/ui/Button';
 import { Grid } from '@/components/ui/GridFlex';
 import Link from 'next/link';
 import { Facebook, Settings, MessageSquare, MessageCircle, BarChart3, Users } from 'lucide-react';
+import DebugUser from './debug-user';
 
-export default function FacebookPage() {
+export default function FacebookPage() {  
+  
   return (
-    <PermissionGuard requiredRoles={[UserRole.ADMIN, UserRole.MANAGER]}>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
+    <PermissionGuard 
+      permissions={['facebook.users.read']} 
+      renderWhen='any'
+      debugMode={true}    >
+      <div className="space-y-6">        <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
               <Facebook className="h-8 w-8 text-blue-600" />
@@ -22,10 +26,8 @@ export default function FacebookPage() {
             </h1>
             <p className="text-gray-600 mt-2">
               Manage your Facebook integration, pages, messages, and analytics
-            </p>
-          </div>
-          <Link href="/admin/facebook/setup">
-            <Button variant="primary" className="flex items-center gap-2">
+            </p>          </div>          <Link href="/facebook/setup">
+            <Button variant="default" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
               Setup Connection
             </Button>
@@ -89,7 +91,7 @@ export default function FacebookPage() {
 
         {/* Main Navigation Cards */}
         <Grid cols={1} mdCols={2} lgCols={3} gap={6}>
-          <Link href="/admin/facebook/setup">
+          <Link href="/facebook/setup">
             <Card className="hover:shadow-lg transition-shadow cursor-pointer border-blue-200 hover:border-blue-300">
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
@@ -114,7 +116,7 @@ export default function FacebookPage() {
             </Card>
           </Link>
 
-          <Link href="/admin/facebook/pages">
+          <Link href="/facebook/pages">
             <Card className="hover:shadow-lg transition-shadow cursor-pointer border-green-200 hover:border-green-300">
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
@@ -139,7 +141,7 @@ export default function FacebookPage() {
             </Card>
           </Link>
 
-          <Link href="/admin/facebook/messages">
+          <Link href="/facebook/messages">
             <Card className="hover:shadow-lg transition-shadow cursor-pointer border-purple-200 hover:border-purple-300">
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
@@ -164,7 +166,7 @@ export default function FacebookPage() {
             </Card>
           </Link>
 
-          <Link href="/admin/facebook/comments">
+          <Link href="/facebook/comments">
             <Card className="hover:shadow-lg transition-shadow cursor-pointer border-orange-200 hover:border-orange-300">
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
@@ -189,7 +191,7 @@ export default function FacebookPage() {
             </Card>
           </Link>
 
-          <Link href="/admin/facebook/analytics">
+          <Link href="/facebook/analytics">
             <Card className="hover:shadow-lg transition-shadow cursor-pointer border-indigo-200 hover:border-indigo-300">
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">

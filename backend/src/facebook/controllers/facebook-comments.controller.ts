@@ -13,24 +13,34 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../../permissions/permissions.guard';
+import { RequirePermissions } from '../../permissions/permissions.decorator';
 import { FacebookCommentsService } from '../services/facebook-comments.service';
 import {
   ReplyToCommentDto,
   CommentFiltersDto,
   CommentActionDto,
 } from '../dto/facebook-comment.dto';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiTags('Facebook Comments')
+@ApiBearerAuth()
 @Controller('facebook/comments')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class FacebookCommentsController {
   constructor(
     private readonly facebookCommentsService: FacebookCommentsService,
   ) {}
-
   /**
    * Get Facebook comments with filters
    */
   @Get()
+  @RequirePermissions('facebook.comments.read')
+  @ApiOperation({ summary: 'Get Facebook comments with filters' })
+  @ApiResponse({ status: 200, description: 'Comments retrieved successfully' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   async getComments(
     @Request() req: any,
     @Query() filters: CommentFiltersDto,
@@ -63,11 +73,16 @@ export class FacebookCommentsController {
       );
     }
   }
-
   /**
    * Get comments for a specific post
    */
   @Get('posts/:postId')
+  @RequirePermissions('facebook.comments.read')
+  @ApiOperation({ summary: 'Get comments for a specific post' })
+  @ApiResponse({ status: 200, description: 'Post comments retrieved successfully' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   async getPostComments(
     @Request() req: any,
     @Param('postId') postId: string,
@@ -105,11 +120,16 @@ export class FacebookCommentsController {
       );
     }
   }
-
   /**
    * Reply to a Facebook comment
    */
   @Post(':commentId/reply')
+  @RequirePermissions('facebook.comments.reply')
+  @ApiOperation({ summary: 'Reply to a Facebook comment' })
+  @ApiResponse({ status: 200, description: 'Comment reply sent successfully' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   async replyToComment(
     @Request() req: any,
     @Param('commentId') commentId: string,
@@ -145,11 +165,16 @@ export class FacebookCommentsController {
       );
     }
   }
-
   /**
    * Hide a Facebook comment
    */
   @Put(':commentId/hide')
+  @RequirePermissions('facebook.comments.hide')
+  @ApiOperation({ summary: 'Hide a Facebook comment' })
+  @ApiResponse({ status: 200, description: 'Comment hidden successfully' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   async hideComment(
     @Request() req: any,
     @Param('commentId') commentId: string,
@@ -188,6 +213,12 @@ export class FacebookCommentsController {
    * Delete a Facebook comment
    */
   @Delete(':commentId')
+  @RequirePermissions('facebook.comments.delete')
+  @ApiOperation({ summary: 'Delete a Facebook comment' })
+  @ApiResponse({ status: 200, description: 'Comment deleted successfully' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   async deleteComment(
     @Request() req: any,
     @Param('commentId') commentId: string,
@@ -221,11 +252,16 @@ export class FacebookCommentsController {
       );
     }
   }
-
   /**
    * Approve a Facebook comment
    */
   @Put(':commentId/approve')
+  @RequirePermissions('facebook.comments.approve')
+  @ApiOperation({ summary: 'Approve a Facebook comment' })
+  @ApiResponse({ status: 200, description: 'Comment approved successfully' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   async approveComment(
     @Request() req: any,
     @Param('commentId') commentId: string,
@@ -259,11 +295,16 @@ export class FacebookCommentsController {
       );
     }
   }
-
   /**
    * Perform bulk actions on comments
    */
   @Post('bulk-action')
+  @RequirePermissions('facebook.comments.manage')
+  @ApiOperation({ summary: 'Perform bulk actions on comments' })
+  @ApiResponse({ status: 200, description: 'Bulk action performed successfully' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   async bulkAction(
     @Request() req: any,
     @Query('pageId') pageId: string,

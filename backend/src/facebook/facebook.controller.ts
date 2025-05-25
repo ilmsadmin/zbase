@@ -2,17 +2,19 @@ import { Controller, Get, Post, Delete, UseGuards, Req, HttpCode, HttpStatus, Un
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../permissions/permissions.guard';
+import { RequirePermissions } from '../permissions/permissions.decorator';
 import { FacebookService } from './facebook.service';
 import { getUserIdFromRequest } from '../common/utils/auth.utils';
 
 @ApiTags('Facebook')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('facebook')
 export class FacebookController {
   constructor(private readonly facebookService: FacebookService) {}
-
   @Get('status')
+  @RequirePermissions('facebook.users.read')
   @ApiOperation({ summary: 'Get Facebook connection status' })
   @ApiResponse({ 
     status: 200, 
@@ -53,8 +55,8 @@ export class FacebookController {
     const userId = getUserIdFromRequest(req);
     return this.facebookService.getConnectionStatus(userId);
   }
-
   @Get('overview')
+  @RequirePermissions('facebook.analytics.read')
   @ApiOperation({ summary: 'Get Facebook integration overview statistics' })
   @ApiResponse({ 
     status: 200, 
@@ -96,8 +98,8 @@ export class FacebookController {
     const userId = getUserIdFromRequest(req);
     return this.facebookService.getOverviewStats(userId);
   }
-
   @Delete('disconnect')
+  @RequirePermissions('facebook.users.delete')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Disconnect Facebook account' })
   @ApiResponse({ 

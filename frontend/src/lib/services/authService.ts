@@ -95,13 +95,24 @@ export const authService = {  /**
       sessionStorage.removeItem('user');
     }
   },
-
   /**
    * Get current user profile
    */
   getProfile: async () => {
-    const response = await api.get('/auth/profile');
-    return response.data;
+    try {
+      console.log('🔍 [AuthService] Calling /auth/profile...');
+      const response = await api.get('/auth/profile');
+      console.log('✅ [AuthService] Profile response:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ [AuthService] Profile request failed:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message
+      });
+      throw error;
+    }
   },
 
   /**

@@ -21,11 +21,13 @@ export const useAuth = () => {
   } = useAuthStore();
   
   const router = useRouter();
-  
-  // Kiểm tra trạng thái auth khi component mount
+    // Kiểm tra trạng thái auth khi component mount - only run once
   useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
+    // Only check auth if we're not already authenticated and not currently checking
+    if (!isAuthenticated && !isLoading) {
+      checkAuth();
+    }
+  }, []); // Empty dependency array to run only once on mount
   
   // Utility function để redirect người dùng chưa đăng nhập
   const requireAuth = useCallback((redirectTo = '/login') => {
@@ -45,17 +47,15 @@ export const useAuth = () => {
     return false;
   }, [isAuthenticated, isLoading, router]);  // Kiểm tra quyền hạn của user  
   const hasPermission = useCallback(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     (permissionKey: string) => {
-      // Ví dụ đơn giản, trong thực tế sẽ kiểm tra từ danh sách permissions trong user object
+      // Nếu không có user, không có quyền
       if (!user) return false;
       
       // Admin có tất cả quyền
       if (user.role === 'ADMIN') return true;
       
-      // Implement logic kiểm tra permission thực tế ở đây
-      // Có thể lấy từ một mảng permissions trong user object
-      return false;
+      // Kiểm tra cụ thể từ danh sách permissions trong user object
+      return user.permissions?.includes(permissionKey) || false;
     }, 
     [user]
   );

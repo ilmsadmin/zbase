@@ -12,7 +12,10 @@ import {
   Param,
   Response,
 } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../../permissions/permissions.guard';
+import { RequirePermissions } from '../../permissions/permissions.decorator';
 import { FacebookAnalyticsService } from '../services/facebook-analytics.service';
 import {
   AnalyticsFilterDto,
@@ -20,15 +23,24 @@ import {
 } from '../dto/facebook-analytics.dto';
 import { Response as ExpressResponse } from 'express';
 
+@ApiTags('Facebook Analytics')
+@ApiBearerAuth()
 @Controller('facebook/analytics')
-@UseGuards(JwtAuthGuard)
-export class FacebookAnalyticsController {
-  constructor(
+@UseGuards(JwtAuthGuard, PermissionsGuard)
+export class FacebookAnalyticsController {  constructor(
     private readonly facebookAnalyticsService: FacebookAnalyticsService,
-  ) {}  /**
+  ) {}
+  
+  /**
    * Get overview analytics for all connected pages
    */
   @Get('overview')
+  @RequirePermissions('facebook.analytics.read')
+  @ApiOperation({ summary: 'Get overview analytics for connected page' })
+  @ApiResponse({ status: 200, description: 'Analytics overview retrieved successfully' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   async getOverview(@Request() req: any, @Query() filters: AnalyticsFilterDto) {
     try {
       const userId = req.user.id;
@@ -57,11 +69,16 @@ export class FacebookAnalyticsController {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
-  }
-  /**
+  }  /**
    * Get page-specific analytics
    */
   @Get('pages/:pageId')
+  @RequirePermissions('facebook.analytics.read')
+  @ApiOperation({ summary: 'Get page-specific analytics' })
+  @ApiResponse({ status: 200, description: 'Page analytics retrieved successfully' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   async getPageAnalytics(
     @Request() req: any,
     @Param('pageId') pageId: string,
@@ -89,11 +106,16 @@ export class FacebookAnalyticsController {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
-  }
-  /**
+  }  /**
    * Get message analytics
    */
   @Get('messages')
+  @RequirePermissions('facebook.analytics.read')
+  @ApiOperation({ summary: 'Get message analytics' })
+  @ApiResponse({ status: 200, description: 'Message analytics retrieved successfully' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   async getMessageAnalytics(
     @Request() req: any,
     @Query() filters: AnalyticsFilterDto,
@@ -125,11 +147,16 @@ export class FacebookAnalyticsController {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
-  }
-  /**
+  }  /**
    * Get comment analytics
    */
   @Get('comments')
+  @RequirePermissions('facebook.analytics.read')
+  @ApiOperation({ summary: 'Get comment analytics' })
+  @ApiResponse({ status: 200, description: 'Comment analytics retrieved successfully' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   async getCommentAnalytics(
     @Request() req: any,
     @Query() filters: AnalyticsFilterDto,
@@ -161,11 +188,16 @@ export class FacebookAnalyticsController {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
-  }
-  /**
+  }  /**
    * Get engagement metrics
    */
   @Get('engagement')
+  @RequirePermissions('facebook.analytics.read')
+  @ApiOperation({ summary: 'Get engagement metrics' })
+  @ApiResponse({ status: 200, description: 'Engagement metrics retrieved successfully' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   async getEngagementMetrics(
     @Request() req: any,
     @Query() filters: AnalyticsFilterDto,
@@ -197,10 +229,16 @@ export class FacebookAnalyticsController {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
-  }
-  /**
+  }  /**
    * Get response time analytics
-   */  @Get('response-time')
+   */
+  @Get('response-time')
+  @RequirePermissions('facebook.analytics.read')
+  @ApiOperation({ summary: 'Get response time analytics' })
+  @ApiResponse({ status: 200, description: 'Response time analytics retrieved successfully' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   async getResponseTimeAnalytics(
     @Request() req: any,
     @Query() filters: AnalyticsFilterDto,
@@ -233,10 +271,16 @@ export class FacebookAnalyticsController {
       );
     }
   }
-
   /**
    * Get top performers (posts, pages, etc.)
-   */  @Get('top-performers')
+   */
+  @Get('top-performers')
+  @RequirePermissions('facebook.analytics.read')
+  @ApiOperation({ summary: 'Get top performers (posts, pages, etc.)' })
+  @ApiResponse({ status: 200, description: 'Top performers retrieved successfully' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   async getTopPerformers(
     @Request() req: any,
     @Query() filters: AnalyticsFilterDto,
@@ -270,10 +314,16 @@ export class FacebookAnalyticsController {
       );
     }
   }
-
   /**
    * Get activity trends over time
-   */  @Get('trends')
+   */
+  @Get('trends')
+  @RequirePermissions('facebook.analytics.read')
+  @ApiOperation({ summary: 'Get activity trends over time' })
+  @ApiResponse({ status: 200, description: 'Activity trends retrieved successfully' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   async getActivityTrends(
     @Request() req: any,
     @Query() filters: AnalyticsFilterDto,
@@ -307,10 +357,17 @@ export class FacebookAnalyticsController {
       );
     }
   }
-
   /**
    * Export analytics data
-   */  @Post('export')
+   */
+  @Post('export')
+  @RequirePermissions('facebook.analytics.export')
+  @ApiOperation({ summary: 'Export analytics data' })
+  @ApiResponse({ status: 200, description: 'Analytics data exported successfully' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
   async exportAnalytics(
     @Request() req: any,
     @Body() exportDto: ExportAnalyticsDto,
@@ -354,10 +411,16 @@ export class FacebookAnalyticsController {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
-  }
-  /**
+  }  /**
    * Get real-time metrics
-   */  @Get('real-time')
+   */
+  @Get('real-time')
+  @RequirePermissions('facebook.analytics.read')
+  @ApiOperation({ summary: 'Get real-time metrics' })
+  @ApiResponse({ status: 200, description: 'Real-time metrics retrieved successfully' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   async getRealTimeMetrics(@Request() req: any, @Query('pageId') pageId?: string) {
     try {
       const userId = req.user.id;
@@ -386,10 +449,16 @@ export class FacebookAnalyticsController {
       );
     }
   }
-
   /**
    * Get audience insights
-   */  @Get('audience')
+   */
+  @Get('audience')
+  @RequirePermissions('facebook.analytics.read')
+  @ApiOperation({ summary: 'Get audience insights' })
+  @ApiResponse({ status: 200, description: 'Audience insights retrieved successfully' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   async getAudienceInsights(
     @Request() req: any,
     @Query() filters: AnalyticsFilterDto,
@@ -421,10 +490,16 @@ export class FacebookAnalyticsController {
       );
     }
   }
-
   /**
    * Compare performance across different periods
-   */  @Get('compare')
+   */
+  @Get('compare')
+  @RequirePermissions('facebook.analytics.read')
+  @ApiOperation({ summary: 'Compare performance across different periods' })
+  @ApiResponse({ status: 200, description: 'Performance comparison retrieved successfully' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   async comparePerformance(
     @Request() req: any,
     @Query('currentPeriod') currentPeriod: string,
@@ -462,10 +537,16 @@ export class FacebookAnalyticsController {
       );
     }
   }
-
   /**
    * Get custom metrics based on user configuration
-   */  @Get('custom')
+   */
+  @Get('custom')
+  @RequirePermissions('facebook.analytics.read')
+  @ApiOperation({ summary: 'Get custom metrics based on user configuration' })
+  @ApiResponse({ status: 200, description: 'Custom metrics retrieved successfully' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   async getCustomMetrics(
     @Request() req: any,
     @Query() filters: AnalyticsFilterDto,

@@ -14,9 +14,9 @@ FACEBOOK_APP_ID=your_facebook_app_id_here
 FACEBOOK_APP_SECRET=your_facebook_app_secret_here
 
 # OAuth Callback URL (phải match với Facebook App settings)
-FACEBOOK_CALLBACK_URL=https://yourdomain.com/api/facebook/auth/callback
+FACEBOOK_CALLBACK_URL=https://yourdomain.com/api/facebook/oauth/callback
 
-# Graph API Configuration  
+# Graph API Configuration
 FACEBOOK_GRAPH_API_VERSION=v18.0
 FACEBOOK_GRAPH_API_BASE_URL=https://graph.facebook.com
 
@@ -49,7 +49,7 @@ FACEBOOK_WEBHOOK_SECRET=your_webhook_app_secret
 - [ ] `public_profile` - Basic user profile
 
 ### 3. Configure OAuth Settings
-- [ ] Add OAuth Redirect URI: `https://yourdomain.com/api/facebook/auth/callback`
+- [ ] Add OAuth Redirect URI: `https://yourdomain.com/api/facebook/oauth/callback`
 - [ ] Add domain to App Domains
 - [ ] Configure Valid OAuth Redirect URIs
 
@@ -96,13 +96,13 @@ function verifyWebhookSignature(payload: string, signature: string): boolean {
 ### Development Setup
 ```env
 FACEBOOK_APP_ID=your_dev_app_id
-FACEBOOK_CALLBACK_URL=http://localhost:3000/api/facebook/auth/callback
+FACEBOOK_CALLBACK_URL=http://localhost:3001/api/facebook/oauth/callback
 ```
 
 ### Production Setup  
 ```env
 FACEBOOK_APP_ID=your_prod_app_id
-FACEBOOK_CALLBACK_URL=https://yourdomain.com/api/facebook/auth/callback
+FACEBOOK_CALLBACK_URL=https://yourdomain.com/api/facebook/oauth/callback
 ```
 
 ## 🔍 Testing Accounts

@@ -95,14 +95,17 @@ export interface FacebookComment {
 @Injectable()
 export class FacebookGraphService {
   private readonly logger = new Logger(FacebookGraphService.name);
-  private readonly baseUrl = 'https://graph.facebook.com/v18.0';
+  private readonly baseUrl: string;
 
   constructor(
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
     private readonly prismaService: PrismaService,
     private readonly facebookAuthService: FacebookAuthService,
-  ) {}
+  ) {
+    const apiVersion = this.configService.get<string>('facebook.graphApiVersion', 'v22.0');
+    this.baseUrl = `https://graph.facebook.com/${apiVersion}`;
+  }
 
   /**
    * Make a GET request to Facebook Graph API

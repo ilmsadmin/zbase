@@ -14,8 +14,7 @@ export default registerAs('app', () => ({
   
   // MongoDB config
   mongoUri: process.env.MONGO_URI || 'mongodb://localhost:27017/zbase',
-  
-  // Features flags
+    // Features flags
   features: {
     facebook: process.env.ENABLE_FACEBOOK === 'true' || false
   },
@@ -24,8 +23,8 @@ export default registerAs('app', () => ({
   facebook: {
     appId: process.env.FACEBOOK_APP_ID, 
     appSecret: process.env.FACEBOOK_APP_SECRET, 
-    callbackUrl: process.env.FACEBOOK_CALLBACK_URL || 'http://localhost:3000/api/facebook/auth/callback',
-    graphApiVersion: process.env.FACEBOOK_GRAPH_API_VERSION || 'v19.0',
+    callbackUrl: process.env.FACEBOOK_CALLBACK_URL || 'http://localhost:3001/api/facebook/oauth/callback',
+    graphApiVersion: process.env.FACEBOOK_GRAPH_API_VERSION || 'v22.0',
     encryptionKey: process.env.FACEBOOK_ENCRYPTION_KEY || 'default-encryption-key-change-in-production',
   },
 }));

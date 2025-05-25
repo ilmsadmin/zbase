@@ -30,11 +30,10 @@ export class FacebookAuthService {
     private readonly configService: ConfigService,
     private readonly prisma: PrismaService,
     private readonly httpService: HttpService,
-  ) {
-    this.facebookAppId = this.configService.get<string>('FACEBOOK_APP_ID') || '';
+  ) {    this.facebookAppId = this.configService.get<string>('FACEBOOK_APP_ID') || '';
     this.facebookAppSecret = this.configService.get<string>('FACEBOOK_APP_SECRET') || '';
-    this.callbackUrl = this.configService.get<string>('FACEBOOK_CALLBACK_URL') || 'http://localhost:3000/api/facebook/auth/callback';
-    this.graphApiVersion = this.configService.get<string>('FACEBOOK_GRAPH_API_VERSION', 'v18.0');
+    this.callbackUrl = this.configService.get<string>('FACEBOOK_CALLBACK_URL') || 'http://localhost:3001/api/facebook/oauth/callback';
+    this.graphApiVersion = this.configService.get<string>('facebook.graphApiVersion', 'v22.0');
     this.encryptionKey = this.configService.get<string>('FACEBOOK_TOKEN_ENCRYPTION_KEY') || 'default-key-change-in-production';
 
     if (!this.facebookAppId || !this.facebookAppSecret) {
@@ -45,15 +44,16 @@ export class FacebookAuthService {
   /**
    * Generate Facebook OAuth authorization URL
    */
-  getAuthorizationUrl(state?: string): string {
-    const scopes = [
-      'pages_show_list',
-      'pages_read_engagement',
-      'pages_manage_metadata', 
-      'pages_messaging',
-      'pages_manage_posts',
+  getAuthorizationUrl(state?: string): string {    const scopes = [
       'public_profile',
       'email',
+      'pages_show_list',
+      // Advanced permissions below require Facebook App Review approval
+      // Uncomment these after your app is approved for production:
+      // 'pages_read_engagement',
+      // 'pages_manage_metadata', 
+      // 'pages_messaging',
+      // 'pages_manage_posts',
     ].join(',');
 
     const params = new URLSearchParams({

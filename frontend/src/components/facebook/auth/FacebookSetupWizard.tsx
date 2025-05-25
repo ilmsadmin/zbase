@@ -189,31 +189,55 @@ export const FacebookSetupWizard: React.FC<FacebookSetupWizardProps> = ({
                 </div>
                 <Badge variant="success">Granted</Badge>
               </div>
-              
+                <div className="flex items-center gap-3 p-3 border rounded-lg bg-green-50 border-green-200">
+                <CheckCircle className="h-5 w-5 text-green-500" />
+                <div>
+                  <div className="font-medium">public_profile</div>
+                  <div className="text-sm text-gray-600">Basic user profile information</div>
+                </div>
+                <Badge variant="success">Granted</Badge>
+              </div>
+
               <div className="flex items-center gap-3 p-3 border rounded-lg bg-green-50 border-green-200">
                 <CheckCircle className="h-5 w-5 text-green-500" />
                 <div>
-                  <div className="font-medium">pages_manage_metadata</div>
-                  <div className="text-sm text-gray-600">Manage page information and settings</div>
+                  <div className="font-medium">email</div>
+                  <div className="text-sm text-gray-600">User email address</div>
+                </div>
+                <Badge variant="success">Granted</Badge>
+              </div>
+
+              <div className="flex items-center gap-3 p-3 border rounded-lg bg-green-50 border-green-200">
+                <CheckCircle className="h-5 w-5 text-green-500" />
+                <div>
+                  <div className="font-medium">pages_show_list</div>
+                  <div className="text-sm text-gray-600">View list of pages you manage</div>
                 </div>
                 <Badge variant="success">Granted</Badge>
               </div>
               
-              <div className="flex items-center gap-3 p-3 border rounded-lg bg-yellow-50 border-yellow-200">
-                <AlertTriangle className="h-5 w-5 text-yellow-500" />
+              <div className="flex items-center gap-3 p-3 border rounded-lg bg-amber-50 border-amber-200">
+                <AlertTriangle className="h-5 w-5 text-amber-500" />
+                <div>
+                  <div className="font-medium">pages_manage_metadata</div>
+                  <div className="text-sm text-gray-600">Manage page information (requires App Review)</div>
+                </div>
+                <Badge variant="secondary">Pending Review</Badge>
+              </div>
+              
+              <div className="flex items-center gap-3 p-3 border rounded-lg bg-amber-50 border-amber-200">
+                <AlertTriangle className="h-5 w-5 text-amber-500" />
                 <div>
                   <div className="font-medium">pages_messaging</div>
-                  <div className="text-sm text-gray-600">Send and receive messages (optional)</div>
+                  <div className="text-sm text-gray-600">Send and receive messages (requires App Review)</div>
                 </div>
-                <Badge variant="secondary">Optional</Badge>
+                <Badge variant="secondary">Pending Review</Badge>
               </div>
-            </div>
-
-            <Alert>
+            </div>            <Alert>
               <CheckCircle className="h-4 w-4" />
               <div>
-                <div className="font-medium">Permissions Granted</div>
-                <div className="text-sm">Required permissions have been granted successfully.</div>
+                <div className="font-medium">Basic Permissions Granted</div>
+                <div className="text-sm">You can connect pages and view basic information. Advanced features require Facebook App Review approval.</div>
               </div>
             </Alert>
           </div>

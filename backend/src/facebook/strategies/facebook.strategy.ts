@@ -12,20 +12,23 @@ export class FacebookStrategy extends PassportStrategy(Strategy, 'facebook') {  
     // Make sure we have non-undefined values for required properties
     const clientID = configService.get<string>('FACEBOOK_APP_ID') || '';
     const clientSecret = configService.get<string>('FACEBOOK_APP_SECRET') || '';
-    const callbackURL = configService.get<string>('FACEBOOK_CALLBACK_URL') || 'http://localhost:3001/api/facebook/auth/callback';
+    const callbackURL = configService.get<string>('FACEBOOK_CALLBACK_URL') || 'http://localhost:3001/api/facebook/oauth/callback';
     
     super({
       clientID,
       clientSecret,
-      callbackURL,
-      scope: [
+      callbackURL,      scope: [
         'email',
-        'pages_read_engagement',
-        'pages_read_user_content',
-        'pages_manage_metadata',
-        'pages_manage_posts',
-        'pages_messaging',
-        'business_management',
+        'public_profile',
+        'pages_show_list',
+        // Advanced permissions below require Facebook App Review approval
+        // Uncomment these after your app is approved for production:
+        // 'pages_read_engagement',
+        // 'pages_read_user_content', 
+        // 'pages_manage_metadata',
+        // 'pages_manage_posts',
+        // 'pages_messaging',
+        // 'business_management',
       ],
       profileFields: [
         'id',

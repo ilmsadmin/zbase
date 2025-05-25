@@ -1,6 +1,7 @@
 // Export all Facebook services
 export { FacebookAuthService, facebookAuthService } from './authService';
 export { FacebookPagesService, facebookPagesService } from './pagesService';
+export { FacebookMessagesService, facebookMessagesService } from './messagesService';
 
 // Export types
 export type { 
@@ -16,3 +17,10 @@ export type {
   PageFilters, 
   PagesListResponse 
 } from './pagesService';
+
+export type {
+  FacebookMessage,
+  Conversation,
+  SendMessageRequest,
+  MessageFilter
+} from './messagesService';

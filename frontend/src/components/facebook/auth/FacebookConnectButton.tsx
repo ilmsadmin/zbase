@@ -20,7 +20,6 @@ export const FacebookConnectButton: React.FC<FacebookConnectButtonProps> = ({
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
   const handleConnect = async () => {
     setIsLoading(true);
     setError(null);
@@ -28,10 +27,65 @@ export const FacebookConnectButton: React.FC<FacebookConnectButtonProps> = ({
     try {
       // Get authorization URL from backend
       const response = await facebookAuthService.getAuthorizationUrl();
-      
-      if (response.success && response.data?.authUrl) {
-        // Redirect to Facebook OAuth
-        window.location.href = response.data.authUrl;
+        if (response.success && response.data?.authUrl) {
+        console.log('🚀 Opening Facebook popup with URL:', response.data.authUrl);
+        
+        // Open popup for Facebook OAuth instead of redirecting
+        const popup = window.open(
+          response.data.authUrl,
+          'facebook-auth',
+          'width=600,height=700,scrollbars=yes,resizable=yes'
+        );
+
+        if (!popup) {
+          throw new Error('Popup blocked. Please allow popups for this site.');
+        }
+
+        console.log('✅ Popup opened successfully');// Listen for postMessage from callback window
+        const handleMessage = (event: MessageEvent) => {
+          console.log('📨 Received postMessage:', {
+            origin: event.origin,
+            type: event.data?.type,
+            data: event.data
+          });
+
+          // Verify origin for security - accept from backend server
+          const backendOrigin = 'http://localhost:3001';
+          if (event.origin !== backendOrigin) {
+            console.log('❌ Rejected message from origin:', event.origin, 'Expected:', backendOrigin);
+            return;
+          }
+
+          console.log('✅ Message origin verified, processing...');
+
+          if (event.data?.type === 'FACEBOOK_AUTH_SUCCESS') {
+            console.log('🎉 Facebook auth success!');
+            setIsLoading(false);
+            onConnect(true);
+            window.removeEventListener('message', handleMessage);
+            popup.close();
+          } else if (event.data?.type === 'FACEBOOK_AUTH_ERROR') {
+            console.log('❌ Facebook auth error:', event.data.error);
+            setError(event.data.error || 'Facebook connection failed');
+            setIsLoading(false);
+            onConnect(false);
+            window.removeEventListener('message', handleMessage);
+            popup.close();
+          }
+        };
+
+        window.addEventListener('message', handleMessage);        // Handle popup being closed manually
+        const checkClosed = setInterval(() => {
+          if (popup.closed) {
+            console.log('🚪 Popup was closed manually');
+            clearInterval(checkClosed);
+            setError('Facebook connection was cancelled');
+            setIsLoading(false);
+            onConnect(false);
+            window.removeEventListener('message', handleMessage);
+          }
+        }, 1000);
+
       } else {
         throw new Error(response.message || 'Failed to get authorization URL');
       }
@@ -41,45 +95,7 @@ export const FacebookConnectButton: React.FC<FacebookConnectButtonProps> = ({
       onConnect(false);
     }
   };
-
-  // Handle OAuth callback (this would typically be handled by a separate callback page)
-  React.useEffect(() => {
-    // Check if we're returning from Facebook OAuth
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get('code');
-    const error = urlParams.get('error');
-    const state = urlParams.get('state');
-
-    if (code && !error) {
-      // Handle successful OAuth callback
-      handleOAuthCallback(code, state);
-    } else if (error) {
-      setError('Facebook connection was cancelled or failed');
-      onConnect(false);
-    }
-  }, []);
-
-  const handleOAuthCallback = async (code: string, state: string | null) => {
-    try {
-      const response = await facebookAuthService.handleCallback({
-        code,
-        state: state || undefined
-      });
-
-      if (response) {
-        onConnect(true);
-        // Clean up URL parameters
-        window.history.replaceState({}, document.title, window.location.pathname);
-      } else {
-        throw new Error('Failed to complete Facebook connection');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Failed to complete Facebook connection');
-      onConnect(false);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // No need for useEffect callback handling since we use popup + postMessage
 
   const sizeClasses = {
     sm: 'px-3 py-2 text-sm',

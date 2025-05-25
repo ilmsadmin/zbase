@@ -14,3 +14,19 @@ Nếu sử dụng PostgreSQL, đảm bảo:
 Nếu muốn sử dụng SQLite thay thế:
 1. Sửa file prisma/schema.prisma, comment phần datasource PostgreSQL và uncomment phần SQLite
 2. Sửa file .env, comment phần DATABASE_URL cho PostgreSQL và uncomment phần cho SQLite
+
+## Cập nhật quyền và vai trò
+
+### Thiết lập quyền và vai trò cơ bản
+```bash
+npx ts-node scripts/setup-roles-permissions.ts
+```
+
+### Thiết lập quyền và vai trò liên quan đến Facebook
+```bash
+npx ts-node scripts/setup-facebook-permissions.ts
+```
+
+Hoặc chạy trực tiếp file:
+- Windows: `scripts/setup-facebook-permissions.bat`
+- Linux/Mac: `scripts/setup-facebook-permissions.sh`

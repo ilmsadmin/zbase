@@ -9,16 +9,20 @@ export interface FacebookAuthConfig {
 }
 
 export interface FacebookConnection {
-  id: string;
-  userId: string;
-  facebookUserId: string;
-  accessToken: string;
+  id?: string;
+  userId?: string;
+  facebookUserId?: string;
+  accessToken?: string;
   refreshToken?: string;
-  tokenExpiresAt: string;
-  permissions: string[];
-  isActive: boolean;
-  connectedAt: string;
+  tokenExpiresAt?: string;
+  permissions?: string[];
+  isActive?: boolean;
+  connectedAt?: string;
   lastSyncAt?: string;
+  isConnected?: boolean;
+  facebookUser?: any;
+  connectedPages?: any[];
+  totalPages?: number;
 }
 
 export interface ConnectFacebookRequest {
@@ -59,39 +63,104 @@ export class FacebookAuthService {
   /**
    * Get current Facebook connection status
    */
-  async getConnectionStatus(): Promise<FacebookConnection | null> {
+  async getConnectionStatus(): Promise<{ success: boolean; message: string; data?: any }> {
     try {
       const response = await apiClient.get(`${this.baseUrl}/status`);
-      return response.data.data;
+      // Make sure we return a consistent format
+      if (response.data && typeof response.data === 'object') {
+        // If response already has success/message format, return it
+        if ('success' in response.data) {
+          return response.data;
+        }
+        // Otherwise, wrap the data in our standard format
+        return {
+          success: true,
+          message: 'Connection status retrieved successfully',
+          data: response.data.data || response.data
+        };
+      }
+      return {
+        success: true,
+        message: 'Connection status retrieved successfully',
+        data: response.data
+      };
     } catch (error: any) {
       console.error('Failed to get connection status:', error);
-      throw new Error(error?.response?.data?.message || 'Failed to get connection status');
+      return {
+        success: false,
+        message: error?.response?.data?.message || 'Failed to get connection status',
+        data: null
+      };
     }
   }
 
   /**
    * Disconnect Facebook account
    */
-  async disconnect(): Promise<{ success: boolean; message: string }> {
+  async disconnect(): Promise<{ success: boolean; message: string; data?: any }> {
     try {
-      const response = await apiClient.delete(`${this.baseUrl}/disconnect`);
-      return response.data;
+      // Use POST instead of DELETE - the backend endpoint is POST /facebook/auth/disconnect
+      const response = await apiClient.post(`${this.baseUrl}/disconnect`);
+      
+      // Return standardized response format
+      if (response.data && typeof response.data === 'object') {
+        if ('success' in response.data) {
+          return response.data;
+        }
+        return {
+          success: true,
+          message: 'Facebook account disconnected successfully',
+          data: response.data
+        };
+      }
+      return {
+        success: true,
+        message: 'Facebook account disconnected successfully'
+      };
     } catch (error: any) {
       console.error('Failed to disconnect Facebook account:', error);
-      throw new Error(error?.response?.data?.message || 'Failed to disconnect Facebook account');
+      
+      // Instead of throwing an error, return a standardized error response
+      return {
+        success: false,
+        message: error?.response?.data?.message || 'Failed to disconnect Facebook account'
+      };
     }
   }
 
   /**
    * Refresh Facebook access token
    */
-  async refreshToken(): Promise<FacebookConnection> {
+  async refreshToken(): Promise<{ success: boolean; message: string; data?: any }> {
     try {
-      const response = await apiClient.post(`${this.baseUrl}/refresh-token`);
-      return response.data.data;
+      // Update endpoint to use /refresh instead of /refresh-token
+      const response = await apiClient.post(`${this.baseUrl}/refresh`);
+      
+      // Make sure we return a consistent format
+      if (response.data && typeof response.data === 'object') {
+        // If response already has success/message format, return it
+        if ('success' in response.data) {
+          return response.data;
+        }
+        // Otherwise, wrap the data in our standard format
+        return {
+          success: true,
+          message: 'Token refreshed successfully',
+          data: response.data.data || response.data
+        };
+      }
+      return {
+        success: true,
+        message: 'Token refreshed successfully',
+        data: response.data
+      };
     } catch (error: any) {
       console.error('Failed to refresh Facebook token:', error);
-      throw new Error(error?.response?.data?.message || 'Failed to refresh token');
+      const errorMessage = error?.response?.data?.message || 'Failed to refresh token';
+      return {
+        success: false,
+        message: errorMessage
+      };
     }
   }
 

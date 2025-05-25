@@ -11,14 +11,18 @@ import { FacebookPagesService } from './services/facebook-pages.service';
 import { FacebookMessagesService } from './services/facebook-messages.service';
 import { FacebookCommentsService } from './services/facebook-comments.service';
 import { FacebookAnalyticsService } from './services/facebook-analytics.service';
+import { FacebookSyncService } from './services/facebook-sync.service';
 
 // Controllers
 import { FacebookController } from './facebook.controller';
 import { FacebookAuthController } from './controllers/facebook-auth.controller';
+import { FacebookOAuthCallbackController } from './controllers/facebook-oauth-callback.controller';
+import { FacebookConfigController } from './controllers/facebook-config.controller';
 import { FacebookPagesController } from './controllers/facebook-pages.controller';
 import { FacebookMessagesController } from './controllers/facebook-messages.controller';
 import { FacebookCommentsController } from './controllers/facebook-comments.controller';
 import { FacebookAnalyticsController } from './controllers/facebook-analytics.controller';
+import { FacebookActivityLogsController } from './controllers/facebook-activity-logs.controller';
 
 // Strategies
 import { FacebookStrategy } from './strategies/facebook.strategy';
@@ -46,16 +50,17 @@ import { MongoModule } from '../mongo/mongo.module';
       }),
     }),
     ConfigModule,
-  ],
-  controllers: [
+  ],  controllers: [
     FacebookController,
     FacebookAuthController,
+    FacebookOAuthCallbackController,
+    FacebookConfigController,
     FacebookPagesController,
     FacebookMessagesController,
     FacebookCommentsController,
     FacebookAnalyticsController,
-  ],
-  providers: [
+    FacebookActivityLogsController,
+  ],  providers: [
     FacebookService,
     FacebookAuthService,
     FacebookGraphService,
@@ -63,9 +68,9 @@ import { MongoModule } from '../mongo/mongo.module';
     FacebookMessagesService,
     FacebookCommentsService,
     FacebookAnalyticsService,
+    FacebookSyncService,
     FacebookStrategy,
-  ],
-  exports: [
+  ],  exports: [
     FacebookService,
     FacebookAuthService,
     FacebookGraphService,
@@ -73,6 +78,7 @@ import { MongoModule } from '../mongo/mongo.module';
     FacebookMessagesService,
     FacebookCommentsService,
     FacebookAnalyticsService,
+    FacebookSyncService,
   ],
 })
 export class FacebookModule {}

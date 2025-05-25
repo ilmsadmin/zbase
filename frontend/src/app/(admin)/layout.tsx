@@ -10,11 +10,11 @@ export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
-}) {
-  const { user, logout } = useAuth();
+}) {  const { user, logout } = useAuth();
   
+  // Temporarily disable role check to allow PermissionGuard at page level to handle specific permissions
   return (
-    <ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.MANAGER]}>
+    <ProtectedRoute>
       <div className="min-h-screen flex flex-col">
         <header className="bg-primary text-primary-foreground shadow-sm py-4 px-6">
           <div className="flex justify-between items-center">

@@ -16,10 +16,14 @@ api.interceptors.request.use(
     const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token') || getCookie('auth_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log(`🔍 [API] Request to ${config.method?.toUpperCase()} ${config.url} with token: ${token?.substring(0, 20)}...`);
+    } else {
+      console.log(`🔍 [API] Request to ${config.method?.toUpperCase()} ${config.url} WITHOUT token`);
     }
     return config;
   },
   (error) => {
+    console.error('❌ [API] Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
@@ -27,9 +31,16 @@ api.interceptors.request.use(
 // Thêm interceptor response
 api.interceptors.response.use(
   (response) => {
+    console.log(`✅ [API] Response from ${response.config.method?.toUpperCase()} ${response.config.url}: ${response.status} ${response.statusText}`);
     return response;
   },
   async (error) => {
+    console.error(`❌ [API] Response error from ${error.config?.method?.toUpperCase()} ${error.config?.url}:`, {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data
+    });
+    
     const originalRequest = error.config;
 
     // Xử lý lỗi 401 (Unauthorized)

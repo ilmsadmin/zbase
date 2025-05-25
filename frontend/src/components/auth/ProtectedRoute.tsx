@@ -31,39 +31,64 @@ export default function ProtectedRoute({
   const router = useRouter();
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
 
-  useEffect(() => {
+  // Debug logging
+  console.log('🔒 [ProtectedRoute] Checking authorization:', {
+    isLoading,
+    isAuthenticated,
+    userRole: user?.role,
+    allowedRoles,
+    pathname: typeof window !== 'undefined' ? window.location.pathname : 'unknown'
+  });  useEffect(() => {
+    console.log('🔄 [ProtectedRoute] useEffect triggered:', {
+      isLoading,
+      isAuthenticated,
+      userRole: user?.role,
+      allowedRoles,
+      hasUser: !!user
+    });
+
     // If still loading, wait
     if (isLoading) {
+      console.log('⏳ [ProtectedRoute] Still loading, waiting...');
       return;
     }
-    
+
     // Not authenticated - check cookies as fallback then redirect if still not authenticated
     if (!isAuthenticated) {
+      console.log('🚪 [ProtectedRoute] User not authenticated, checking cookies...');
       const cookieToken = getCookie('auth_token');
       if (cookieToken) {
-        // Token exists in cookie, trigger a checkAuth to validate
-        console.log('Found auth token in cookie, validating...');
-        // We'll let the normal auth flow handle this
+        // Token exists in cookie, but don't trigger checkAuth here as useAuth already handles it
+        console.log('🍪 [ProtectedRoute] Found auth token in cookie, useAuth should handle validation...');
+        // Wait for useAuth to complete the authentication process
         return;
       }
       
       // No auth found anywhere, redirect to login
+      console.log('❌ [ProtectedRoute] No auth found, redirecting to login');
       router.push(redirectTo);
       return;
     }
 
     // If no role restrictions or no user, show content
     if (!allowedRoles || !user) {
+      console.log('✅ [ProtectedRoute] No role restrictions or no user data, allowing access');
       setIsAuthorized(true);
       return;
-    }
-
-    // Check if user has one of the allowed roles
+    }// Check if user has one of the allowed roles
     const hasAllowedRole = allowedRoles.includes(user.role);
+    console.log('🔒 [ProtectedRoute] Role check result:', {
+      userRole: user.role,
+      allowedRoles,
+      hasAllowedRole,
+      willRedirect: !hasAllowedRole
+    });
+    
     setIsAuthorized(hasAllowedRole);
     
     // Redirect if not authorized
     if (!hasAllowedRole) {
+      console.log('🚫 [ProtectedRoute] Redirecting to /unauthorized - role check failed');
       // Unauthorized - redirect to 403 page or fallback to dashboard
       router.push('/unauthorized');
     }

@@ -8,6 +8,7 @@ export interface User {
   lastName: string;
   role: UserRole;
   profileImage?: string; // Optional user profile image URL
+  permissions?: string[]; // Array of permission strings
   createdAt: string;
   updatedAt: string;
 }
