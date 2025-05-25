@@ -35,15 +35,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     
     try {
       // Call the real API
-      const response = await authService.login({ email, password });
-
-      // Map the response to our User type
+      const response = await authService.login({ email, password });      // Map the response to our User type
       const user: User = {
         id: response.user.id,
         email: response.user.email,
         firstName: response.user.name.split(' ')[0],
         lastName: response.user.name.split(' ').slice(1).join(' '),
-        role: response.user.role as any, // Tạm thời dùng any để vượt qua lỗi TypeScript
+        role: response.user.roles && response.user.roles.length > 0 ? response.user.roles[0] : 'CASHIER', // Map from roles array to single role
         permissions: response.user.permissions || [],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -153,12 +151,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           // Validate token by getting current user profile
           const profile = await authService.getProfile();
           console.log('🔍 [AuthStore] getProfile response:', profile);
+            const user = JSON.parse(storedUser) as User;
           
-          const user = JSON.parse(storedUser) as User;
-          
-          // Update user with permissions from profile
-          if (profile && profile.permissions) {
-            user.permissions = profile.permissions;
+          // Update user with data from profile response
+          if (profile) {
+            // Update permissions if available
+            if (profile.permissions) {
+              user.permissions = profile.permissions;
+            }
+            
+            // Update role if roles array is available and user doesn't have a role yet
+            if (!user.role && profile.roles && profile.roles.length > 0) {
+              user.role = profile.roles[0];
+            }
           }
           
           // Nếu profile trả về khác null thì token hợp lệ
@@ -221,14 +226,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           
           const profile = await authService.getProfile();
           console.log('🔍 [AuthStore] Profile fetched successfully:', profile);
-          
-          // Create user object from profile
+            // Create user object from profile
           const user: User = {
             id: profile.id,
             email: profile.email,
             firstName: profile.name?.split(' ')[0] || profile.email.split('@')[0],
             lastName: profile.name?.split(' ').slice(1).join(' ') || '',
-            role: profile.role,
+            role: profile.roles && profile.roles.length > 0 ? profile.roles[0] : 'CASHIER', // Map from roles array to single role
             permissions: profile.permissions || [],
             createdAt: profile.createdAt || new Date().toISOString(),
             updatedAt: profile.updatedAt || new Date().toISOString()

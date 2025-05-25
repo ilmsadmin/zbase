@@ -11,46 +11,44 @@ export default function SettingsLayout({
   children,
 }: {
   children: React.ReactNode;
-}) {
-  return (
-    <PageContainer>
-      <Section>
-        <h1 className="text-2xl font-bold mb-6">System Settings</h1>
+}) {  return (
+    <PageContainer maxWidth="full">
+      <Section><h1 className="text-2xl font-bold mb-6">Cài đặt hệ thống</h1>
         
         <div className="flex space-x-4 border-b border-border mb-6">
           <PermissionGuard requiredRoles={[UserRole.ADMIN]}>
             <Link
-              href="/admin/settings/users"
+              href="/settings/users"
               className="px-4 py-2 border-b-2 border-transparent hover:border-primary hover:text-primary transition-colors"
             >
-              User Management
+              Quản lý người dùng
             </Link>
           </PermissionGuard>
           
           <PermissionGuard requiredRoles={[UserRole.ADMIN]}>
             <Link
-              href="/admin/settings/roles"
+              href="/settings/roles"
               className="px-4 py-2 border-b-2 border-transparent hover:border-primary hover:text-primary transition-colors"
             >
-              Role Management
+              Quản lý vai trò
             </Link>
           </PermissionGuard>
           
           <PermissionGuard requiredRoles={[UserRole.ADMIN, UserRole.MANAGER]}>
             <Link
-              href="/admin/settings/company"
+              href="/settings/company"
               className="px-4 py-2 border-b-2 border-transparent hover:border-primary hover:text-primary transition-colors"
             >
-              Company Settings
+              Cài đặt công ty
             </Link>
           </PermissionGuard>
           
           <PermissionGuard requiredRoles={[UserRole.ADMIN]}>
             <Link
-              href="/admin/settings/system"
+              href="/settings/system"
               className="px-4 py-2 border-b-2 border-transparent hover:border-primary hover:text-primary transition-colors"
             >
-              System Configuration
+              Cấu hình hệ thống
             </Link>
           </PermissionGuard>
         </div>

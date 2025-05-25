@@ -1,18 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Button, FormInput, FormSelect, FormTextarea, FormCheckboxRadio } from '@/components/ui';
-import { Tabs, TabPanel } from '@headlessui/react';
+import { Button, FormInput, FormSelect, FormTextarea, FormCheckbox } from '@/components/ui';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs';
 import { Eye, EyeOff, Plus, Save, Trash2 } from 'lucide-react';
 
 // Schema for email settings form
 const emailSettingsSchema = z.object({
   emailProvider: z.enum(['smtp', 'mailgun', 'sendgrid']),
-  fromEmail: z.string().email('Invalid email format'),
-  fromName: z.string().min(1, 'Sender name is required'),
+  fromEmail: z.string().email('Định dạng email không hợp lệ'),
+  fromName: z.string().min(1, 'Tên người gửi là bắt buộc'),
   smtpHost: z.string().optional(),
   smtpPort: z.string().optional(),
   smtpUsername: z.string().optional(),
@@ -82,13 +82,7 @@ export default function SystemConfigPage() {
   const [showKeyValues, setShowKeyValues] = useState<Record<string, boolean>>({});
   
   // Email settings form
-  const { 
-    register: registerEmail, 
-    handleSubmit: handleSubmitEmail,
-    watch: watchEmail,
-    formState: { errors: errorsEmail },
-    control: controlEmail,
-  } = useForm({
+  const emailMethods = useForm({
     resolver: zodResolver(emailSettingsSchema),
     defaultValues: {
       emailProvider: 'smtp' as const,
@@ -103,12 +97,7 @@ export default function SystemConfigPage() {
   });
 
   // Notification settings form
-  const { 
-    register: registerNotify, 
-    handleSubmit: handleSubmitNotify,
-    formState: { errors: errorsNotify },
-    control: controlNotify,
-  } = useForm({
+  const notificationMethods = useForm({
     resolver: zodResolver(notificationSettingsSchema),
     defaultValues: {
       emailNotifications: true,
@@ -122,13 +111,7 @@ export default function SystemConfigPage() {
   });
 
   // Backup settings form
-  const { 
-    register: registerBackup, 
-    handleSubmit: handleSubmitBackup,
-    watch: watchBackup,
-    formState: { errors: errorsBackup },
-    control: controlBackup,
-  } = useForm({
+  const backupMethods = useForm({
     resolver: zodResolver(backupSettingsSchema),
     defaultValues: {
       autoBackup: true,
@@ -141,9 +124,8 @@ export default function SystemConfigPage() {
     },
   });
 
-  const emailProvider = watchEmail('emailProvider');
-  const backupLocation = watchBackup('backupLocation');
-
+  const emailProvider = emailMethods.watch('emailProvider');
+  const backupLocation = backupMethods.watch('backupLocation');
   // Handle save for each settings section
   const onSaveEmailSettings = async (data: any) => {
     await handleSaveSettings(data, 'email');
@@ -201,9 +183,8 @@ export default function SystemConfigPage() {
     // In a real app, this would call the API to delete the key
     setApiKeys(prev => prev.filter(key => key.id !== keyId));
   };
-
   const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'Never';
+    if (!dateString) return 'Chưa bao giờ';
     return new Date(dateString).toLocaleDateString('vi-VN', {
       year: 'numeric',
       month: '2-digit',
@@ -212,17 +193,16 @@ export default function SystemConfigPage() {
       minute: '2-digit',
     });
   };
-
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold">System Configuration</h2>
+        <h2 className="text-xl font-semibold">Cấu hình hệ thống</h2>
       </div>
 
       <div className="bg-card border border-border rounded-md">
         <div className="border-b border-border">
           <nav className="flex -mb-px">
-            {['Email Settings', 'Notification Preferences', 'Backup Settings', 'API Keys'].map((tab, index) => (
+            {['Cài đặt Email', 'Tùy chọn thông báo', 'Cài đặt sao lưu', 'Khóa API'].map((tab, index) => (
               <button
                 key={tab}
                 className={`px-4 py-3 text-sm font-medium ${
@@ -236,290 +216,258 @@ export default function SystemConfigPage() {
               </button>
             ))}
           </nav>
-        </div>
-
-        <div className="p-6">
+        </div>        <div className="p-6">
           {/* Email Settings Tab */}
           {activeTab === 0 && (
-            <form onSubmit={handleSubmitEmail(onSaveEmailSettings)}>
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="md:col-span-2">
-                    <FormSelect
-                      label="Email Provider"
-                      name="emailProvider"
-                      control={controlEmail}
-                      options={[
-                        { label: 'SMTP Server', value: 'smtp' },
-                        { label: 'Mailgun', value: 'mailgun' },
-                        { label: 'SendGrid', value: 'sendgrid' },
-                      ]}
-                      error={errorsEmail.emailProvider?.message}
-                    />
-                  </div>
-                  
-                  <FormInput
-                    label="From Email"
-                    {...registerEmail('fromEmail')}
-                    error={errorsEmail.fromEmail?.message}
-                  />
-                  
-                  <FormInput
-                    label="From Name"
-                    {...registerEmail('fromName')}
-                    error={errorsEmail.fromName?.message}
-                  />
-                </div>
-
-                {emailProvider === 'smtp' && (
-                  <div className="border border-border rounded-md p-4 bg-muted/10 mt-4">
-                    <h4 className="font-medium mb-4">SMTP Settings</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormInput
-                        label="SMTP Host"
-                        {...registerEmail('smtpHost')}
-                        error={errorsEmail.smtpHost?.message}
-                      />
-                      
-                      <FormInput
-                        label="SMTP Port"
-                        {...registerEmail('smtpPort')}
-                        error={errorsEmail.smtpPort?.message}
-                      />
-                      
-                      <FormInput
-                        label="SMTP Username"
-                        {...registerEmail('smtpUsername')}
-                        error={errorsEmail.smtpUsername?.message}
-                      />
-                      
-                      <FormInput
-                        label="SMTP Password"
-                        type="password"
-                        {...registerEmail('smtpPassword')}
-                        error={errorsEmail.smtpPassword?.message}
-                      />
-                      
-                      <div className="md:col-span-2">
-                        <FormSelect
-                          label="Encryption"
-                          name="smtpEncryption"
-                          control={controlEmail}
-                          options={[
-                            { label: 'None', value: 'none' },
-                            { label: 'TLS', value: 'tls' },
-                            { label: 'SSL', value: 'ssl' },
-                          ]}
-                          error={errorsEmail.smtpEncryption?.message}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {(emailProvider === 'mailgun' || emailProvider === 'sendgrid') && (
-                  <div className="border border-border rounded-md p-4 bg-muted/10">
-                    <h4 className="font-medium mb-4">{emailProvider === 'mailgun' ? 'Mailgun' : 'SendGrid'} API Settings</h4>
-                    <FormInput
-                      label="API Key"
-                      type="password"
-                      {...registerEmail('apiKey')}
-                      error={errorsEmail.apiKey?.message}
-                    />
-                  </div>
-                )}
-                
-                <div className="flex justify-end mt-6">
-                  <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? 'Saving...' : 'Save Email Settings'}
-                  </Button>
-                </div>
-              </div>
-            </form>
-          )}
-
-          {/* Notification Preferences Tab */}
-          {activeTab === 1 && (
-            <form onSubmit={handleSubmitNotify(onSaveNotificationSettings)}>
-              <div className="space-y-6">
-                <div className="border border-border rounded-md p-4">
-                  <h4 className="font-medium mb-4">System Notifications</h4>
-                  <div className="space-y-3">
-                    <FormCheckboxRadio
-                      type="checkbox"
-                      label="Enable email notifications"
-                      {...registerNotify('emailNotifications')}
-                    />
-                    
-                    <FormCheckboxRadio
-                      type="checkbox"
-                      label="Low stock alerts"
-                      {...registerNotify('lowStockAlerts')}
-                    />
-                    
-                    <FormCheckboxRadio
-                      type="checkbox"
-                      label="New order notifications"
-                      {...registerNotify('orderNotifications')}
-                    />
-                    
-                    <FormCheckboxRadio
-                      type="checkbox"
-                      label="System updates and maintenance"
-                      {...registerNotify('systemUpdates')}
-                    />
-                  </div>
-                </div>
-                
-                <div className="border border-border rounded-md p-4">
-                  <h4 className="font-medium mb-4">Report Notifications</h4>
-                  <div className="space-y-3">
-                    <FormCheckboxRadio
-                      type="checkbox"
-                      label="Daily sales reports"
-                      {...registerNotify('dailyReports')}
-                    />
-                    
-                    <FormCheckboxRadio
-                      type="checkbox"
-                      label="Weekly summary reports"
-                      {...registerNotify('weeklyReports')}
-                    />
-                    
-                    <FormCheckboxRadio
-                      type="checkbox"
-                      label="Monthly financial reports"
-                      {...registerNotify('monthlyReports')}
-                    />
-                  </div>
-                </div>
-                
-                <div className="flex justify-end mt-6">
-                  <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? 'Saving...' : 'Save Notification Settings'}
-                  </Button>
-                </div>
-              </div>
-            </form>
-          )}
-
-          {/* Backup Settings Tab */}
-          {activeTab === 2 && (
-            <form onSubmit={handleSubmitBackup(onSaveBackupSettings)}>
-              <div className="space-y-6">
-                <div className="border border-border rounded-md p-4">
-                  <div className="flex items-center mb-4">
-                    <FormCheckboxRadio
-                      type="checkbox"
-                      label="Enable automatic backups"
-                      {...registerBackup('autoBackup')}
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormSelect
-                      label="Backup Frequency"
-                      name="backupFrequency"
-                      control={controlBackup}
-                      options={[
-                        { label: 'Daily', value: 'daily' },
-                        { label: 'Weekly', value: 'weekly' },
-                        { label: 'Monthly', value: 'monthly' },
-                      ]}
-                      error={errorsBackup.backupFrequency?.message}
-                    />
-                    
-                    <FormInput
-                      label="Backup Time (24h)"
-                      type="time"
-                      {...registerBackup('backupTime')}
-                      error={errorsBackup.backupTime?.message}
-                    />
-                    
-                    <FormInput
-                      label="Retention Period (days)"
-                      type="number"
-                      min="1"
-                      {...registerBackup('backupRetention')}
-                      error={errorsBackup.backupRetention?.message}
-                    />
-                  </div>
-                </div>
-                
-                <div className="border border-border rounded-md p-4">
-                  <h4 className="font-medium mb-4">Storage Location</h4>
+            <FormProvider {...emailMethods}>
+              <form onSubmit={emailMethods.handleSubmit(onSaveEmailSettings)}>
+                <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="md:col-span-2">
                       <FormSelect
-                        label="Backup Location"
-                        name="backupLocation"
-                        control={controlBackup}
+                        label="Nhà cung cấp Email"
+                        name="emailProvider"
                         options={[
-                          { label: 'Local Storage', value: 'local' },
-                          { label: 'Cloud Storage', value: 'cloud' },
+                          { label: 'Máy chủ SMTP', value: 'smtp' },
+                          { label: 'Mailgun', value: 'mailgun' },
+                          { label: 'SendGrid', value: 'sendgrid' },
                         ]}
-                        error={errorsBackup.backupLocation?.message}
                       />
                     </div>
                     
-                    {backupLocation === 'cloud' && (
-                      <>
+                    <FormInput
+                      label="Email người gửi"
+                      name="fromEmail"
+                    />
+                    
+                    <FormInput
+                      label="Tên người gửi"
+                      name="fromName"
+                    />
+                  </div>
+
+                  {emailProvider === 'smtp' && (
+                    <div className="border border-border rounded-md p-4 bg-muted/10 mt-4">
+                      <h4 className="font-medium mb-4">Cài đặt SMTP</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormInput
+                          label="Máy chủ SMTP"
+                          name="smtpHost"
+                        />
+                        
+                        <FormInput
+                          label="Cổng SMTP"
+                          name="smtpPort"
+                        />
+                        
+                        <FormInput
+                          label="Tên đăng nhập SMTP"
+                          name="smtpUsername"
+                        />
+                        
+                        <FormInput
+                          label="Mật khẩu SMTP"
+                          type="password"
+                          name="smtpPassword"
+                        />
+                        
                         <div className="md:col-span-2">
                           <FormSelect
-                            label="Cloud Provider"
-                            name="cloudProvider"
-                            control={controlBackup}
+                            label="Mã hóa"
+                            name="smtpEncryption"
                             options={[
-                              { label: 'Amazon S3', value: 's3' },
-                              { label: 'Google Cloud Storage', value: 'gcs' },
-                              { label: 'Microsoft Azure', value: 'azure' },
+                              { label: 'Không có', value: 'none' },
+                              { label: 'TLS', value: 'tls' },
+                              { label: 'SSL', value: 'ssl' },
                             ]}
-                            error={errorsBackup.cloudProvider?.message}
                           />
                         </div>
-                        
-                        <div className="md:col-span-2">
-                          <FormInput
-                            label="Bucket Name"
-                            {...registerBackup('bucketName')}
-                            error={errorsBackup.bucketName?.message}
-                          />
-                        </div>
-                        
-                        <FormInput
-                          label="Access Key"
-                          {...registerBackup('accessKey')}
-                          error={errorsBackup.accessKey?.message}
-                        />
-                        
-                        <FormInput
-                          label="Secret Key"
-                          type="password"
-                          {...registerBackup('secretKey')}
-                          error={errorsBackup.secretKey?.message}
-                        />
-                      </>
-                    )}
+                      </div>
+                    </div>
+                  )}
+
+                  {(emailProvider === 'mailgun' || emailProvider === 'sendgrid') && (
+                    <div className="border border-border rounded-md p-4 bg-muted/10">
+                      <h4 className="font-medium mb-4">Cài đặt API {emailProvider === 'mailgun' ? 'Mailgun' : 'SendGrid'}</h4>
+                      <FormInput
+                        label="Khóa API"
+                        type="password"
+                        name="apiKey"
+                      />
+                    </div>
+                  )}
+                  
+                  <div className="flex justify-end mt-6">
+                    <Button type="submit" disabled={isSubmitting}>
+                      {isSubmitting ? 'Đang lưu...' : 'Lưu cài đặt Email'}
+                    </Button>
                   </div>
                 </div>
-                
-                <div className="flex justify-end mt-6">
-                  <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? 'Saving...' : 'Save Backup Settings'}
-                  </Button>
+              </form>
+            </FormProvider>
+          )}          {/* Notification Preferences Tab */}
+          {activeTab === 1 && (
+            <FormProvider {...notificationMethods}>
+              <form onSubmit={notificationMethods.handleSubmit(onSaveNotificationSettings)}>
+                <div className="space-y-6">
+                  <div className="border border-border rounded-md p-4">
+                    <h4 className="font-medium mb-4">Thông báo hệ thống</h4>
+                    <div className="space-y-3">
+                      <FormCheckbox
+                        name="emailNotifications"
+                        label="Bật thông báo email"
+                      />
+                      
+                      <FormCheckbox
+                        name="lowStockAlerts"
+                        label="Cảnh báo hàng tồn kho thấp"
+                      />
+                      
+                      <FormCheckbox
+                        name="orderNotifications"
+                        label="Thông báo đơn hàng mới"
+                      />
+                      
+                      <FormCheckbox
+                        name="systemUpdates"
+                        label="Cập nhật hệ thống và bảo trì"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="border border-border rounded-md p-4">
+                    <h4 className="font-medium mb-4">Thông báo báo cáo</h4>
+                    <div className="space-y-3">
+                      <FormCheckbox
+                        name="dailyReports"
+                        label="Báo cáo bán hàng hàng ngày"
+                      />
+                      
+                      <FormCheckbox
+                        name="weeklyReports"
+                        label="Báo cáo tổng kết hàng tuần"
+                      />
+                      
+                      <FormCheckbox
+                        name="monthlyReports"
+                        label="Báo cáo tài chính hàng tháng"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-end mt-6">
+                    <Button type="submit" disabled={isSubmitting}>
+                      {isSubmitting ? 'Đang lưu...' : 'Lưu cài đặt thông báo'}
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </form>
-          )}
-
-          {/* API Keys Tab */}
+              </form>
+            </FormProvider>
+          )}          {/* Backup Settings Tab */}
+          {activeTab === 2 && (
+            <FormProvider {...backupMethods}>
+              <form onSubmit={backupMethods.handleSubmit(onSaveBackupSettings)}>
+                <div className="space-y-6">
+                  <div className="border border-border rounded-md p-4">
+                    <div className="flex items-center mb-4">
+                      <FormCheckbox
+                        name="autoBackup"
+                        label="Bật sao lưu tự động"
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormSelect
+                        label="Tần suất sao lưu"
+                        name="backupFrequency"
+                        options={[
+                          { label: 'Hàng ngày', value: 'daily' },
+                          { label: 'Hàng tuần', value: 'weekly' },
+                          { label: 'Hàng tháng', value: 'monthly' },
+                        ]}
+                      />
+                      
+                      <FormInput
+                        label="Thời gian sao lưu (24h)"
+                        type="time"
+                        name="backupTime"
+                      />
+                      
+                      <FormInput
+                        label="Thời gian lưu trữ (ngày)"
+                        type="number"
+                        min="1"
+                        name="backupRetention"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="border border-border rounded-md p-4">
+                    <h4 className="font-medium mb-4">Vị trí lưu trữ</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="md:col-span-2">
+                        <FormSelect
+                          label="Vị trí sao lưu"
+                          name="backupLocation"
+                          options={[
+                            { label: 'Lưu trữ cục bộ', value: 'local' },
+                            { label: 'Lưu trữ đám mây', value: 'cloud' },
+                          ]}
+                        />
+                      </div>
+                      
+                      {backupLocation === 'cloud' && (
+                        <>
+                          <div className="md:col-span-2">
+                            <FormSelect
+                              label="Nhà cung cấp đám mây"
+                              name="cloudProvider"
+                              options={[
+                                { label: 'Amazon S3', value: 's3' },
+                                { label: 'Google Cloud Storage', value: 'gcs' },
+                                { label: 'Microsoft Azure', value: 'azure' },
+                              ]}
+                            />
+                          </div>
+                          
+                          <div className="md:col-span-2">
+                            <FormInput
+                              label="Tên bucket"
+                              name="bucketName"
+                            />
+                          </div>
+                          
+                          <FormInput
+                            label="Khóa truy cập"
+                            name="accessKey"
+                          />
+                          
+                          <FormInput
+                            label="Khóa bí mật"
+                            type="password"
+                            name="secretKey"
+                          />
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-end mt-6">
+                    <Button type="submit" disabled={isSubmitting}>
+                      {isSubmitting ? 'Đang lưu...' : 'Lưu cài đặt sao lưu'}
+                    </Button>
+                  </div>
+                </div>
+              </form>
+            </FormProvider>
+          )}          {/* API Keys Tab */}
           {activeTab === 3 && (
             <div className="space-y-6">
               {newlyCreatedKey && (
                 <div className="p-4 mb-4 bg-green-50 border border-green-200 rounded-md">
-                  <h4 className="font-medium text-green-800 mb-2">New API Key Created</h4>
+                  <h4 className="font-medium text-green-800 mb-2">Khóa API mới đã được tạo</h4>
                   <p className="text-sm text-green-700 mb-2">
-                    Your new API key for "{newlyCreatedKey.name}" has been created. Please copy this key now as it won't be shown again.
+                    Khóa API mới cho "{newlyCreatedKey.name}" đã được tạo. Vui lòng sao chép khóa này ngay vì nó sẽ không được hiển thị lại.
                   </p>
                   <div className="flex items-center p-2 bg-white border border-green-200 rounded">
                     <code className="text-sm font-mono text-green-900 flex-1 break-all">
@@ -533,40 +481,40 @@ export default function SystemConfigPage() {
                         navigator.clipboard.writeText(newlyCreatedKey.key);
                       }}
                     >
-                      Copy
+                      Sao chép
                     </Button>
                   </div>
                   <p className="text-xs text-green-600 mt-2">
-                    Make sure to store this key securely. For security, we won't show it again.
+                    Hãy đảm bảo lưu trữ khóa này an toàn. Vì lý do bảo mật, chúng tôi sẽ không hiển thị lại.
                   </p>
                 </div>
               )}
               
               <div className="flex justify-between items-center mb-4">
-                <h4 className="font-medium">API Keys</h4>
+                <h4 className="font-medium">Khóa API</h4>
                 <Button 
                   size="sm"
                   onClick={() => setShowNewKeyForm(true)}
                   disabled={showNewKeyForm}
                 >
                   <Plus size={16} className="mr-2" />
-                  Create New API Key
+                  Tạo khóa API mới
                 </Button>
               </div>
               
               {showNewKeyForm && (
                 <div className="p-4 mb-4 border border-border rounded-md bg-muted/10">
-                  <h4 className="font-medium mb-3">Create New API Key</h4>
+                  <h4 className="font-medium mb-3">Tạo khóa API mới</h4>
                   <div className="flex items-end gap-3">
                     <div className="flex-1">
                       <label className="block text-sm font-medium text-muted-foreground mb-1">
-                        Key Name
+                        Tên khóa
                       </label>
                       <input
                         type="text"
                         value={newKeyName}
                         onChange={(e) => setNewKeyName(e.target.value)}
-                        placeholder="e.g., POS Integration"
+                        placeholder="VD: Tích hợp POS"
                         className="w-full px-3 py-2 border border-input rounded-md"
                       />
                     </div>
@@ -575,13 +523,13 @@ export default function SystemConfigPage() {
                         variant="outline"
                         onClick={() => setShowNewKeyForm(false)}
                       >
-                        Cancel
+                        Hủy
                       </Button>
                       <Button
                         onClick={handleCreateApiKey}
                         disabled={!newKeyName.trim()}
                       >
-                        Create
+                        Tạo
                       </Button>
                     </div>
                   </div>
@@ -592,11 +540,11 @@ export default function SystemConfigPage() {
                 <table className="w-full text-sm text-left">
                   <thead className="bg-muted/50 text-muted-foreground">
                     <tr>
-                      <th className="px-4 py-3">Name</th>
-                      <th className="px-4 py-3">API Key</th>
-                      <th className="px-4 py-3">Created</th>
-                      <th className="px-4 py-3">Last Used</th>
-                      <th className="px-4 py-3 text-right">Actions</th>
+                      <th className="px-4 py-3">Tên</th>
+                      <th className="px-4 py-3">Khóa API</th>
+                      <th className="px-4 py-3">Ngày tạo</th>
+                      <th className="px-4 py-3">Lần sử dụng cuối</th>
+                      <th className="px-4 py-3 text-right">Thao tác</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -616,7 +564,7 @@ export default function SystemConfigPage() {
                               variant="ghost"
                               size="icon"
                               onClick={() => toggleShowKey(key.id)}
-                              title={showKeyValues[key.id] ? 'Hide Key' : 'Show Key'}
+                              title={showKeyValues[key.id] ? 'Ẩn khóa' : 'Hiện khóa'}
                             >
                               {showKeyValues[key.id] ? (
                                 <EyeOff size={16} />
@@ -638,7 +586,7 @@ export default function SystemConfigPage() {
                             size="icon"
                             className="text-destructive hover:bg-destructive/10"
                             onClick={() => handleDeleteKey(key.id)}
-                            title="Delete Key"
+                            title="Xóa khóa"
                           >
                             <Trash2 size={16} />
                           </Button>
@@ -649,7 +597,7 @@ export default function SystemConfigPage() {
                     {apiKeys.length === 0 && (
                       <tr>
                         <td colSpan={5} className="px-4 py-6 text-center text-muted-foreground">
-                          No API keys found. Create one to get started.
+                          Không tìm thấy khóa API nào. Tạo một khóa để bắt đầu.
                         </td>
                       </tr>
                     )}
@@ -659,8 +607,8 @@ export default function SystemConfigPage() {
               
               <div className="mt-4 text-sm text-muted-foreground">
                 <p>
-                  API keys allow external applications to access ZBase through the API. 
-                  Treat them like passwords and never share them in public repositories or client-side code.
+                  Khóa API cho phép các ứng dụng bên ngoài truy cập ZBase thông qua API. 
+                  Hãy coi chúng như mật khẩu và không bao giờ chia sẻ chúng trong kho lưu trữ công khai hoặc mã phía máy khách.
                 </p>
               </div>
             </div>

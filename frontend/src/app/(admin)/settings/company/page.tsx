@@ -1,25 +1,25 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button, FormInput, FormTextarea, FormSelect, FormFileUpload } from '@/components/ui';
 import { Save } from 'lucide-react';
 
 const companySettingsSchema = z.object({
-  companyName: z.string().min(1, 'Company name is required'),
+  companyName: z.string().min(1, 'Tên công ty là bắt buộc'),
   address: z.string(),
   city: z.string(),
   state: z.string(),
   postalCode: z.string(),
   country: z.string(),
   phone: z.string(),
-  email: z.string().email('Invalid email format').or(z.string().length(0)),
+  email: z.string().email('Định dạng email không hợp lệ').or(z.string().length(0)),
   taxId: z.string(),
   taxRate: z.string().transform(val => (val === '' ? '0' : val)),
-  currency: z.string().min(1, 'Currency is required'),
-  currencySymbol: z.string().min(1, 'Currency symbol is required'),
+  currency: z.string().min(1, 'Tiền tệ là bắt buộc'),
+  currencySymbol: z.string().min(1, 'Ký hiệu tiền tệ là bắt buộc'),
   currencyPosition: z.enum(['before', 'after']),
   decimalSeparator: z.enum(['.', ',']),
   thousandsSeparator: z.enum([',', '.', ' ', '']),
@@ -53,39 +53,35 @@ export default function CompanySettingsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
-  const { 
-    register, 
-    handleSubmit, 
-    control,
-    formState: { errors, isDirty } 
-  } = useForm<CompanySettingsValues>({
+  const methods = useForm<CompanySettingsValues>({
     resolver: zodResolver(companySettingsSchema),
     defaultValues: defaultCompanySettings,
-  });
-
+  });  const { 
+    handleSubmit, 
+    formState: { isDirty } 
+  } = methods;
   const currencyOptions = [
-    { label: 'Vietnam Dong (VND)', value: 'VND' },
-    { label: 'US Dollar (USD)', value: 'USD' },
+    { label: 'Việt Nam Đồng (VND)', value: 'VND' },
+    { label: 'Đô la Mỹ (USD)', value: 'USD' },
     { label: 'Euro (EUR)', value: 'EUR' },
-    { label: 'Japanese Yen (JPY)', value: 'JPY' },
-    { label: 'British Pound (GBP)', value: 'GBP' },
+    { label: 'Yên Nhật (JPY)', value: 'JPY' },
+    { label: 'Bảng Anh (GBP)', value: 'GBP' },
   ];
-
   const currencyPositionOptions = [
-    { label: 'Before amount (€100)', value: 'before' },
-    { label: 'After amount (100€)', value: 'after' },
+    { label: 'Trước số tiền (€100)', value: 'before' },
+    { label: 'Sau số tiền (100€)', value: 'after' },
   ];
 
   const separatorOptions = {
     decimal: [
-      { label: 'Dot (.)', value: '.' },
-      { label: 'Comma (,)', value: ',' },
+      { label: 'Dấu chấm (.)', value: '.' },
+      { label: 'Dấu phẩy (,)', value: ',' },
     ],
     thousands: [
-      { label: 'Comma (,)', value: ',' },
-      { label: 'Dot (.)', value: '.' },
-      { label: 'Space ( )', value: ' ' },
-      { label: 'None', value: '' },
+      { label: 'Dấu phẩy (,)', value: ',' },
+      { label: 'Dấu chấm (.)', value: '.' },
+      { label: 'Dấu cách ( )', value: ' ' },
+      { label: 'Không có', value: '' },
     ],
   };
 
@@ -116,183 +112,156 @@ export default function CompanySettingsPage() {
     } finally {
       setIsSubmitting(false);
     }
-  };
+  };  return (
+    <FormProvider {...methods}>
+      <div>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-semibold">Cài đặt công ty</h2>
+        </div>
 
-  return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold">Company Settings</h2>
-      </div>
-
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* Company Info Section */}
         <div className="bg-card border border-border rounded-md p-6">
-          <h3 className="text-lg font-medium mb-4">Company Information</h3>
+          <h3 className="text-lg font-medium mb-4">Thông tin công ty</h3>
           
           <div className="mb-6">
             <div className="flex items-start space-x-6">
               <div className="w-32">
                 <img 
                   src={logoUrl} 
-                  alt="Company Logo" 
+                  alt="Logo công ty" 
                   className="w-full h-32 object-contain border border-border rounded-md p-2"
                 />
                 <div className="mt-2">
                   <FormFileUpload
                     accept="image/*"
                     onFileSelected={handleLogoUpload}
-                    buttonText="Upload Logo"
+                    buttonText="Tải lên Logo"
                     size="sm"
                     fullWidth
                   />
                 </div>
               </div>
               
-              <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="md:col-span-2">
+              <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">                <div className="md:col-span-2">
                   <FormInput
-                    label="Company Name"
-                    {...register('companyName')}
-                    error={errors.companyName?.message}
+                    label="Tên công ty"
+                    name="companyName"
                   />
                 </div>
-                
-                <div className="md:col-span-2">
+                  <div className="md:col-span-2">
                   <FormTextarea
-                    label="Address"
-                    {...register('address')}
-                    error={errors.address?.message}
+                    label="Địa chỉ"
+                    name="address"
                     rows={2}
                   />
                 </div>
                 
                 <FormInput
-                  label="City"
-                  {...register('city')}
-                  error={errors.city?.message}
+                  label="Thành phố"
+                  name="city"
                 />
                 
                 <FormInput
-                  label="State/Province"
-                  {...register('state')}
-                  error={errors.state?.message}
+                  label="Tỉnh/Thành"
+                  name="state"
                 />
                 
                 <FormInput
-                  label="Postal Code"
-                  {...register('postalCode')}
-                  error={errors.postalCode?.message}
+                  label="Mã bưu chính"
+                  name="postalCode"
                 />
                 
                 <FormInput
-                  label="Country"
-                  {...register('country')}
-                  error={errors.country?.message}
+                  label="Quốc gia"
+                  name="country"
                 />
               </div>
             </div>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormInput
-              label="Phone"
-              {...register('phone')}
-              error={errors.phone?.message}
+              label="Số điện thoại"
+              name="phone"
             />
             
             <FormInput
               label="Email"
               type="email"
-              {...register('email')}
-              error={errors.email?.message}
+              name="email"
             />
             
             <FormInput
               label="Website"
-              {...register('website')}
-              error={errors.website?.message}
+              name="website"
             />
           </div>
         </div>
         
         {/* Tax Settings Section */}
         <div className="bg-card border border-border rounded-md p-6">
-          <h3 className="text-lg font-medium mb-4">Tax Settings</h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <h3 className="text-lg font-medium mb-4">Cài đặt thuế</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormInput
-              label="Tax ID / VAT Number"
-              {...register('taxId')}
-              error={errors.taxId?.message}
+              label="Mã số thuế / VAT"
+              name="taxId"
             />
             
             <FormInput
-              label="Default Tax Rate (%)"
+              label="Thuế suất mặc định (%)"
               type="number"
               min="0"
               max="100"
               step="0.01"
-              {...register('taxRate')}
-              error={errors.taxRate?.message}
+              name="taxRate"
             />
           </div>
         </div>
         
         {/* Currency Settings Section */}
         <div className="bg-card border border-border rounded-md p-6">
-          <h3 className="text-lg font-medium mb-4">Currency Settings</h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <h3 className="text-lg font-medium mb-4">Cài đặt tiền tệ</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormSelect
-              label="Currency"
+              label="Tiền tệ"
               name="currency"
-              control={control}
               options={currencyOptions}
-              error={errors.currency?.message}
             />
             
             <FormInput
-              label="Currency Symbol"
-              {...register('currencySymbol')}
-              error={errors.currencySymbol?.message}
+              label="Ký hiệu tiền tệ"
+              name="currencySymbol"
             />
             
             <FormSelect
-              label="Currency Position"
+              label="Vị trí tiền tệ"
               name="currencyPosition"
-              control={control}
               options={currencyPositionOptions}
-              error={errors.currencyPosition?.message}
             />
             
             <FormSelect
-              label="Decimal Separator"
+              label="Dấu thập phân"
               name="decimalSeparator"
-              control={control}
               options={separatorOptions.decimal}
-              error={errors.decimalSeparator?.message}
             />
             
             <FormSelect
-              label="Thousands Separator"
+              label="Dấu phân cách hàng nghìn"
               name="thousandsSeparator"
-              control={control}
               options={separatorOptions.thousands}
-              error={errors.thousandsSeparator?.message}
             />
           </div>
         </div>
-        
-        {/* Save Button */}
+          {/* Save Button */}
         <div className="flex justify-end">
           <Button 
             type="submit" 
             disabled={isSubmitting || (!isDirty && logoUrl === '/no-image.svg')}
           >
-            {isSubmitting ? 'Saving...' : isSaved ? 'Saved!' : 'Save Settings'}
+            {isSubmitting ? 'Đang lưu...' : isSaved ? 'Đã lưu!' : 'Lưu cài đặt'}
           </Button>
-        </div>
-      </form>
-    </div>
+        </div></form>
+      </div>
+    </FormProvider>
   );
 }

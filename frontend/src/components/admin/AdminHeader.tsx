@@ -17,7 +17,7 @@ export const AdminHeader = () => {
     { name: 'Hóa đơn', path: '/admin/invoices' },
     { name: 'Giao dịch', path: '/admin/transactions' },
     { name: 'Báo cáo', path: '/admin/reports' },
-    { name: 'Cài đặt', path: '/admin/settings' },
+    { name: 'Cài đặt', path: '/settings' },
   ];
   return (
     <header className="sticky top-0 z-30 bg-gradient-to-r from-orange-50 to-orange-100 border-b border-orange-200 shadow-sm">

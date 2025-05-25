@@ -24,9 +24,14 @@ export default function AdminProfilePage() {
   }, [isAuthenticated, router, user]);
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6">Hồ sơ của bạn</h1>
-      <ProfileComponent />
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Hồ sơ cá nhân</h1>
+          <p className="text-gray-600">Quản lý thông tin cá nhân và cài đặt tài khoản của bạn</p>
+        </div>
+        <ProfileComponent />
+      </div>
     </div>
   );
 }

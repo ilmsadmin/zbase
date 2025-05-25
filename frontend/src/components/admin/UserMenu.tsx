@@ -42,7 +42,7 @@ export const UserMenu = () => {
             <p className="text-xs text-gray-500">{user?.email}</p>
           </div>
             <Link 
-            href="/admin/profile" 
+            href="/profile" 
             className="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50"
             onClick={closeMenu}
           >
@@ -50,7 +50,7 @@ export const UserMenu = () => {
           </Link>
           
           <Link 
-            href="/admin/settings" 
+            href="/settings" 
             className="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50"
             onClick={closeMenu}
           >

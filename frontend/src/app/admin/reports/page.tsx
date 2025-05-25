@@ -6,9 +6,8 @@ export const metadata = {
   description: 'Access and manage various reports and analytics for your business.'
 };
 
-export default function ReportsPage() {
-  return (
-    <PageContainer title="Reports & Analytics" subtitle="Access and analyze your business data">
+export default function ReportsPage() {  return (
+    <PageContainer maxWidth="full" title="Reports & Analytics" subtitle="Access and analyze your business data">
       <ReportsDashboard />
     </PageContainer>
   );

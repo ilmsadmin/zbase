@@ -40,13 +40,30 @@ export class UsersService {
     const { password, ...userWithoutPassword } = user;
     return userWithoutPassword;
   }
-
   async findAll(): Promise<any[]> {
-    const users = await this.prisma.user.findMany();
-    // Remove passwords from response
+    const users = await this.prisma.user.findMany({
+      include: {
+        role: true,
+        userRoles: {
+          include: {
+            role: true
+          }
+        }
+      }
+    });
+    // Remove passwords from response and add roleIds array
     return users.map(user => {
       const { password, ...userWithoutPassword } = user;
-      return userWithoutPassword;
+      // Create roleIds array from userRoles relationship
+      const roleIds = user.userRoles.map(ur => ur.roleId);
+      // Add primary roleId if it exists and not already in array
+      if (user.roleId && !roleIds.includes(user.roleId)) {
+        roleIds.push(user.roleId);
+      }
+      return {
+        ...userWithoutPassword,
+        roleIds
+      };
     });
   }
 

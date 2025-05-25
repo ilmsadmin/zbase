@@ -6,9 +6,8 @@ export const metadata = {
   description: 'Analyze revenue data and trends for your business.'
 };
 
-export default function RevenueReportsPage() {
-  return (
-    <PageContainer title="Revenue Reports" subtitle="Analyze revenue data and trends">
+export default function RevenueReportsPage() {  return (
+    <PageContainer maxWidth="full" title="Revenue Reports" subtitle="Analyze revenue data and trends">
       <RevenueReports />
     </PageContainer>
   );

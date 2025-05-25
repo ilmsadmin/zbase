@@ -8,11 +8,9 @@ export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
-}) {
-  return (
-    <div className="min-h-screen flex flex-col bg-[#f8f9fc]">
-      <AdminHeader />
-      <main className="flex-1 p-6 container mx-auto max-w-7xl">
+}) {  return (
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-orange-50 to-orange-100">
+      <AdminHeader />      <main className="flex-1 p-6 w-full">
         <Breadcrumb />
         <div className="mt-4">{children}</div>
       </main>

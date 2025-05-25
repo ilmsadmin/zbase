@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Edit, MoreVertical, Shield } from 'lucide-react';
-import { DataTable, Button, Popover, Badge } from '@/components/ui';
+import { DataTable, Button, Badge } from '@/components/ui';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/Popover';
 
 interface Role {
   id: string;
@@ -12,53 +13,10 @@ interface Role {
 }
 
 interface RoleManagementTableProps {
+  roles: Role[];
   onEditRole: (role: Role) => void;
   onManagePermissions: (role: Role) => void;
 }
-
-// Mock data for demonstration
-const mockRoles: Role[] = [
-  {
-    id: '1',
-    name: 'Admin',
-    description: 'Full system access with all permissions',
-    usersCount: 3,
-    isSystem: true,
-    createdAt: '2025-01-01T00:00:00Z',
-  },
-  {
-    id: '2',
-    name: 'Manager',
-    description: 'Access to manage inventory, sales and reports',
-    usersCount: 5,
-    isSystem: true,
-    createdAt: '2025-01-05T00:00:00Z',
-  },
-  {
-    id: '3',
-    name: 'Sales',
-    description: 'Access to POS and customer management',
-    usersCount: 8,
-    isSystem: true,
-    createdAt: '2025-01-10T00:00:00Z',
-  },
-  {
-    id: '4',
-    name: 'Inventory',
-    description: 'Manage products and inventory',
-    usersCount: 4,
-    isSystem: true,
-    createdAt: '2025-01-15T00:00:00Z',
-  },
-  {
-    id: '5',
-    name: 'Support',
-    description: 'Customer support and limited access',
-    usersCount: 6,
-    isSystem: false,
-    createdAt: '2025-02-20T00:00:00Z',
-  },
-];
 
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('vi-VN', {
@@ -68,12 +26,10 @@ const formatDate = (dateString: string) => {
   });
 };
 
-export function RoleManagementTable({ onEditRole, onManagePermissions }: RoleManagementTableProps) {
-  const [roles, setRoles] = useState<Role[]>(mockRoles);
+export function RoleManagementTable({ roles, onEditRole, onManagePermissions }: RoleManagementTableProps) {
 
-  const columns = [
-    {
-      header: 'Role Name',
+  const columns = [    {
+      header: 'Tên vai trò',
       accessorKey: 'name',
       cell: (info: any) => {
         const isSystem = info.row.original.isSystem;
@@ -82,7 +38,7 @@ export function RoleManagementTable({ onEditRole, onManagePermissions }: RoleMan
             {info.getValue()}
             {isSystem && (
               <Badge className="ml-2 bg-blue-100 text-blue-800 text-xs">
-                System
+                Hệ thống
               </Badge>
             )}
           </div>
@@ -90,11 +46,11 @@ export function RoleManagementTable({ onEditRole, onManagePermissions }: RoleMan
       },
     },
     {
-      header: 'Description',
+      header: 'Mô tả',
       accessorKey: 'description',
     },
     {
-      header: 'Users',
+      header: 'Người dùng',
       accessorKey: 'usersCount',
       cell: (info: any) => (
         <Badge className="bg-gray-100 text-gray-800">
@@ -103,31 +59,29 @@ export function RoleManagementTable({ onEditRole, onManagePermissions }: RoleMan
       ),
     },
     {
-      header: 'Created',
+      header: 'Ngày tạo',
       accessorKey: 'createdAt',
       cell: (info: any) => formatDate(info.getValue()),
     },
     {
-      header: 'Actions',
+      header: 'Thao tác',
       cell: (info: any) => {
         const role = info.row.original;
         return (
-          <Popover
-            trigger={
+          <Popover>
+            <PopoverTrigger asChild>
               <Button variant="ghost" size="icon">
                 <MoreVertical size={16} />
               </Button>
-            }
-            align="end"
-          >
-            <div className="p-2 w-60">
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-60 p-2">
               <Button
                 variant="ghost"
                 className="w-full justify-start text-sm mb-1"
                 onClick={() => onManagePermissions(role)}
               >
                 <Shield size={14} className="mr-2" />
-                Manage Permissions
+                Quản lý quyền
               </Button>
               <Button
                 variant="ghost"
@@ -136,9 +90,9 @@ export function RoleManagementTable({ onEditRole, onManagePermissions }: RoleMan
                 disabled={role.isSystem}
               >
                 <Edit size={14} className="mr-2" />
-                {role.isSystem ? 'View Details' : 'Edit Role'}
+                {role.isSystem ? 'Xem chi tiết' : 'Chỉnh sửa vai trò'}
               </Button>
-            </div>
+            </PopoverContent>
           </Popover>
         );
       },
@@ -146,11 +100,10 @@ export function RoleManagementTable({ onEditRole, onManagePermissions }: RoleMan
   ];
 
   return (
-    <div className="bg-card rounded-md border border-border">
-      <DataTable
+    <div className="bg-card rounded-md border border-border">      <DataTable
         columns={columns}
         data={roles}
-        searchPlaceholder="Search roles..."
+        searchPlaceholder="Tìm kiếm vai trò..."
         searchColumn="name"
       />
     </div>

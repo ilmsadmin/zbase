@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Switch } from '@headlessui/react';
 import { Edit, MoreVertical, Trash2 } from 'lucide-react';
-import { DataTable, Button, Popover, Badge } from '@/components/ui';
+import { DataTable, Button, Badge } from '@/components/ui';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/Popover';
 import { UserRole } from '@/types';
 
 interface User {
@@ -15,40 +16,10 @@ interface User {
 }
 
 interface UserManagementTableProps {
+  users: User[];
   onEditUser: (user: User) => void;
   onToggleStatus: (userId: string, isActive: boolean) => Promise<void>;
 }
-
-// Mock data for demonstration
-const mockUsers: User[] = [
-  {
-    id: '1',
-    email: 'admin@example.com',
-    firstName: 'Admin',
-    lastName: 'User',
-    role: UserRole.ADMIN,
-    isActive: true,
-    createdAt: '2025-01-15T00:00:00Z',
-  },
-  {
-    id: '2',
-    email: 'manager@example.com',
-    firstName: 'Manager',
-    lastName: 'User',
-    role: UserRole.MANAGER,
-    isActive: true,
-    createdAt: '2025-02-10T00:00:00Z',
-  },
-  {
-    id: '3',
-    email: 'sales@example.com',
-    firstName: 'Sales',
-    lastName: 'Person',
-    role: UserRole.SALES,
-    isActive: false,
-    createdAt: '2025-03-20T00:00:00Z',
-  },
-];
 
 const getRoleBadgeColor = (role: UserRole) => {
   switch (role) {
@@ -57,8 +28,7 @@ const getRoleBadgeColor = (role: UserRole) => {
     case UserRole.MANAGER:
       return 'bg-blue-100 text-blue-800';
     case UserRole.INVENTORY:
-      return 'bg-amber-100 text-amber-800';
-    case UserRole.SALES:
+      return 'bg-amber-100 text-amber-800';    case UserRole.CASHIER:
       return 'bg-green-100 text-green-800';
     default:
       return 'bg-gray-100 text-gray-800';
@@ -73,20 +43,12 @@ const formatDate = (dateString: string) => {
   });
 };
 
-export function UserManagementTable({ onEditUser, onToggleStatus }: UserManagementTableProps) {
-  const [users, setUsers] = useState<User[]>(mockUsers);
+export function UserManagementTable({ users, onEditUser, onToggleStatus }: UserManagementTableProps) {
   const [loadingUserId, setLoadingUserId] = useState<string | null>(null);
-
   const handleToggleStatus = async (user: User) => {
     setLoadingUserId(user.id);
     try {
       await onToggleStatus(user.id, !user.isActive);
-      // Update local state
-      setUsers((prevUsers) =>
-        prevUsers.map((u) =>
-          u.id === user.id ? { ...u, isActive: !u.isActive } : u
-        )
-      );
     } finally {
       setLoadingUserId(null);
     }
@@ -148,28 +110,25 @@ export function UserManagementTable({ onEditUser, onToggleStatus }: UserManageme
     },
     {
       header: 'Actions',
-      cell: (info: any) => {
-        const user = info.row.original;
+      cell: (info: any) => {        const user = info.row.original;
         return (
-          <Popover
-            trigger={
+          <Popover>
+            <PopoverTrigger asChild>
               <Button variant="ghost" size="icon">
                 <MoreVertical size={16} />
               </Button>
-            }
-            align="end"
-          >
-            <div className="p-2 w-40">
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-40 p-2">
               <Button
                 variant="ghost"
                 className="w-full justify-start text-sm mb-1"
                 onClick={() => onEditUser(user)}
               >
                 <Edit size={14} className="mr-2" />
-                Edit
+                Chỉnh sửa
               </Button>
               {/* Add more actions as needed */}
-            </div>
+            </PopoverContent>
           </Popover>
         );
       },
@@ -181,7 +140,7 @@ export function UserManagementTable({ onEditUser, onToggleStatus }: UserManageme
       <DataTable
         columns={columns}
         data={users}
-        searchPlaceholder="Search users..."
+        searchPlaceholder="Tìm kiếm người dùng..."
         searchColumn="email"
       />
     </div>

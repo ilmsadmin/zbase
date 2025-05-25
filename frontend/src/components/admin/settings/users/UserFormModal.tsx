@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { z } from 'zod';
-import { useForm } from 'react-hook-form';
+import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Modal, Button, FormInput, FormSelect } from '@/components/ui';
 import { UserRole } from '@/types';
@@ -26,9 +26,9 @@ const userSchema = z.object({
   role: z.nativeEnum(UserRole, {
     errorMap: () => ({ message: 'Please select a valid role' }),
   }),
+  isActive: z.boolean().optional().default(true),
   password: z.string().optional(),
   confirmPassword: z.string().optional(),
-  isActive: z.boolean().default(true),
 }).refine(data => {
   // If we're creating a new user (no password) or editing a user and changing password
   if (!data.password && !data.confirmPassword) return true;
@@ -45,26 +45,33 @@ export function UserFormModal({ open, onClose, title, user }: UserFormModalProps
   
   const isEditMode = !!user;
   
-  const defaultValues: Partial<UserFormValues> = user ? {
+  const defaultValues: UserFormValues = user ? {
     email: user.email,
     firstName: user.firstName,
     lastName: user.lastName,
     role: user.role,
     isActive: user.isActive,
+    password: undefined,
+    confirmPassword: undefined,
   } : {
+    email: '',
+    firstName: '',
+    lastName: '',
+    role: UserRole.CASHIER,
     isActive: true,
+    password: undefined,
+    confirmPassword: undefined,
   };
-  
-  const { 
-    register, 
-    handleSubmit, 
-    formState: { errors }, 
-    reset,
-    control
-  } = useForm<UserFormValues>({
+    const methods = useForm({
     resolver: zodResolver(userSchema),
     defaultValues,
   });
+  
+  const { 
+    handleSubmit, 
+    formState: { errors }, 
+    reset
+  } = methods;
   
   const onSubmit = async (data: UserFormValues) => {
     setIsSubmitting(true);
@@ -98,81 +105,81 @@ export function UserFormModal({ open, onClose, title, user }: UserFormModalProps
         </Button>
       </div>
       
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <FormInput
-            label="First Name"
-            {...register('firstName')}
-            error={errors.firstName?.message}
-          />
-          
-          <FormInput
-            label="Last Name"
-            {...register('lastName')}
-            error={errors.lastName?.message}
-          />
-        </div>
-        
-        <div className="mb-4">
-          <FormInput
-            label="Email"
-            type="email"
-            {...register('email')}
-            error={errors.email?.message}
-          />
-        </div>
-        
-        <div className="mb-4">
-          <FormSelect
-            label="Role"
-            options={roleOptions}
-            control={control}
-            name="role"
-            error={errors.role?.message}
-          />
-        </div>
-        
-        {/* Password fields only required for new users or when explicitly changing password */}
-        {!isEditMode && (
-          <>
-            <div className="mb-4">
-              <FormInput
-                label="Password"
-                type="password"
-                {...register('password')}
-                error={errors.password?.message}
-                required={!isEditMode}
-              />
-            </div>
+      <FormProvider {...methods}>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className="grid grid-cols-2 gap-4 mb-4">          
+            <FormInput
+              label="Họ"
+              name="firstName"
+              helperText={errors.firstName?.message}
+            />
             
-            <div className="mb-4">
-              <FormInput
-                label="Confirm Password"
-                type="password"
-                {...register('confirmPassword')}
-                error={errors.confirmPassword?.message}
-                required={!isEditMode}
-              />
-            </div>
-          </>
-        )}
-        
-        <div className="mt-6 flex justify-end gap-2">
-          <Button
-            variant="outline"
-            onClick={() => {
-              reset();
-              onClose();
-            }}
-            disabled={isSubmitting}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Saving...' : isEditMode ? 'Update User' : 'Create User'}
-          </Button>
-        </div>
-      </form>
+            <FormInput
+              label="Tên"
+              name="lastName"
+              helperText={errors.lastName?.message}
+            />
+          </div>
+          
+          <div className="mb-4">          
+            <FormInput
+              label="Email"
+              type="email"
+              name="email"
+              helperText={errors.email?.message}
+            />
+          </div>
+          
+          <div className="mb-4">            <FormSelect
+              label="Vai trò"
+              options={roleOptions}
+              name="role"
+              helperText={errors.role?.message}
+            />
+          </div>
+          
+          {/* Password fields only required for new users or when explicitly changing password */}
+          {!isEditMode && (
+            <>
+              <div className="mb-4">
+                <FormInput
+                  label="Mật khẩu"
+                  type="password"
+                  name="password"
+                  helperText={errors.password?.message}
+                  required={!isEditMode}
+                />
+              </div>
+              
+              <div className="mb-4">
+                <FormInput
+                  label="Xác nhận mật khẩu"
+                  type="password"
+                  name="confirmPassword"
+                  helperText={errors.confirmPassword?.message}
+                  required={!isEditMode}
+                />
+              </div>
+            </>
+          )}
+          
+          <div className="mt-6 flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                reset();
+                onClose();
+              }}
+              disabled={isSubmitting}          
+            >
+              Hủy
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Đang lưu...' : isEditMode ? 'Cập nhật người dùng' : 'Tạo người dùng'}
+            </Button>
+          </div>
+        </form>
+      </FormProvider>
     </Modal>
   );
 }

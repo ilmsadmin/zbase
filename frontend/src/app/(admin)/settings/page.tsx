@@ -6,37 +6,35 @@ import { ArrowRight } from 'lucide-react';
 
 export default function SettingsPage() {
   const router = useRouter();
-
   const settingGroups = [
     {
-      title: 'User Management',
-      description: 'Manage system users, assign roles, and control access',
-      link: '/admin/settings/users',
+      title: 'Quản lý người dùng',
+      description: 'Quản lý người dùng hệ thống, phân quyền và kiểm soát truy cập',
+      link: '/settings/users',
       icon: '👥',
     },
     {
-      title: 'Role Management',
-      description: 'Define roles and manage permissions across the system',
-      link: '/admin/settings/roles',
+      title: 'Quản lý vai trò',
+      description: 'Định nghĩa vai trò và quản lý quyền hạn trong toàn hệ thống',
+      link: '/settings/roles',
       icon: '🔑',
     },
     {
-      title: 'Company Settings',
-      description: 'Manage company information, logo, tax and currency settings',
-      link: '/admin/settings/company',
+      title: 'Cài đặt công ty',
+      description: 'Quản lý thông tin công ty, logo, thuế và cài đặt tiền tệ',
+      link: '/settings/company',
       icon: '🏢',
     },
     {
-      title: 'System Configuration',
-      description: 'Configure email, notifications, backups and API keys',
-      link: '/admin/settings/system',
+      title: 'Cấu hình hệ thống',
+      description: 'Cấu hình email, thông báo, sao lưu và khóa API',
+      link: '/settings/system',
       icon: '⚙️',
     },
   ];
-
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-6">Settings Dashboard</h2>
+      <h2 className="text-xl font-semibold mb-6">Bảng điều khiển cài đặt</h2>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {settingGroups.map((group) => (
@@ -56,7 +54,7 @@ export default function SettingsPage() {
               className="mt-2 w-full flex justify-between items-center"
               onClick={() => router.push(group.link)}
             >
-              <span>View Settings</span>
+              <span>Xem cài đặt</span>
               <ArrowRight size={16} />
             </Button>
           </div>
