@@ -44,23 +44,21 @@ export const StatsCardGrid = () => {
   if (error) {
     return (
       <div className="bg-red-50 border border-red-200 text-red-800 p-4 rounded-lg">
-        <p>{error}</p>
-        <button 
+        <p>{error}</p>        <button 
           onClick={() => window.location.reload()}
           className="mt-2 text-sm font-medium text-red-600 hover:text-red-800"
         >
-          Try again
+          Thử lại
         </button>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-      <StatCard 
-        title="Total Revenue"
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">      <StatCard 
+        title="Tổng doanh thu"
         value={formatCurrency(stats?.totalRevenue || 0)}
-        trend="vs. previous month"
+        trend="so với tháng trước"
         trendValue={`${(stats?.revenueChange || 0) >= 0 ? '+' : ''}${(stats?.revenueChange || 0).toFixed(1)}%`}
         trendDirection={(stats?.revenueChange || 0) >= 0 ? 'up' : 'down'}
         icon={
@@ -69,11 +67,10 @@ export const StatsCardGrid = () => {
           </svg>
         }
       />
-      
-      <StatCard 
-        title="Orders"
+        <StatCard 
+        title="Đơn hàng"
         value={stats?.ordersCount?.toString() || '0'}
-        trend="vs. previous month"
+        trend="so với tháng trước"
         trendValue={`${(stats?.ordersChange || 0) >= 0 ? '+' : ''}${(stats?.ordersChange || 0).toFixed(1)}%`}
         trendDirection={(stats?.ordersChange || 0) >= 0 ? 'up' : 'down'}
         icon={
@@ -82,11 +79,10 @@ export const StatsCardGrid = () => {
           </svg>
         }
       />
-      
-      <StatCard 
-        title="Customers"
+        <StatCard 
+        title="Khách hàng"
         value={stats?.customersCount?.toString() || '0'}
-        trend="vs. previous month"
+        trend="so với tháng trước"
         trendValue={`${(stats?.customersChange || 0) >= 0 ? '+' : ''}${(stats?.customersChange || 0).toFixed(1)}%`}
         trendDirection={(stats?.customersChange || 0) >= 0 ? 'up' : 'down'}
         icon={
@@ -95,12 +91,11 @@ export const StatsCardGrid = () => {
           </svg>
         }
       />
-      
-      <StatCard 
-        title="Low Stock Items"
+        <StatCard 
+        title="Hàng tồn kho thấp"
         value={stats?.lowStockCount?.toString() || '0'}
-        trend="vs. previous month"
-        trendValue={`${(stats?.lowStockChange || 0) >= 0 ? '+' : '-'}${Math.abs(stats?.lowStockChange || 0)} items`}
+        trend="so với tháng trước"
+        trendValue={`${(stats?.lowStockChange || 0) >= 0 ? '+' : '-'}${Math.abs(stats?.lowStockChange || 0)} mặt hàng`}
         trendDirection={(stats?.lowStockChange || 0) <= 0 ? 'down' : 'up'}
         icon={
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-orange-500">

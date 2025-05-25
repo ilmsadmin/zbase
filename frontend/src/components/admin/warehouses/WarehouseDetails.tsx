@@ -39,14 +39,13 @@ export function WarehouseDetails() {
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm" onClick={handleBackClick}>
-            Back
+        <div className="flex items-center space-x-2">          <Button variant="outline" size="sm" onClick={handleBackClick}>
+            Quay lại
           </Button>
-          <h1 className="text-2xl font-bold">Warehouse Details</h1>
+          <h1 className="text-2xl font-bold">Chi tiết kho hàng</h1>
         </div>
         {warehouse && (
-          <Button onClick={() => setShowEditForm(true)}>Edit Warehouse</Button>
+          <Button onClick={() => setShowEditForm(true)}>Sửa kho hàng</Button>
         )}
       </div>
 
@@ -57,30 +56,30 @@ export function WarehouseDetails() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
               <Card className="col-span-1">
                 <CardHeader>
-                  <CardTitle>Warehouse Information</CardTitle>
+                  <CardTitle>Thông tin kho hàng</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     <div>
                       <h3 className="text-lg font-semibold">{warehouse.name}</h3>
-                      <p className="text-sm text-gray-500">Code: {warehouse.code}</p>
+                      <p className="text-sm text-gray-500">Mã: {warehouse.code}</p>
                       {warehouse.description && (
                         <p className="text-sm mt-2">{warehouse.description}</p>
                       )}
                     </div>
                     
                     <div>
-                      <h4 className="text-sm font-medium text-gray-700">Status</h4>
+                      <h4 className="text-sm font-medium text-gray-700">Trạng thái</h4>
                       {warehouse.isActive ? (
-                        <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">Active</span>
+                        <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">Đang hoạt động</span>
                       ) : (
-                        <span className="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded">Inactive</span>
+                        <span className="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded">Không hoạt động</span>
                       )}
                     </div>
                     
                     {warehouse.address && (
                       <div>
-                        <h4 className="text-sm font-medium text-gray-700">Address</h4>
+                        <h4 className="text-sm font-medium text-gray-700">Địa chỉ</h4>
                         <p className="text-sm">
                           {warehouse.address}<br />
                           {warehouse.city && `${warehouse.city}, `}
@@ -92,12 +91,12 @@ export function WarehouseDetails() {
                     )}
                     
                     <div>
-                      <h4 className="text-sm font-medium text-gray-700">Created</h4>
+                      <h4 className="text-sm font-medium text-gray-700">Ngày tạo</h4>
                       <p className="text-sm">{formatDate(warehouse.createdAt)}</p>
                     </div>
                     
                     <div>
-                      <h4 className="text-sm font-medium text-gray-700">Last Updated</h4>
+                      <h4 className="text-sm font-medium text-gray-700">Cập nhật lần cuối</h4>
                       <p className="text-sm">{formatDate(warehouse.updatedAt)}</p>
                     </div>
                   </div>
@@ -109,30 +108,30 @@ export function WarehouseDetails() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Inventory Summary</CardTitle>
+                      <CardTitle>Tổng quan tồn kho</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <p className="text-sm font-medium text-gray-500">Total Products</p>
+                          <p className="text-sm font-medium text-gray-500">Tổng sản phẩm</p>
                           <p className="text-2xl font-bold">
                             {isLoadingStats ? "--" : stats?.totalProducts || 0}
                           </p>
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-500">Total Quantity</p>
+                          <p className="text-sm font-medium text-gray-500">Tổng số lượng</p>
                           <p className="text-2xl font-bold">
                             {isLoadingStats ? "--" : stats?.totalQuantity || 0}
                           </p>
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-500">Total Value</p>
+                          <p className="text-sm font-medium text-gray-500">Tổng giá trị</p>
                           <p className="text-2xl font-bold">
                             {isLoadingStats ? "--" : formatCurrency(stats?.totalValue || 0)}
                           </p>
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-500">Low Stock Items</p>
+                          <p className="text-sm font-medium text-gray-500">Sản phẩm sắp hết</p>
                           <p className="text-2xl font-bold">
                             {isLoadingStats ? "--" : stats?.lowStockCount || 0}
                           </p>
@@ -148,9 +147,8 @@ export function WarehouseDetails() {
 
             {/* Tabs for Locations and Inventory */}
             <Tabs defaultValue="locations" className="mt-6">
-              <TabsList>
-                <TabsTrigger value="locations">Locations</TabsTrigger>
-                <TabsTrigger value="inventory">Inventory</TabsTrigger>
+              <TabsList>                <TabsTrigger value="locations">Vị trí</TabsTrigger>
+                <TabsTrigger value="inventory">Tồn kho</TabsTrigger>
               </TabsList>
               
               <TabsContent value="locations" className="py-4">

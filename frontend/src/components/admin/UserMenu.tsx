@@ -29,8 +29,7 @@ export const UserMenu = () => {
           className="w-8 h-8"
           size="small"
           initials={user?.firstName?.charAt(0) || 'U'}
-        />
-        <span className="text-sm font-medium text-gray-700">{user?.firstName || 'User'}</span>
+        />        <span className="text-sm font-medium text-gray-700">{user?.firstName || 'Người dùng'}</span>
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-gray-500">
           <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
         </svg>
@@ -42,13 +41,12 @@ export const UserMenu = () => {
             <p className="text-sm font-medium text-gray-900">{user?.firstName} {user?.lastName}</p>
             <p className="text-xs text-gray-500">{user?.email}</p>
           </div>
-          
-          <Link 
+            <Link 
             href="/admin/profile" 
             className="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50"
             onClick={closeMenu}
           >
-            Profile
+            Hồ sơ
           </Link>
           
           <Link 
@@ -56,14 +54,14 @@ export const UserMenu = () => {
             className="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50"
             onClick={closeMenu}
           >
-            Settings
+            Cài đặt
           </Link>
           
           <button 
             onClick={handleLogout}
             className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-orange-50"
           >
-            Logout
+            Đăng xuất
           </button>
         </div>
       )}

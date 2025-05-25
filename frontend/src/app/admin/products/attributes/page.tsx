@@ -39,18 +39,18 @@ export default function AttributesPage() {
   });
 
   const handleDeleteAttribute = (attributeId: string) => {
-    if (confirm('Are you sure you want to delete this attribute?')) {
+    if (confirm('Bạn có chắc chắn muốn xóa thuộc tính này không?')) {
       deleteMutation.mutate(attributeId);
     }
   };
 
   const columns = [
     {
-      header: 'Name',
+      header: 'Tên thuộc tính',
       accessorKey: 'name',
     },
     {
-      header: 'Type',
+      header: 'Loại',
       accessorKey: 'type',
       cell: ({ row }: { row: any }) => (
         <Badge variant="outline">
@@ -59,29 +59,28 @@ export default function AttributesPage() {
       ),
     },
     {
-      header: 'Required',
+      header: 'Bắt buộc',
       accessorKey: 'isRequired',
       cell: ({ row }: { row: any }) => (
-        row.original.isRequired ? 'Yes' : 'No'
+        row.original.isRequired ? 'Có' : 'Không'
       ),
     },
     {
-      header: 'Used In Products',
+      header: 'Dùng trong sản phẩm',
       accessorKey: 'usedInProducts',
       cell: ({ row }: { row: any }) => (
         row.original.productCount || '0'
       ),
     },
     {
-      header: 'Actions',
+      header: 'Thao tác',
       cell: ({ row }: { row: any }) => (
         <div className="flex space-x-2">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => handleEditAttribute(row.original)}
-          >
-            Edit
+          >            Edit
           </Button>
           <Button
             variant="ghost"
@@ -89,7 +88,7 @@ export default function AttributesPage() {
             className="text-red-600 hover:text-red-800 hover:bg-red-100"
             onClick={() => handleDeleteAttribute(row.original.id)}
           >
-            Delete
+            Xóa
           </Button>
         </div>
       ),
@@ -97,19 +96,18 @@ export default function AttributesPage() {
   ];
 
   if (isLoading) {
-    return <div>Loading attributes...</div>;
+    return <div>Đang tải thuộc tính...</div>;
   }
 
   if (isError) {
-    return <div>Error loading attributes</div>;
+    return <div>Lỗi khi tải thuộc tính</div>;
   }
 
   return (
     <Card>
       <div className="p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold">Product Attributes</h2>
-          <Button onClick={handleAddAttribute}>Add Attribute</Button>
+        <div className="flex justify-between items-center mb-6">          <h2 className="text-xl font-semibold">Thuộc tính sản phẩm</h2>
+          <Button onClick={handleAddAttribute}>Thêm thuộc tính</Button>
         </div>
 
         {attributes && attributes.length > 0 ? (
@@ -117,15 +115,11 @@ export default function AttributesPage() {
             columns={columns} 
             data={attributes} 
           />
-        ) : (
-          <EmptyState
-            title="No attributes found"
-            description="Create your first product attribute to organize and filter your products."
-            action={
-              <Button onClick={handleAddAttribute}>
-                Add Attribute
-              </Button>
-            }
+        ) : (          <EmptyState
+            title="Không tìm thấy thuộc tính nào"
+            description="Tạo thuộc tính sản phẩm đầu tiên để tổ chức và lọc sản phẩm của bạn."
+            actionLabel="Thêm thuộc tính"
+            onAction={handleAddAttribute}
           />
         )}
       </div>

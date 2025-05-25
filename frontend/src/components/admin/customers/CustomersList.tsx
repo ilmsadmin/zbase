@@ -47,9 +47,8 @@ export function CustomersList() {
 
   return (
     <div className="container mx-auto p-4">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Customer Management</h1>
-        <Button onClick={handleAddNew}>Add Customer</Button>
+      <div className="flex justify-between items-center mb-6">        <h1 className="text-2xl font-bold">Quản lý khách hàng</h1>
+        <Button onClick={handleAddNew}>Thêm khách hàng</Button>
       </div>
 
       {/* Search and filter */}
@@ -57,7 +56,7 @@ export function CustomersList() {
         <div className="relative flex-1">
           <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
           <Input
-            placeholder="Search customers by name, email or phone..."
+            placeholder="Tìm kiếm khách hàng theo tên, email hoặc điện thoại..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -68,10 +67,9 @@ export function CustomersList() {
             value={groupFilter}
             onChange={(e) => setGroupFilter(e.target.value)}
             className="w-full h-10 rounded-md border border-input px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <option value="">All Groups</option>
-            <option value="group1">Retail</option>
-            <option value="group2">Wholesale</option>
+          >            <option value="">Tất cả nhóm</option>
+            <option value="group1">Bán lẻ</option>
+            <option value="group2">Bán buôn</option>
             <option value="group3">VIP</option>
           </select>
         </div>
@@ -83,21 +81,20 @@ export function CustomersList() {
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
-                <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Customer
+                <tr>                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Khách hàng
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Contact
+                    Liên hệ
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Group
+                    Nhóm
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Balance
+                    Số dư
                   </th>
                   <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
+                    Thao tác
                   </th>
                 </tr>
               </thead>
@@ -118,7 +115,7 @@ export function CustomersList() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                        {customer.groupId ? 'Group Name' : 'No Group'}
+                        {customer.groupId ? 'Tên nhóm' : 'Chưa phân nhóm'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -132,8 +129,7 @@ export function CustomersList() {
                         size="sm"
                         className="text-indigo-600 hover:text-indigo-900 mr-2"
                         onClick={() => handleViewDetails(customer)}
-                      >
-                        View
+                      >                        Xem
                       </Button>
                       <Button
                         variant="ghost"
@@ -141,7 +137,7 @@ export function CustomersList() {
                         className="text-blue-600 hover:text-blue-900"
                         onClick={() => handleEdit(customer)}
                       >
-                        Edit
+                        Sửa
                       </Button>
                     </td>
                   </tr>
@@ -150,7 +146,7 @@ export function CustomersList() {
                 {data?.items?.length === 0 && (
                   <tr>
                     <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
-                      No customers found.
+                      Không tìm thấy khách hàng nào.
                     </td>
                   </tr>
                 )}

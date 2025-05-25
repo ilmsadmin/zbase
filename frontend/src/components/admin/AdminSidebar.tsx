@@ -15,13 +15,13 @@ interface MenuItem {
 }
 
 export const AdminSidebar = () => {
-  const pathname = usePathname();
+  const pathname = usePathname() || '';
   const { hasPermission } = useAuth();
   
   // Define main menu items
   const menuItems: MenuItem[] = [
     {
-      name: 'Dashboard',
+      name: 'Tổng quan',
       path: '/admin',
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -29,7 +29,7 @@ export const AdminSidebar = () => {
         </svg>
       ),
     },    {
-      name: 'Products',
+      name: 'Sản phẩm',
       path: '/admin/products',
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -38,11 +38,11 @@ export const AdminSidebar = () => {
       ),
       permission: 'products.view',
       children: [
-        { name: 'All Products', path: '/admin/products' },
-        { name: 'Categories', path: '/admin/products/categories' }
+        { name: 'Tất cả sản phẩm', path: '/admin/products' },
+        { name: 'Danh mục', path: '/admin/products/categories' }
       ]
     },    {
-      name: 'Inventory',
+      name: 'Kho hàng',
       path: '/admin/inventory',
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -51,12 +51,12 @@ export const AdminSidebar = () => {
       ),
       permission: 'inventory.view',
       children: [
-        { name: 'Stock Levels', path: '/admin/inventory' },
-        { name: 'History', path: '/admin/inventory/history' }
+        { name: 'Tồn kho', path: '/admin/inventory' },
+        { name: 'Lịch sử', path: '/admin/inventory/history' }
       ]
     },
     {
-      name: 'Warehouses',
+      name: 'Kho bãi',
       path: '/admin/warehouses',
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -66,7 +66,7 @@ export const AdminSidebar = () => {
       permission: 'warehouses.view',
     },
     {
-      name: 'Customers',
+      name: 'Khách hàng',
       path: '/admin/customers',
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -75,12 +75,12 @@ export const AdminSidebar = () => {
       ),
       permission: 'customers.view',
       children: [
-        { name: 'All Customers', path: '/admin/customers' },
-        { name: 'Groups', path: '/admin/customers/groups' }
+        { name: 'Tất cả khách hàng', path: '/admin/customers' },
+        { name: 'Nhóm', path: '/admin/customers/groups' }
       ]
     },
     {
-      name: 'Invoices',
+      name: 'Hóa đơn',
       path: '/admin/invoices',
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -89,7 +89,7 @@ export const AdminSidebar = () => {
       ),
       permission: 'invoices.view',
     },    {
-      name: 'Transactions',
+      name: 'Giao dịch',
       path: '/admin/transactions',
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -107,16 +107,16 @@ export const AdminSidebar = () => {
       ),
       permission: 'facebook.view',
       children: [
-        { name: 'Dashboard', path: '/admin/facebook' },
-        { name: 'Setup', path: '/admin/facebook/setup' },
-        { name: 'Pages', path: '/admin/facebook/pages' },
-        { name: 'Messages', path: '/admin/facebook/messages' },
-        { name: 'Comments', path: '/admin/facebook/comments' },
-        { name: 'Analytics', path: '/admin/facebook/analytics' }
+        { name: 'Tổng quan', path: '/admin/facebook' },
+        { name: 'Cài đặt', path: '/admin/facebook/setup' },
+        { name: 'Trang', path: '/admin/facebook/pages' },
+        { name: 'Tin nhắn', path: '/admin/facebook/messages' },
+        { name: 'Bình luận', path: '/admin/facebook/comments' },
+        { name: 'Phân tích', path: '/admin/facebook/analytics' }
       ]
     },
     {
-      name: 'Warranties',
+      name: 'Bảo hành',
       path: '/admin/warranties',
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -126,7 +126,7 @@ export const AdminSidebar = () => {
       permission: 'warranties.view',
     },
     {
-      name: 'Reports',
+      name: 'Báo cáo',
       path: '/admin/reports',
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -135,13 +135,13 @@ export const AdminSidebar = () => {
       ),
       permission: 'reports.view',
       children: [
-        { name: 'Sales Reports', path: '/admin/reports/sales' },
-        { name: 'Inventory Reports', path: '/admin/reports/inventory' },
-        { name: 'Customer Reports', path: '/admin/reports/customers' },
+        { name: 'Báo cáo bán hàng', path: '/admin/reports/sales' },
+        { name: 'Báo cáo kho hàng', path: '/admin/reports/inventory' },
+        { name: 'Báo cáo khách hàng', path: '/admin/reports/customers' },
       ]
     },
     {
-      name: 'Settings',
+      name: 'Cài đặt',
       path: '/admin/settings',
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -151,9 +151,9 @@ export const AdminSidebar = () => {
       ),
       permission: 'settings.view',
       children: [
-        { name: 'General', path: '/admin/settings' },
-        { name: 'Users', path: '/admin/settings/users' },
-        { name: 'Roles', path: '/admin/settings/roles' },
+        { name: 'Chung', path: '/admin/settings' },
+        { name: 'Người dùng', path: '/admin/settings/users' },
+        { name: 'Vai trò', path: '/admin/settings/roles' },
       ]
     },
   ];

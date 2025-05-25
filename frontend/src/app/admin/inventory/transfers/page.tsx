@@ -34,26 +34,26 @@ export default function TransfersPage() {
 
   const columns = [
     {
-      header: 'Transfer #',
+      header: 'Mã chuyển kho',
       accessorKey: 'referenceNumber',
     },
     {
-      header: 'Date',
+      header: 'Ngày tạo',
       accessorKey: 'createdAt',
       cell: ({ row }: { row: any }) => (
         formatDate(row.original.createdAt)
       ),
     },
     {
-      header: 'From',
+      header: 'Từ kho',
       accessorKey: 'sourceWarehouse.name',
     },
     {
-      header: 'To',
+      header: 'Đến kho',
       accessorKey: 'destinationWarehouse.name',
     },
     {
-      header: 'Status',
+      header: 'Trạng thái',
       accessorKey: 'status',
       cell: ({ row }: { row: any }) => {
         const status = row.original.status;
@@ -62,24 +62,25 @@ export default function TransfersPage() {
         if (status === 'COMPLETED') variant = 'success';
         else if (status === 'PENDING') variant = 'warning';
         else if (status === 'CANCELLED') variant = 'destructive';
-        
-        return (
+          return (
           <Badge variant={variant as any}>
-            {status}
+            {status === 'COMPLETED' ? 'Hoàn thành' : 
+             status === 'PENDING' ? 'Đang xử lý' : 
+             status === 'CANCELLED' ? 'Đã hủy' : status}
           </Badge>
         );
       },
     },
     {
-      header: 'Items',
+      header: 'Số lượng mặt hàng',
       accessorKey: 'itemCount',
     },
     {
-      header: 'Created By',
+      header: 'Người tạo',
       accessorKey: 'createdBy.name',
     },
     {
-      header: 'Actions',
+      header: 'Thao tác',
       cell: ({ row }: { row: any }) => (
         <div className="flex space-x-2">
           <Button
@@ -87,7 +88,7 @@ export default function TransfersPage() {
             size="sm"
             onClick={() => handleViewTransfer(row.original.id)}
           >
-            View
+            Xem
           </Button>
         </div>
       ),
@@ -97,14 +98,13 @@ export default function TransfersPage() {
   return (
     <Card>
       <div className="p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold">Inventory Transfers</h2>
-          <Button onClick={handleCreateTransfer}>Create Transfer</Button>
+        <div className="flex justify-between items-center mb-6">          <h2 className="text-xl font-semibold">Chuyển kho hàng</h2>
+          <Button onClick={handleCreateTransfer}>Tạo chuyển kho</Button>
         </div>
 
         <div className="flex flex-wrap gap-4 mb-6">
           <div className="flex items-center gap-2">
-            <label className="text-sm">From:</label>
+            <label className="text-sm">Từ ngày:</label>
             <input
               type="date"
               className="p-2 border border-gray-300 rounded-md"
@@ -113,7 +113,7 @@ export default function TransfersPage() {
             />
           </div>
           <div className="flex items-center gap-2">
-            <label className="text-sm">To:</label>
+            <label className="text-sm">Đến ngày:</label>
             <input
               type="date"
               className="p-2 border border-gray-300 rounded-md"
@@ -124,23 +124,19 @@ export default function TransfersPage() {
         </div>
 
         {isLoading ? (
-          <div>Loading transfers...</div>
+          <div>Đang tải dữ liệu chuyển kho...</div>
         ) : isError ? (
-          <div>Error loading transfers</div>
+          <div>Lỗi khi tải dữ liệu chuyển kho</div>
         ) : transfers && transfers.length > 0 ? (
           <DataTable 
             columns={columns} 
             data={transfers} 
           />
-        ) : (
-          <EmptyState
-            title="No transfers found"
-            description="Transfer inventory between warehouses to manage your stock efficiently."
-            action={
-              <Button onClick={handleCreateTransfer}>
-                Create Transfer
-              </Button>
-            }
+        ) : (          <EmptyState
+            title="Không tìm thấy chuyển kho nào"
+            description="Chuyển kho giữa các kho hàng để quản lý tồn kho hiệu quả hơn."
+            actionLabel="Tạo chuyển kho"
+            onAction={handleCreateTransfer}
           />
         )}
       </div>

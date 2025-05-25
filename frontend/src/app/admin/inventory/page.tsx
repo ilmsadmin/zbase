@@ -47,24 +47,23 @@ export default function InventoryPage() {
     setSelectedProduct(productId || null);
     setIsTransferModalOpen(true);
   };
-
   const columns = [
     {
-      header: 'Product',
+      header: 'Sản phẩm',
       accessorKey: 'product.name',
       cell: ({ row }: { row: any }) => (
         <div>
           <div className="font-medium">{row.original.product.name}</div>
-          <div className="text-sm text-gray-500">SKU: {row.original.product.sku}</div>
+          <div className="text-sm text-gray-500">Mã: {row.original.product.sku}</div>
         </div>
       ),
     },
     {
-      header: 'Warehouse',
+      header: 'Kho hàng',
       accessorKey: 'warehouse.name',
     },
     {
-      header: 'Quantity',
+      header: 'Số lượng',
       accessorKey: 'quantity',
       cell: ({ row }: { row: any }) => {
         const isLowStock = row.original.quantity <= (row.original.product.minStockLevel || 0);
@@ -75,14 +74,14 @@ export default function InventoryPage() {
               {row.original.quantity} {row.original.product.unit}s
             </span>
             {isLowStock && (
-              <Badge variant="danger" className="ml-2">Low Stock</Badge>
+              <Badge variant="danger" className="ml-2">Sắp hết hàng</Badge>
             )}
           </div>
         );
       },
     },
     {
-      header: 'Min/Max',
+      header: 'Tối thiểu/Tối đa',
       accessorKey: 'minMaxStock',
       cell: ({ row }: { row: any }) => (
         <div className="text-sm">
@@ -92,7 +91,7 @@ export default function InventoryPage() {
       ),
     },
     {
-      header: 'Actions',
+      header: 'Thao tác',
       cell: ({ row }: { row: any }) => (
         <div className="flex space-x-2">
           <Button 
@@ -100,27 +99,26 @@ export default function InventoryPage() {
             size="sm"
             onClick={() => handleStockAdjustment(row.original.productId)}
           >
-            Adjust
+            Điều chỉnh
           </Button>
           <Button 
             variant="outline" 
             size="sm"
             onClick={() => handleStockTransfer(row.original.productId)}
           >
-            Transfer
+            Chuyển kho
           </Button>
         </div>
       ),
     },
   ];
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Inventory Management</h1>
+        <h1 className="text-2xl font-bold">Quản lý kho hàng</h1>
         <div className="flex space-x-2">
-          <Button variant="outline" onClick={() => handleStockAdjustment()}>Stock Adjustment</Button>
-          <Button onClick={() => handleStockTransfer()}>Transfer Inventory</Button>
+          <Button variant="outline" onClick={() => handleStockAdjustment()}>Điều chỉnh hàng</Button>
+          <Button onClick={() => handleStockTransfer()}>Chuyển kho</Button>
         </div>
       </div>
 

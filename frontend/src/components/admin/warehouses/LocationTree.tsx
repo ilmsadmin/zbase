@@ -29,14 +29,13 @@ function LocationItem({ location, locations, onAddChild, onEdit, onDelete }: Loc
   // Get child locations
   const children = locations.filter(loc => loc.parentId === location.id);
   const hasChildren = children.length > 0;
-  
-  const getTypeLabel = (type: string) => {
+    const getTypeLabel = (type: string) => {
     switch (type) {
-      case 'ZONE': return 'Zone';
-      case 'AISLE': return 'Aisle';
-      case 'RACK': return 'Rack';
-      case 'SHELF': return 'Shelf';
-      case 'BIN': return 'Bin';
+      case 'ZONE': return 'Khu vực';
+      case 'AISLE': return 'Lối đi';
+      case 'RACK': return 'Kệ';
+      case 'SHELF': return 'Ngăn';
+      case 'BIN': return 'Thùng';
       default: return type;
     }
   };
@@ -161,11 +160,10 @@ export function LocationTree({ warehouseId }: LocationTreeProps) {
   
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Warehouse Locations</CardTitle>
+      <CardHeader className="flex flex-row items-center justify-between">        <CardTitle>Vị trí kho hàng</CardTitle>
         <Button onClick={handleAddRoot} className="flex items-center">
           <PlusIcon className="h-4 w-4 mr-2" />
-          Add Root Location
+          Thêm vị trí gốc
         </Button>
       </CardHeader>
       <CardContent>
@@ -183,10 +181,9 @@ export function LocationTree({ warehouseId }: LocationTreeProps) {
                 />
               ))}
             </div>
-          ) : (
-            <div className="text-center p-8">
-              <p className="text-gray-500 mb-4">No locations defined yet.</p>
-              <Button onClick={handleAddRoot}>Add First Location</Button>
+          ) : (            <div className="text-center p-8">
+              <p className="text-gray-500 mb-4">Chưa có vị trí nào được xác định.</p>
+              <Button onClick={handleAddRoot}>Thêm vị trí đầu tiên</Button>
             </div>
           )}
         </LoadingState>

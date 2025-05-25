@@ -31,9 +31,8 @@ export const RecentSalesTable = () => {
   
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 h-full flex flex-col">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-gray-800">Recent Sales</h2>
+      <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 h-full flex flex-col">      <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-semibold text-gray-800">Đơn hàng gần đây</h2>
           <div className="animate-pulse h-4 w-16 bg-gray-200 rounded"></div>
         </div>
         
@@ -106,27 +105,27 @@ export const RecentSalesTable = () => {
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 h-full flex flex-col">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-semibold text-gray-800">Recent Sales</h2>
+        <h2 className="text-lg font-semibold text-gray-800">Đơn hàng gần đây</h2>
         <Link href="/admin/invoices" className="text-sm text-orange-500 hover:text-orange-600">
-          View All
+          Xem tất cả
         </Link>
       </div>
       
       {sales.length === 0 ? (
         <div className="flex-grow flex items-center justify-center text-gray-500 text-sm">
-          No recent sales data available
+          Không có dữ liệu đơn hàng gần đây
         </div>
       ) : (
         <div className="overflow-x-auto -mx-6">
           <table className="min-w-full">
             <thead>
               <tr className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wider text-left">
-                <th className="py-3 px-6">Invoice</th>
-                <th className="py-3 px-6">Customer</th>
-                <th className="py-3 px-6">Date</th>
-                <th className="py-3 px-6">Amount</th>
-                <th className="py-3 px-6">Status</th>
-                <th className="py-3 px-6">Actions</th>
+                <th className="py-3 px-6">Hóa đơn</th>
+                <th className="py-3 px-6">Khách hàng</th>
+                <th className="py-3 px-6">Ngày</th>
+                <th className="py-3 px-6">Số tiền</th>
+                <th className="py-3 px-6">Trạng thái</th>
+                <th className="py-3 px-6">Thao tác</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -190,11 +189,11 @@ export const RecentSalesTable = () => {
       <div className="mt-auto pt-6 border-t border-gray-100">
         <div className="flex justify-between items-center">
           <div className="text-sm">
-            <span className="text-gray-500">Total Sales: </span>
+            <span className="text-gray-500">Tổng đơn hàng: </span>
             <span className="font-medium text-gray-800">{sales.length}</span>
           </div>
           <div className="text-sm">
-            <span className="text-gray-500">Total Amount: </span>
+            <span className="text-gray-500">Tổng số tiền: </span>
             <span className="font-medium text-gray-800">{formatCurrency(totalRevenue)}</span>
           </div>
         </div>

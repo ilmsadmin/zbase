@@ -4,11 +4,33 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
+// Translation mapping for admin paths
+const translateAdminPath = (path: string): string => {
+  const translations: Record<string, string> = {
+    'admin': 'Tổng quan',
+    'products': 'Sản phẩm',
+    'inventory': 'Kho hàng',
+    'customers': 'Khách hàng',
+    'orders': 'Đơn hàng',
+    'transactions': 'Giao dịch',
+    'invoices': 'Hóa đơn',
+    'reports': 'Báo cáo',
+    'settings': 'Cài đặt',
+    'profile': 'Hồ sơ',
+    'warehouses': 'Kho bãi',
+  };
+  
+  return translations[path] || path
+    .split('-')
+    .map(segment => segment.charAt(0).toUpperCase() + segment.slice(1))
+    .join(' ');
+};
+
 export const Breadcrumb = () => {
   const pathname = usePathname();
   
   // Skip rendering breadcrumb on the main admin page
-  if (pathname === '/admin') {
+  if (!pathname || pathname === '/admin') {
     return null;
   }
   
@@ -18,8 +40,8 @@ export const Breadcrumb = () => {
     const paths = pathname.split('/').filter(Boolean);
     
     // Always include home in breadcrumbs
-    const breadcrumbs = [
-      { name: 'Admin', path: '/admin' }
+    const breadcrumbs: Array<{name: string; path: string; isLast?: boolean}> = [
+      { name: 'Tổng quan', path: '/admin' }
     ];
     
     // Build path as we go
@@ -31,11 +53,8 @@ export const Breadcrumb = () => {
       
       currentPath += `/${path}`;
       
-      // Format the path name (capitalize first letter, replace hyphens with spaces)
-      const formattedName = path
-        .split('-')
-        .map(segment => segment.charAt(0).toUpperCase() + segment.slice(1))
-        .join(' ');
+      // Format and translate the path name
+      const formattedName = translateAdminPath(path);
       
       breadcrumbs.push({
         name: formattedName,

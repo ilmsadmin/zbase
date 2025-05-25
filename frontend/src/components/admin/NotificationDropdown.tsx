@@ -4,38 +4,37 @@ import React, { useState } from 'react';
 
 export const NotificationDropdown = () => {
   const [isOpen, setIsOpen] = useState(false);
-  
-  // Sample notifications data - in a real app, this would come from an API
+    // Sample notifications data - in a real app, this would come from an API
   const notifications = [
     {
       id: 1,
-      title: 'Low stock alert',
-      description: 'Product "iPhone 13 Pro" is running low on stock.',
-      time: '10 minutes ago',
+      title: 'Cảnh báo hàng tồn kho thấp',
+      description: 'Sản phẩm "iPhone 13 Pro" sắp hết hàng.',
+      time: '10 phút trước',
       unread: true,
       type: 'alert'
     },
     {
       id: 2,
-      title: 'New order received',
-      description: 'Order #12345 has been placed by John Smith.',
-      time: '1 hour ago',
+      title: 'Đơn hàng mới',
+      description: 'Đơn hàng #12345 đã được đặt bởi John Smith.',
+      time: '1 giờ trước',
       unread: true,
       type: 'order'
     },
     {
       id: 3,
-      title: 'Payment success',
-      description: 'Payment for Invoice #INV-001 has been processed.',
-      time: '3 hours ago',
+      title: 'Thanh toán thành công',
+      description: 'Thanh toán cho hóa đơn #INV-001 đã được xử lý.',
+      time: '3 giờ trước',
       unread: false,
       type: 'payment'
     },
     {
       id: 4,
-      title: 'System update',
-      description: 'The system was updated to version 2.4.0',
-      time: 'Yesterday',
+      title: 'Cập nhật hệ thống',
+      description: 'Hệ thống đã được cập nhật lên phiên bản 2.4.0',
+      time: 'Hôm qua',
       unread: false,
       type: 'system'
     }
@@ -62,15 +61,13 @@ export const NotificationDropdown = () => {
       
       {isOpen && (
         <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5 z-50">
-          <div className="px-4 py-2 border-b border-gray-100 flex items-center justify-between">
-            <h3 className="text-sm font-medium text-gray-900">Notifications</h3>
-            <button className="text-xs text-orange-500 hover:text-orange-700">Mark all as read</button>
+          <div className="px-4 py-2 border-b border-gray-100 flex items-center justify-between">            <h3 className="text-sm font-medium text-gray-900">Thông báo</h3>
+            <button className="text-xs text-orange-500 hover:text-orange-700">Đánh dấu tất cả đã đọc</button>
           </div>
           
           <div className="max-h-80 overflow-y-auto">
-            {notifications.length === 0 ? (
-              <div className="px-4 py-6 text-center text-gray-500">
-                <p>No notifications</p>
+            {notifications.length === 0 ? (              <div className="px-4 py-6 text-center text-gray-500">
+                <p>Không có thông báo</p>
               </div>
             ) : (
               notifications.map((notification) => (
@@ -97,9 +94,8 @@ export const NotificationDropdown = () => {
               ))
             )}
           </div>
-          
-          <div className="px-4 py-2 border-t border-gray-100 text-center">
-            <button className="text-sm text-orange-500 hover:text-orange-700">View all notifications</button>
+            <div className="px-4 py-2 border-t border-gray-100 text-center">
+            <button className="text-sm text-orange-500 hover:text-orange-700">Xem tất cả thông báo</button>
           </div>
         </div>
       )}

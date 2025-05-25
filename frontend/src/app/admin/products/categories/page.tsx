@@ -57,10 +57,9 @@ export default function CategoriesPage() {
     setIsFormModalOpen(true);
   };
 
-  const handleDeleteCategory = async (category: ProductCategory) => {
-    if (confirm(`Are you sure you want to delete ${category.name}?${
+  const handleDeleteCategory = async (category: ProductCategory) => {    if (confirm(`Bạn có chắc chắn muốn xóa ${category.name} không?${
       category.children && category.children.length > 0 
-        ? ' This will also delete all subcategories!' 
+        ? ' Điều này cũng sẽ xóa tất cả danh mục con!' 
         : ''
     }`)) {
       await productsApi.deleteCategory(category.id);
@@ -123,7 +122,7 @@ export default function CategoriesPage() {
 
   // Don't render anything while checking auth
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div>Đang tải...</div>;
   }
 
   // Redirect if not authenticated 
@@ -141,32 +140,29 @@ export default function CategoriesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Product Categories</h1>
-        <Button onClick={handleAddCategory}>Add Category</Button>
+      <div className="flex items-center justify-between">        <h1 className="text-2xl font-bold">Danh mục sản phẩm</h1>
+        <Button onClick={handleAddCategory}>Thêm danh mục</Button>
       </div>
 
       <Card>
         <div className="p-6">
-          <h2 className="text-lg font-semibold mb-4">Category Tree</h2>
+          <h2 className="text-lg font-semibold mb-4">Cây danh mục</h2>
           
           {categoriesLoading ? (
-            <div className="text-center p-4">Loading categories...</div>
+            <div className="text-center p-4">Đang tải danh mục...</div>
           ) : isError ? (
-            <div className="text-center p-4 text-red-500">Error loading categories</div>
-          ) : rootCategories.length === 0 ? (
-            <EmptyState
-              title="No categories found"
-              description="Create your first product category to get started"
+            <div className="text-center p-4 text-red-500">Lỗi khi tải danh mục</div>
+          ) : rootCategories.length === 0 ? (            <EmptyState
+              title="Không tìm thấy danh mục nào"
+              description="Tạo danh mục sản phẩm đầu tiên của bạn để bắt đầu"
               onAction={handleAddCategory}
             />
           ) : (
             <div className="border rounded-md">
               <div className="p-4 border-b bg-gray-50">
-                <div className="grid grid-cols-12 gap-4 font-medium text-sm text-gray-500">
-                  <div className="col-span-6">Category Name</div>
-                  <div className="col-span-3">Products</div>
-                  <div className="col-span-3 text-right">Actions</div>
+                <div className="grid grid-cols-12 gap-4 font-medium text-sm text-gray-500">                  <div className="col-span-6">Tên danh mục</div>
+                  <div className="col-span-3">Sản phẩm</div>
+                  <div className="col-span-3 text-right">Thao tác</div>
                 </div>
               </div>
               
@@ -196,7 +192,7 @@ export default function CategoriesPage() {
                   }}
                   onDrop={() => handleDrop(null)}
                 >
-                  {draggedCategory && <span className="text-sm text-blue-500">Drop here to make a root category</span>}
+                  {draggedCategory && <span className="text-sm text-blue-500">Thả vào đây để tạo thành danh mục gốc</span>}
                 </div>
               </div>
             </div>

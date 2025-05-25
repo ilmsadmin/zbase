@@ -40,23 +40,22 @@ export default function InventoryHistoryPage() {
     queryKey: ['inventoryTransactions', filters],
     queryFn: () => inventoryApi.getInventoryTransactions(filters),
   });
-
   const transactionTypeOptions = [
-    { label: 'Adjustment', value: 'ADJUSTMENT' },
-    { label: 'Transfer', value: 'TRANSFER' },
-    { label: 'Sale', value: 'SALE' },
-    { label: 'Purchase', value: 'PURCHASE' },
-    { label: 'Return', value: 'RETURN' },
+    { label: 'Điều chỉnh', value: 'ADJUSTMENT' },
+    { label: 'Chuyển kho', value: 'TRANSFER' },
+    { label: 'Bán hàng', value: 'SALE' },
+    { label: 'Nhập hàng', value: 'PURCHASE' },
+    { label: 'Trả hàng', value: 'RETURN' },
   ];
 
   const columns = [
     {
-      header: 'Date',
+      header: 'Ngày tạo',
       accessorKey: 'createdAt',
       cell: ({ row }: { row: any }) => formatDate(row.original.createdAt),
     },
     {
-      header: 'Product',
+      header: 'Sản phẩm',
       accessorKey: 'product.name',
       cell: ({ row }: { row: any }) => (
         <div>
@@ -66,7 +65,7 @@ export default function InventoryHistoryPage() {
       ),
     },
     {
-      header: 'Type',
+      header: 'Loại',
       accessorKey: 'type',
       cell: ({ row }: { row: any }) => (
         <Badge
@@ -82,7 +81,7 @@ export default function InventoryHistoryPage() {
       ),
     },
     {
-      header: 'Quantity',
+      header: 'Số lượng',
       accessorKey: 'quantity',
       cell: ({ row }: { row: any }) => (
         <span className={row.original.quantity > 0 ? 'text-green-600' : 'text-red-600'}>
@@ -91,7 +90,7 @@ export default function InventoryHistoryPage() {
       ),
     },
     {
-      header: 'Warehouse',
+      header: 'Kho hàng',
       accessorKey: 'warehouse',
       cell: ({ row }: { row: any }) => {
         if (row.original.type === 'TRANSFER') {
@@ -106,12 +105,12 @@ export default function InventoryHistoryPage() {
       },
     },
     {
-      header: 'Notes',
+      header: 'Ghi chú',
       accessorKey: 'notes',
       cell: ({ row }: { row: any }) => row.original.notes || row.original.reason || 'N/A',
     },
     {
-      header: 'Created By',
+      header: 'Người tạo',
       accessorKey: 'createdBy',
     },
   ];
@@ -119,15 +118,14 @@ export default function InventoryHistoryPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Inventory History</h1>
+        <h1 className="text-2xl font-bold">Lịch sử kho hàng</h1>
       </div>
 
       <Card>
         <div className="p-6 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <FormSelect
-              label="Product"
-              placeholder="All Products"
+            <FormSelect              label="Sản phẩm"
+              placeholder="Tất cả sản phẩm"
               options={
                 products?.data.map(product => ({
                   label: product.name,
@@ -139,9 +137,8 @@ export default function InventoryHistoryPage() {
               isClearable
               isSearchable
             />
-            <FormSelect
-              label="Warehouse"
-              placeholder="All Warehouses"
+            <FormSelect              label="Kho hàng"
+              placeholder="Tất cả kho hàng"
               options={
                 warehouses?.map(warehouse => ({
                   label: warehouse.name,
@@ -152,9 +149,8 @@ export default function InventoryHistoryPage() {
               onChange={(value) => setFilters({ ...filters, warehouseId: value || undefined })}
               isClearable
             />
-            <FormSelect
-              label="Transaction Type"
-              placeholder="All Types"
+            <FormSelect              label="Loại giao dịch"
+              placeholder="Tất cả loại"
               options={transactionTypeOptions}
               value={filters.type || ''}
               onChange={(value) => setFilters({ 
@@ -167,22 +163,22 @@ export default function InventoryHistoryPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormDatePicker
-              label="Start Date"
+              label="Ngày bắt đầu"
               value={filters.startDate ? new Date(filters.startDate) : undefined}
               onChange={(date) => setFilters({ 
                 ...filters, 
                 startDate: date ? date.toISOString() : undefined 
               })}
-              placeholder="Select start date"
+              placeholder="Chọn ngày bắt đầu"
             />
             <FormDatePicker
-              label="End Date"
+              label="Ngày kết thúc"
               value={filters.endDate ? new Date(filters.endDate) : undefined}
               onChange={(date) => setFilters({ 
                 ...filters, 
                 endDate: date ? date.toISOString() : undefined 
               })}
-              placeholder="Select end date"
+              placeholder="Chọn ngày kết thúc"
               minDate={filters.startDate ? new Date(filters.startDate) : undefined}
             />
           </div>
@@ -191,13 +187,12 @@ export default function InventoryHistoryPage() {
 
       <Card>
         {isLoading ? (
-          <div className="p-6 text-center">Loading transaction history...</div>
+          <div className="p-6 text-center">Đang tải lịch sử giao dịch...</div>
         ) : isError ? (
-          <div className="p-6 text-center text-red-500">Error loading transaction history</div>
-        ) : transactionsData?.data.length === 0 ? (
-          <EmptyState
-            title="No transactions found"
-            description="Try adjusting your filters to see more results"
+          <div className="p-6 text-center text-red-500">Lỗi khi tải lịch sử giao dịch</div>
+        ) : transactionsData?.data.length === 0 ? (          <EmptyState
+            title="Không tìm thấy giao dịch nào"
+            description="Hãy điều chỉnh bộ lọc để xem thêm kết quả"
           />
         ) : (
           <DataTable

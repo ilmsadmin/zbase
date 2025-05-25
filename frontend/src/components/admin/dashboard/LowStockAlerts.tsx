@@ -32,7 +32,7 @@ export const LowStockAlerts = () => {
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 h-full flex flex-col">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-gray-800">Low Stock Alerts</h2>
+          <h2 className="text-lg font-semibold text-gray-800">Cảnh báo hàng tồn kho thấp</h2>
           <div className="animate-pulse h-4 w-16 bg-gray-200 rounded"></div>
         </div>
         
@@ -59,9 +59,9 @@ export const LowStockAlerts = () => {
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 h-full flex flex-col">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-gray-800">Low Stock Alerts</h2>
+          <h2 className="text-lg font-semibold text-gray-800">Cảnh báo hàng tồn kho thấp</h2>
           <Link href="/admin/inventory" className="text-sm text-orange-500 hover:text-orange-600">
-            View All
+            Xem tất cả
           </Link>
         </div>
         
@@ -71,7 +71,7 @@ export const LowStockAlerts = () => {
             onClick={() => setLoading(true)} // Trigger a re-fetch
             className="mt-2 text-sm font-medium text-red-600 hover:text-red-800"
           >
-            Try again
+            Thử lại
           </button>
         </div>
       </div>
@@ -93,15 +93,15 @@ export const LowStockAlerts = () => {
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 h-full flex flex-col">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-semibold text-gray-800">Low Stock Alerts</h2>
+        <h2 className="text-lg font-semibold text-gray-800">Cảnh báo hàng tồn kho thấp</h2>
         <Link href="/admin/inventory" className="text-sm text-orange-500 hover:text-orange-600">
-          View All
+          Xem tất cả
         </Link>
       </div>
       
       {sortedItems.length === 0 ? (
         <div className="flex-1 flex items-center justify-center">
-          <p className="text-gray-500 text-sm">No low stock items</p>
+          <p className="text-gray-500 text-sm">Không có mặt hàng tồn kho thấp</p>
         </div>
       ) : (
         <ul className="space-y-3 overflow-y-auto">
@@ -140,7 +140,7 @@ export const LowStockAlerts = () => {
                     href={`/admin/inventory/adjustments/new?productId=${item.id}`}
                     className="text-xs text-blue-600 hover:text-blue-800"
                   >
-                    Restock
+                    Nhập thêm
                   </Link>
                 </div>
               </div>
@@ -152,13 +152,13 @@ export const LowStockAlerts = () => {
       <div className="mt-auto pt-6 border-t border-gray-100">
         <div className="flex justify-between items-center">
           <div className="text-sm">
-            <span className="text-gray-500">Critical Items: </span>
+            <span className="text-gray-500">Mặt hàng khẩn cấp: </span>
             <span className="font-medium text-red-600">
               {criticalItemsCount}
             </span>
           </div>
           <button className="px-3 py-1 text-sm rounded-md bg-orange-100 text-orange-600 font-medium hover:bg-orange-200">
-            Order Inventory
+            Đặt hàng
           </button>
         </div>
       </div>

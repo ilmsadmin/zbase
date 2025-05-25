@@ -22,8 +22,8 @@ import { useToast } from '@/hooks/useToast';
 
 // Validation schema
 const warehouseSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  code: z.string().min(1, "Code is required"),
+  name: z.string().min(1, "Tên là bắt buộc"),
+  code: z.string().min(1, "Mã là bắt buộc"),
   description: z.string().optional(),
   address: z.string().optional(),
   city: z.string().optional(),
@@ -92,10 +92,10 @@ export function WarehouseForm({ isOpen, onClose, warehouse }: WarehouseFormProps
           id: warehouse.id,
           data
         });
-        toast.success("Warehouse updated successfully");
+        toast.success("Kho hàng đã được cập nhật thành công");
       } else {
         await createWarehouse.mutateAsync(data);
-        toast.success("Warehouse created successfully");
+        toast.success("Kho hàng đã được tạo thành công");
       }
       onClose();
     } catch (error) {
@@ -106,21 +106,19 @@ export function WarehouseForm({ isOpen, onClose, warehouse }: WarehouseFormProps
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px]" aria-describedby="warehouse-form-description">
-        <DialogHeader>
-          <DialogTitle>{isEditing ? 'Edit Warehouse' : 'Add New Warehouse'}</DialogTitle>
+        <DialogHeader>          <DialogTitle>{isEditing ? 'Sửa kho hàng' : 'Thêm kho hàng mới'}</DialogTitle>
           <DialogDescription id="warehouse-form-description">
-            {isEditing ? 'Edit the warehouse details below and save your changes.' : 'Fill in the warehouse details below to create a new warehouse.'}
+            {isEditing ? 'Chỉnh sửa thông tin kho hàng bên dưới và lưu thay đổi của bạn.' : 'Điền thông tin kho hàng bên dưới để tạo kho hàng mới.'}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="name" className="text-sm font-medium">Warehouse Name</label>
+              <div className="space-y-2">                <label htmlFor="name" className="text-sm font-medium">Tên kho hàng</label>
                 <Input
                   id="name"
                   {...register('name')}
-                  placeholder="Main Warehouse"
+                  placeholder="Kho hàng chính"
                   className={errors.name ? 'border-red-500' : ''}
                 />
                 {errors.name && (
@@ -129,7 +127,7 @@ export function WarehouseForm({ isOpen, onClose, warehouse }: WarehouseFormProps
               </div>
               
               <div className="space-y-2">
-                <label htmlFor="code" className="text-sm font-medium">Warehouse Code</label>
+                <label htmlFor="code" className="text-sm font-medium">Mã kho hàng</label>
                 <Input
                   id="code"
                   {...register('code')}
@@ -142,18 +140,17 @@ export function WarehouseForm({ isOpen, onClose, warehouse }: WarehouseFormProps
               </div>
             </div>
             
-            <div className="space-y-2">
-              <label htmlFor="description" className="text-sm font-medium">Description</label>
+            <div className="space-y-2">              <label htmlFor="description" className="text-sm font-medium">Mô tả</label>
               <Textarea
                 id="description"
                 {...register('description')}
-                placeholder="Warehouse description..."
+                placeholder="Mô tả kho hàng..."
                 rows={3}
               />
             </div>
             
             <div className="space-y-2">
-              <label htmlFor="address" className="text-sm font-medium">Address</label>
+              <label htmlFor="address" className="text-sm font-medium">Địa chỉ</label>
               <Input
                 id="address"
                 {...register('address')}
@@ -162,51 +159,46 @@ export function WarehouseForm({ isOpen, onClose, warehouse }: WarehouseFormProps
             </div>
             
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="city" className="text-sm font-medium">City</label>
+              <div className="space-y-2">                <label htmlFor="city" className="text-sm font-medium">Thành phố</label>
                 <Input
                   id="city"
                   {...register('city')}
-                  placeholder="City"
+                  placeholder="Thành phố"
                 />
               </div>
               
-              <div className="space-y-2">
-                <label htmlFor="province" className="text-sm font-medium">Province/State</label>
+              <div className="space-y-2">                <label htmlFor="province" className="text-sm font-medium">Tỉnh/Thành phố</label>
                 <Input
                   id="province"
                   {...register('province')}
-                  placeholder="Province/State"
+                  placeholder="Tỉnh/Thành phố"
                 />
               </div>
             </div>
             
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="postalCode" className="text-sm font-medium">Postal Code</label>
+              <div className="space-y-2">                <label htmlFor="postalCode" className="text-sm font-medium">Mã bưu chính</label>
                 <Input
                   id="postalCode"
                   {...register('postalCode')}
-                  placeholder="Postal Code"
+                  placeholder="Mã bưu chính"
                 />
               </div>
               
-              <div className="space-y-2">
-                <label htmlFor="country" className="text-sm font-medium">Country</label>
+              <div className="space-y-2">                <label htmlFor="country" className="text-sm font-medium">Quốc gia</label>
                 <Input
                   id="country"
                   {...register('country')}
-                  placeholder="Country"
+                  placeholder="Quốc gia"
                 />
               </div>
             </div>
             
-            <div className="space-y-2">
-              <label htmlFor="managerId" className="text-sm font-medium">Manager ID</label>
+            <div className="space-y-2">              <label htmlFor="managerId" className="text-sm font-medium">Mã quản lý</label>
               <Input
                 id="managerId"
                 {...register('managerId')}
-                placeholder="Manager ID"
+                placeholder="Mã quản lý"
               />
             </div>
               <div className="flex items-center space-x-2">
@@ -215,16 +207,15 @@ export function WarehouseForm({ isOpen, onClose, warehouse }: WarehouseFormProps
                 checked={Boolean(warehouse?.isActive ?? true)}
                 onCheckedChange={(checked) => setValue('isActive', checked)}
               />
-              <label htmlFor="isActive" className="text-sm font-medium">Active</label>
+              <label htmlFor="isActive" className="text-sm font-medium">Hoạt động</label>
             </div>
           </div>
           
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
+          <DialogFooter>            <Button type="button" variant="outline" onClick={onClose}>
+              Hủy
             </Button>
             <Button type="submit" disabled={createWarehouse.isPending || updateWarehouse.isPending}>
-              {createWarehouse.isPending || updateWarehouse.isPending ? 'Saving...' : isEditing ? 'Update' : 'Create'}
+              {createWarehouse.isPending || updateWarehouse.isPending ? 'Đang lưu...' : isEditing ? 'Cập nhật' : 'Tạo mới'}
             </Button>
           </DialogFooter>
         </form>

@@ -7,18 +7,17 @@ export default function InventoryLayout({
   children,
 }: {
   children: React.ReactNode;
-}) {
-  const inventoryMenuItems: SubMenuItem[] = [
-    { label: 'Overview', href: '/admin/inventory' },
-    { label: 'Stock Levels', href: '/admin/inventory/stock' },
-    { label: 'Transfers', href: '/admin/inventory/transfers' },
-    { label: 'Adjustments', href: '/admin/inventory/adjustments' },
-    { label: 'History', href: '/admin/inventory/history' },
+}) {  const inventoryMenuItems: SubMenuItem[] = [
+    { label: 'Tổng quan', href: '/admin/inventory' },
+    { label: 'Mức tồn kho', href: '/admin/inventory/stock' },
+    { label: 'Chuyển kho', href: '/admin/inventory/transfers' },
+    { label: 'Điều chỉnh kho', href: '/admin/inventory/adjustments' },
+    { label: 'Lịch sử kho', href: '/admin/inventory/history' },
   ];
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Inventory Management</h1>
+      <h1 className="text-2xl font-bold mb-6">Quản lý kho hàng</h1>
       <ModuleSubMenu items={inventoryMenuItems} />
       <div>{children}</div>
     </div>

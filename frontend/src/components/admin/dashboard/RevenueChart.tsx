@@ -11,15 +11,14 @@ export const RevenueChart = () => {
   const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
-    const fetchRevenueData = async () => {
-      try {
+    const fetchRevenueData = async () => {      try {
         setLoading(true);
         const data = await dashboardService.getRevenueData({ period });
         setRevenueData(data);
         setError(null);
       } catch (err) {
         console.error('Error fetching revenue data:', err);
-        setError('Failed to load revenue data');
+        setError('Không thể tải dữ liệu doanh thu');
       } finally {
         setLoading(false);
       }
@@ -71,8 +70,7 @@ export const RevenueChart = () => {
   if (loading) {
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-gray-800">Revenue Overview</h2>
+        <div className="flex items-center justify-between mb-6">          <h2 className="text-lg font-semibold text-gray-800">Tổng quan doanh thu</h2>
           <div className="flex animate-pulse">
             <div className="h-8 w-16 bg-gray-200 rounded-md mr-2"></div>
             <div className="h-8 w-16 bg-gray-200 rounded-md mr-2"></div>
@@ -86,8 +84,7 @@ export const RevenueChart = () => {
   
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-semibold text-gray-800">Revenue Overview</h2>
+      <div className="flex items-center justify-between mb-6">        <h2 className="text-lg font-semibold text-gray-800">Tổng quan doanh thu</h2>
         <div className="flex">
           <button 
             onClick={() => setPeriod('week')}
@@ -97,7 +94,7 @@ export const RevenueChart = () => {
                 : 'text-gray-500 hover:bg-gray-100'
             }`}
           >
-            Week
+            Tuần
           </button>
           <button 
             onClick={() => setPeriod('month')}
@@ -105,9 +102,8 @@ export const RevenueChart = () => {
               period === 'month' 
                 ? 'bg-orange-100 text-orange-600 font-medium' 
                 : 'text-gray-500 hover:bg-gray-100'
-            }`}
-          >
-            Month
+            }`}          >
+            Tháng
           </button>
           <button 
             onClick={() => setPeriod('quarter')}
@@ -117,7 +113,7 @@ export const RevenueChart = () => {
                 : 'text-gray-500 hover:bg-gray-100'
             }`}
           >
-            Quarter
+            Quý
           </button>
           <button 
             onClick={() => setPeriod('year')}
@@ -125,21 +121,19 @@ export const RevenueChart = () => {
               period === 'year' 
                 ? 'bg-orange-100 text-orange-600 font-medium' 
                 : 'text-gray-500 hover:bg-gray-100'
-            }`}
-          >
-            Year
+            }`}          >
+            Năm
           </button>
         </div>
       </div>
       
       {error ? (
-        <div className="bg-red-50 border border-red-200 text-red-800 p-4 rounded-lg">
-          <p>{error}</p>
+        <div className="bg-red-50 border border-red-200 text-red-800 p-4 rounded-lg">          <p>{error}</p>
           <button 
             onClick={() => setPeriod(period)} // Re-fetch by "changing" to the same period
             className="mt-2 text-sm font-medium text-red-600 hover:text-red-800"
           >
-            Try again
+            Thử lại
           </button>
         </div>
       ) : (
@@ -224,10 +218,9 @@ export const RevenueChart = () => {
         </div>
       )}
       
-      {/* Total revenue display */}
-      <div className="mt-12 flex items-center justify-between">
+      {/* Total revenue display */}      <div className="mt-12 flex items-center justify-between">
         <div>
-          <p className="text-sm text-gray-500">Total Revenue ({period})</p>
+          <p className="text-sm text-gray-500">Tổng doanh thu ({period === 'week' ? 'tuần' : period === 'month' ? 'tháng' : period === 'quarter' ? 'quý' : 'năm'})</p>
           <p className="text-xl font-bold text-gray-800 mt-1">
             {formatCurrency(revenueData.reduce((total, item) => total + item.revenue, 0))}
           </p>
@@ -236,7 +229,7 @@ export const RevenueChart = () => {
         <div className="text-right">
           <div className="flex items-center">
             <span className="w-3 h-3 rounded-full bg-orange-500 mr-2"></span>
-            <span className="text-sm text-gray-500">Revenue</span>
+            <span className="text-sm text-gray-500">Doanh thu</span>
           </div>
         </div>
       </div>

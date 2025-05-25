@@ -40,9 +40,8 @@ export const TopProductsWidget = () => {
   
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 h-full flex flex-col">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-gray-800">Top Products</h2>
+      <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 h-full flex flex-col">        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-semibold text-gray-800">Sản phẩm bán chạy</h2>
           <div className="animate-pulse h-4 w-16 bg-gray-200 rounded"></div>
         </div>
         
@@ -70,20 +69,20 @@ export const TopProductsWidget = () => {
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 h-full flex flex-col">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-semibold text-gray-800">Top Products</h2>
+        <h2 className="text-lg font-semibold text-gray-800">Sản phẩm bán chạy</h2>
         <div className="flex items-center">
           <select 
             value={period}
             onChange={(e) => setPeriod(e.target.value as any)}
             className="text-sm border-gray-200 rounded-md mr-3 py-1 px-2"
           >
-            <option value="week">This Week</option>
-            <option value="month">This Month</option>
-            <option value="quarter">This Quarter</option>
-            <option value="year">This Year</option>
+            <option value="week">Tuần này</option>
+            <option value="month">Tháng này</option>
+            <option value="quarter">Quý này</option>
+            <option value="year">Năm nay</option>
           </select>
           <Link href="/admin/products" className="text-sm text-orange-500 hover:text-orange-600">
-            View All
+            Xem tất cả
           </Link>
         </div>
       </div>
@@ -95,12 +94,12 @@ export const TopProductsWidget = () => {
             onClick={() => setPeriod(period)} // Re-fetch by "changing" to the same period
             className="mt-2 text-sm font-medium text-red-600 hover:text-red-800"
           >
-            Try again
+            Thử lại
           </button>
         </div>
       ) : products.length === 0 ? (
         <div className="flex items-center justify-center flex-grow text-gray-500 text-sm">
-          No product sales data available for this period
+          Không có dữ liệu bán hàng cho giai đoạn này
         </div>
       ) : (
         <div className="overflow-hidden">
@@ -120,7 +119,7 @@ export const TopProductsWidget = () => {
                   <div className="flex items-center text-xs text-gray-500">
                     <span>SKU: {product.sku}</span>
                     <span className="mx-1">•</span>
-                    <span>Sold: {product.quantitySold}</span>
+                    <span>Đã bán: {product.quantitySold}</span>
                   </div>
                 </div>
                 <div className="ml-3 text-right">
@@ -138,11 +137,11 @@ export const TopProductsWidget = () => {
       <div className="mt-auto pt-6 border-t border-gray-100">
         <div className="flex justify-between items-center">
           <div className="text-sm">
-            <span className="text-gray-500">Total Sold: </span>
-            <span className="font-medium text-gray-800">{formatNumber(totalQuantitySold)} units</span>
+            <span className="text-gray-500">Tổng đã bán: </span>
+            <span className="font-medium text-gray-800">{formatNumber(totalQuantitySold)} sản phẩm</span>
           </div>
           <div className="text-sm">
-            <span className="text-gray-500">Revenue: </span>
+            <span className="text-gray-500">Doanh thu: </span>
             <span className="font-medium text-gray-800">{formatCurrency(totalRevenue)}</span>
           </div>
         </div>

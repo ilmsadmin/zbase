@@ -44,7 +44,7 @@ export default function StockPage() {
 
   const columns = [
     {
-      header: 'Product',
+      header: 'Sản phẩm',
       accessorKey: 'product.name',
       cell: ({ row }: { row: any }) => (
         <div>
@@ -54,11 +54,11 @@ export default function StockPage() {
       ),
     },
     {
-      header: 'Warehouse',
+      header: 'Kho hàng',
       accessorKey: 'warehouse.name',
     },
     {
-      header: 'Current Stock',
+      header: 'Tồn kho hiện tại',
       accessorKey: 'quantity',
       cell: ({ row }: { row: any }) => {
         const isLowStock = row.original.quantity <= row.original.product.minStockLevel;
@@ -66,33 +66,32 @@ export default function StockPage() {
         
         return (
           <div className="flex items-center gap-2">
-            <span className="font-medium">{row.original.quantity} {row.original.product.unit}s</span>
-            {isOutOfStock && <Badge variant="destructive">Out of Stock</Badge>}
-            {!isOutOfStock && isLowStock && <Badge variant="warning">Low Stock</Badge>}
+            <span className="font-medium">{row.original.quantity} {row.original.product.unit}s</span>            {isOutOfStock && <Badge variant="destructive">Hết hàng</Badge>}
+            {!isOutOfStock && isLowStock && <Badge variant="warning">Sắp hết hàng</Badge>}
           </div>
         );
       },
     },
     {
-      header: 'Min. Level',
+      header: 'Mức tối thiểu',
       accessorKey: 'product.minStockLevel',
     },
     {
-      header: 'Value',
+      header: 'Giá trị',
       accessorKey: 'value',
       cell: ({ row }: { row: any }) => (
         formatCurrency(row.original.quantity * row.original.product.costPrice)
       ),
     },
     {
-      header: 'Last Updated',
+      header: 'Cập nhật lần cuối',
       accessorKey: 'updatedAt',
       cell: ({ row }: { row: any }) => (
         formatDate(row.original.updatedAt)
       ),
     },
     {
-      header: 'Actions',
+      header: 'Thao tác',
       cell: ({ row }: { row: any }) => (
         <div className="flex space-x-2">
           <Button
@@ -100,7 +99,7 @@ export default function StockPage() {
             size="sm"
             onClick={() => handleAdjustStock(row.original.product.id)}
           >
-            Adjust
+            Điều chỉnh
           </Button>
         </div>
       ),
@@ -111,12 +110,11 @@ export default function StockPage() {
     <Card>
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold">Stock Levels</h2>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleExportCSV}>Export CSV</Button>
-            <Button variant="outline" onClick={handlePrintReport}>Print Report</Button>
+          <h2 className="text-xl font-semibold">Mức tồn kho</h2>
+          <div className="flex gap-2">            <Button variant="outline" onClick={handleExportCSV}>Xuất CSV</Button>
+            <Button variant="outline" onClick={handlePrintReport}>In báo cáo</Button>
             <Button onClick={() => window.location.href = '/admin/inventory/adjustments/new'}>
-              New Adjustment
+              Điều chỉnh mới
             </Button>
           </div>
         </div>
@@ -128,7 +126,7 @@ export default function StockPage() {
               value={filters.warehouseId}
               onChange={(e) => setFilters({ ...filters, warehouseId: e.target.value })}
             >
-              <option value="">All Warehouses</option>
+              <option value="">Tất cả kho hàng</option>
               {warehouses?.map((warehouse: any) => (
                 <option key={warehouse.id} value={warehouse.id}>
                   {warehouse.name}
@@ -141,16 +139,15 @@ export default function StockPage() {
               className="w-full p-2 border border-gray-300 rounded-md"
               value={filters.stockStatus}
               onChange={(e) => setFilters({ ...filters, stockStatus: e.target.value })}
-            >
-              <option value="all">All Stock Levels</option>
-              <option value="low">Low Stock</option>
-              <option value="out">Out of Stock</option>
+            >              <option value="all">Tất cả mức tồn kho</option>
+              <option value="low">Sắp hết hàng</option>
+              <option value="out">Hết hàng</option>
             </select>
           </div>
           <div className="w-full max-w-xs">
             <input
               type="text"
-              placeholder="Search products..."
+              placeholder="Tìm kiếm sản phẩm..."
               className="w-full p-2 border border-gray-300 rounded-md"
               value={filters.search}
               onChange={(e) => setFilters({ ...filters, search: e.target.value })}
@@ -159,23 +156,18 @@ export default function StockPage() {
         </div>
 
         {isLoading ? (
-          <div>Loading stock levels...</div>
+          <div>Đang tải mức tồn kho...</div>
         ) : isError ? (
-          <div>Error loading stock levels</div>
+          <div>Lỗi khi tải mức tồn kho</div>
         ) : stockLevels && stockLevels.length > 0 ? (
           <DataTable 
             columns={columns} 
             data={stockLevels} 
           />
-        ) : (
-          <EmptyState
-            title="No stock data found"
-            description="Add products to your inventory to start tracking stock levels."
-            action={
-              <Button onClick={() => window.location.href = '/admin/products'}>
-                Manage Products
-              </Button>
-            }
+        ) : (          <EmptyState            title="Không tìm thấy dữ liệu tồn kho"
+            description="Thêm sản phẩm vào kho hàng để bắt đầu theo dõi mức tồn kho."
+            actionLabel="Quản lý sản phẩm"
+            onAction={() => window.location.href = '/admin/products'}
           />
         )}
       </div>

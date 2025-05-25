@@ -7,17 +7,16 @@ export default function ProductsLayout({
   children,
 }: {
   children: React.ReactNode;
-}) {
-  const productMenuItems: SubMenuItem[] = [
-    { label: 'Products', href: '/admin/products' },
-    { label: 'Categories', href: '/admin/products/categories' },
-    { label: 'Attributes', href: '/admin/products/attributes' },
-    { label: 'Price Lists', href: '/admin/products/price-lists' },
+}) {  const productMenuItems: SubMenuItem[] = [
+    { label: 'Sản phẩm', href: '/admin/products' },
+    { label: 'Danh mục', href: '/admin/products/categories' },
+    { label: 'Thuộc tính', href: '/admin/products/attributes' },
+    { label: 'Bảng giá', href: '/admin/products/price-lists' },
   ];
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Products Management</h1>
+      <h1 className="text-2xl font-bold mb-6">Quản lý sản phẩm</h1>
       <ModuleSubMenu items={productMenuItems} />
       <div>{children}</div>
     </div>

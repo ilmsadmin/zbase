@@ -21,8 +21,8 @@ import { useToast } from '@/hooks/useToast';
 
 // Validation schema
 const locationSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  code: z.string().min(1, "Code is required"),
+  name: z.string().min(1, "Tên là bắt buộc"),
+  code: z.string().min(1, "Mã là bắt buộc"),
   type: z.enum(["ZONE", "AISLE", "RACK", "SHELF", "BIN"]),
   parentId: z.string().optional(),
   description: z.string().optional(),
@@ -92,16 +92,14 @@ export function LocationForm({ isOpen, onClose, warehouseId, location, parentId 
         await updateLocation.mutateAsync({
           id: location.id,
           data: processedData
-        });
-        toast({
-          title: "Success",
-          description: "Location updated successfully",
+        });        toast({
+          title: "Thành công",
+          description: "Vị trí đã được cập nhật thành công",
         });
       } else {
-        await createLocation.mutateAsync(processedData);
-        toast({
-          title: "Success",
-          description: "Location created successfully",
+        await createLocation.mutateAsync(processedData);        toast({
+          title: "Thành công",
+          description: "Vị trí đã được tạo thành công",
         });
       }
       onClose();
@@ -140,14 +138,14 @@ export function LocationForm({ isOpen, onClose, warehouseId, location, parentId 
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>{isEditing ? 'Edit Location' : 'Add New Location'}</DialogTitle>
+          <DialogTitle>{isEditing ? 'Sửa vị trí' : 'Thêm vị trí mới'}</DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label htmlFor="name" className="text-sm font-medium">Location Name</label>
+                <label htmlFor="name" className="text-sm font-medium">Tên vị trí</label>
                 <Input
                   id="name"
                   {...register('name')}
@@ -160,7 +158,7 @@ export function LocationForm({ isOpen, onClose, warehouseId, location, parentId 
               </div>
               
               <div className="space-y-2">
-                <label htmlFor="code" className="text-sm font-medium">Location Code</label>
+                <label htmlFor="code" className="text-sm font-medium">Mã vị trí</label>
                 <Input
                   id="code"
                   {...register('code')}
@@ -174,32 +172,30 @@ export function LocationForm({ isOpen, onClose, warehouseId, location, parentId 
             </div>
             
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="type" className="text-sm font-medium">Location Type</label>
+              <div className="space-y-2">                <label htmlFor="type" className="text-sm font-medium">Loại vị trí</label>
                 <select
                   id="type"
                   {...register('type')}
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <option value="ZONE">Zone</option>
-                  <option value="AISLE">Aisle</option>
-                  <option value="RACK">Rack</option>
-                  <option value="SHELF">Shelf</option>
-                  <option value="BIN">Bin</option>
+                  <option value="ZONE">Khu vực</option>
+                  <option value="AISLE">Lối đi</option>
+                  <option value="RACK">Kệ</option>
+                  <option value="SHELF">Ngăn</option>
+                  <option value="BIN">Thùng</option>
                 </select>
                 {errors.type && (
                   <p className="text-red-500 text-xs mt-1">{errors.type.message}</p>
                 )}
               </div>
               
-              <div className="space-y-2">
-                <label htmlFor="parentId" className="text-sm font-medium">Parent Location</label>
+              <div className="space-y-2">                <label htmlFor="parentId" className="text-sm font-medium">Vị trí cha</label>
                 <select
                   id="parentId"
                   {...register('parentId')}
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <option value="">No Parent (Root)</option>
+                  <option value="">Không có vị trí cha (Gốc)</option>
                   {availableParents.map(loc => (
                     <option key={loc.id} value={loc.id}>
                       {loc.name} ({loc.code})
@@ -209,23 +205,21 @@ export function LocationForm({ isOpen, onClose, warehouseId, location, parentId 
               </div>
             </div>
             
-            <div className="space-y-2">
-              <label htmlFor="description" className="text-sm font-medium">Description</label>
+            <div className="space-y-2">              <label htmlFor="description" className="text-sm font-medium">Mô tả</label>
               <Textarea
                 id="description"
                 {...register('description')}
-                placeholder="Location description..."
+                placeholder="Mô tả vị trí..."
                 rows={3}
               />
             </div>
           </div>
           
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
+          <DialogFooter>            <Button type="button" variant="outline" onClick={onClose}>
+              Hủy
             </Button>
             <Button type="submit" disabled={createLocation.isPending || updateLocation.isPending}>
-              {createLocation.isPending || updateLocation.isPending ? 'Saving...' : isEditing ? 'Update' : 'Create'}
+              {createLocation.isPending || updateLocation.isPending ? 'Đang lưu...' : isEditing ? 'Cập nhật' : 'Tạo mới'}
             </Button>
           </DialogFooter>
         </form>

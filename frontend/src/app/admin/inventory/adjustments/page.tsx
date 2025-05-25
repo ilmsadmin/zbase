@@ -34,37 +34,36 @@ export default function AdjustmentsPage() {
 
   const columns = [
     {
-      header: 'Adjustment #',
+      header: 'Mã điều chỉnh',
       accessorKey: 'referenceNumber',
     },
     {
-      header: 'Date',
+      header: 'Ngày tạo',
       accessorKey: 'createdAt',
       cell: ({ row }: { row: any }) => (
         formatDate(row.original.createdAt)
       ),
     },
     {
-      header: 'Warehouse',
+      header: 'Kho hàng',
       accessorKey: 'warehouse.name',
     },
     {
-      header: 'Type',
+      header: 'Loại',
       accessorKey: 'type',
       cell: ({ row }: { row: any }) => {
         const type = row.original.type;
         let variant = 'secondary';
         let label = type;
         
-        if (type === 'ADDITION') {
-          variant = 'success';
-          label = 'Addition';
+        if (type === 'ADDITION') {          variant = 'success';
+          label = 'Thêm hàng';
         } else if (type === 'SUBTRACTION') {
           variant = 'destructive';
-          label = 'Subtraction';
+          label = 'Giảm hàng';
         } else if (type === 'COUNT') {
           variant = 'info';
-          label = 'Stock Count';
+          label = 'Kiểm kê';
         }
         
         return (
@@ -75,19 +74,19 @@ export default function AdjustmentsPage() {
       },
     },
     {
-      header: 'Reason',
+      header: 'Lý do',
       accessorKey: 'reason',
     },
     {
-      header: 'Items',
+      header: 'Số lượng mặt hàng',
       accessorKey: 'itemCount',
     },
     {
-      header: 'Created By',
+      header: 'Người tạo',
       accessorKey: 'createdBy.name',
     },
     {
-      header: 'Actions',
+      header: 'Thao tác',
       cell: ({ row }: { row: any }) => (
         <div className="flex space-x-2">
           <Button
@@ -95,7 +94,7 @@ export default function AdjustmentsPage() {
             size="sm"
             onClick={() => handleViewAdjustment(row.original.id)}
           >
-            View
+            Xem
           </Button>
         </div>
       ),
@@ -105,14 +104,13 @@ export default function AdjustmentsPage() {
   return (
     <Card>
       <div className="p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold">Inventory Adjustments</h2>
-          <Button onClick={handleCreateAdjustment}>Create Adjustment</Button>
+        <div className="flex justify-between items-center mb-6">          <h2 className="text-xl font-semibold">Điều chỉnh kho hàng</h2>
+          <Button onClick={handleCreateAdjustment}>Tạo điều chỉnh</Button>
         </div>
 
         <div className="flex flex-wrap gap-4 mb-6">
           <div className="flex items-center gap-2">
-            <label className="text-sm">From:</label>
+            <label className="text-sm">Từ ngày:</label>
             <input
               type="date"
               className="p-2 border border-gray-300 rounded-md"
@@ -121,7 +119,7 @@ export default function AdjustmentsPage() {
             />
           </div>
           <div className="flex items-center gap-2">
-            <label className="text-sm">To:</label>
+            <label className="text-sm">Đến ngày:</label>
             <input
               type="date"
               className="p-2 border border-gray-300 rounded-md"
@@ -132,23 +130,19 @@ export default function AdjustmentsPage() {
         </div>
 
         {isLoading ? (
-          <div>Loading adjustments...</div>
+          <div>Đang tải dữ liệu điều chỉnh kho...</div>
         ) : isError ? (
-          <div>Error loading adjustments</div>
+          <div>Lỗi khi tải dữ liệu điều chỉnh kho</div>
         ) : adjustments && adjustments.length > 0 ? (
           <DataTable 
             columns={columns} 
             data={adjustments} 
           />
-        ) : (
-          <EmptyState
-            title="No adjustments found"
-            description="Make inventory adjustments to correct stock discrepancies."
-            action={
-              <Button onClick={handleCreateAdjustment}>
-                Create Adjustment
-              </Button>
-            }
+        ) : (          <EmptyState
+            title="Không tìm thấy điều chỉnh kho nào"
+            description="Thực hiện điều chỉnh kho để sửa sai lệch tồn kho."
+            actionLabel="Tạo điều chỉnh"
+            onAction={handleCreateAdjustment}
           />
         )}
       </div>

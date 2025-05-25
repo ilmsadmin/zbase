@@ -76,9 +76,8 @@ export function CustomerGroupsList() {
     setEditingGroup(group);
     setIsFormOpen(true);
   };
-
   const handleDeleteGroup = async (id: string) => {
-    if (confirm('Are you sure you want to delete this customer group?')) {
+    if (confirm('Bạn có chắc chắn muốn xóa nhóm khách hàng này không?')) {
       await customerGroupsApi.deleteGroup(id);
       refetch();
     }
@@ -92,7 +91,7 @@ export function CustomerGroupsList() {
 
   const columns = [
     {
-      header: 'Group Name',
+      header: 'Tên nhóm',
       accessorKey: 'name',
       cell: ({ row }: { row: any }) => (
         <div>
@@ -102,36 +101,35 @@ export function CustomerGroupsList() {
       ),
     },
     {
-      header: 'Customers',
+      header: 'Khách hàng',
       accessorKey: 'customerCount',
       cell: ({ row }: { row: any }) => (
         <span className="font-medium">{row.original.customerCount}</span>
       ),
     },
     {
-      header: 'Created',
+      header: 'Ngày tạo',
       accessorKey: 'createdAt',
       cell: ({ row }: { row: any }) => (
         <span>{new Date(row.original.createdAt).toLocaleDateString()}</span>
       ),
     },
     {
-      header: 'Actions',
+      header: 'Thao tác',
       cell: ({ row }: { row: any }) => (
         <div className="flex gap-2">
           <Button
             size="sm"
             variant="outline"
             onClick={() => handleEditGroup(row.original)}
-          >
-            Edit
+          >            Edit
           </Button>
           <Button
             size="sm"
             variant="destructive"
             onClick={() => handleDeleteGroup(row.original.id)}
           >
-            Delete
+            Xóa
           </Button>
         </div>
       ),
@@ -143,21 +141,20 @@ export function CustomerGroupsList() {
       <div className="flex justify-between items-center">
         <div className="w-64">
           <FormInput
-            placeholder="Search groups..."
+            placeholder="Tìm kiếm nhóm..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <Button onClick={handleAddGroup}>Add Customer Group</Button>
+        <Button onClick={handleAddGroup}>Thêm nhóm khách hàng</Button>
       </div>
 
       <Card>
         {data?.data?.length === 0 ? (
-          <EmptyState
-            title="No customer groups found"
-            description="Create your first customer group to segment your customers."
+          <EmptyState            title="Không tìm thấy nhóm khách hàng nào"
+            description="Tạo nhóm khách hàng đầu tiên của bạn để phân loại khách hàng."
             action={
-              <Button onClick={handleAddGroup}>Create Customer Group</Button>
+              <Button onClick={handleAddGroup}>Tạo nhóm khách hàng</Button>
             }
           />
         ) : (

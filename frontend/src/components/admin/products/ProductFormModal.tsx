@@ -16,26 +16,26 @@ interface ProductFormModalProps {
 }
 
 const productSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
+  name: z.string().min(1, 'Tên sản phẩm là bắt buộc'),
   description: z.string().optional(),
-  sku: z.string().min(1, 'SKU is required'),
+  sku: z.string().min(1, 'Mã SKU là bắt buộc'),
   barcode: z.string().optional(),
-  categoryId: z.string().min(1, 'Category is required'),
-  price: z.number().min(0, 'Price must be positive'),
-  costPrice: z.number().min(0, 'Cost price must be positive').optional(),
-  unit: z.string().min(1, 'Unit is required'),
-  minStockLevel: z.number().min(0, 'Minimum stock level must be positive').optional(),
-  maxStockLevel: z.number().min(0, 'Maximum stock level must be positive').optional(),
-  reorderLevel: z.number().min(0, 'Reorder level must be positive').optional(),
-  weight: z.number().min(0, 'Weight must be positive').optional(),
+  categoryId: z.string().min(1, 'Danh mục là bắt buộc'),
+  price: z.number().min(0, 'Giá phải là số dương'),
+  costPrice: z.number().min(0, 'Giá vốn phải là số dương').optional(),
+  unit: z.string().min(1, 'Đơn vị tính là bắt buộc'),
+  minStockLevel: z.number().min(0, 'Tồn kho tối thiểu phải là số dương').optional(),
+  maxStockLevel: z.number().min(0, 'Tồn kho tối đa phải là số dương').optional(),
+  reorderLevel: z.number().min(0, 'Mức đặt lại phải là số dương').optional(),
+  weight: z.number().min(0, 'Trọng lượng phải là số dương').optional(),
   dimensions: z.string().optional(),
   imageUrl: z.string().optional(),
   isActive: z.boolean(),
   attributes: z.array(
     z.object({
       id: z.string().optional(),
-      name: z.string().min(1, 'Attribute name is required'),
-      value: z.string().min(1, 'Attribute value is required'),
+      name: z.string().min(1, 'Tên thuộc tính là bắt buộc'),
+      value: z.string().min(1, 'Giá trị thuộc tính là bắt buộc'),
     })
   ).optional(),
 });
@@ -195,13 +195,12 @@ export function ProductFormModal({ isOpen, onClose, product }: ProductFormModalP
     }
   };
 
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+  return (    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-5xl" aria-describedby="product-form-description">
         <DialogHeader>
-          <DialogTitle>{product ? 'Edit Product' : 'Add New Product'}</DialogTitle>
+          <DialogTitle>{product ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm mới'}</DialogTitle>
           <p id="product-form-description" className="text-sm text-muted-foreground">
-            {product ? 'Update the product details below.' : 'Fill in the product details below.'}
+            {product ? 'Cập nhật thông tin sản phẩm bên dưới.' : 'Điền thông tin sản phẩm bên dưới.'}
           </p>
         </DialogHeader>
         <FormProvider {...methods}>
@@ -214,16 +213,15 @@ export function ProductFormModal({ isOpen, onClose, product }: ProductFormModalP
               attributes={attributes}
               categories={categoriesQuery.data}
               imageUrl={product?.imageUrl}
-            />
-            <div className="flex justify-end space-x-2">
+            />            <div className="flex justify-end space-x-2">
               <Button type="button" variant="outline" onClick={onClose}>
-                Cancel
+                Hủy
               </Button>
               <Button 
                 type="submit" 
                 disabled={createMutation.isPending || updateMutation.isPending}
               >
-                {createMutation.isPending || updateMutation.isPending ? 'Saving...' : 'Save'}
+                {createMutation.isPending || updateMutation.isPending ? 'Đang lưu...' : 'Lưu'}
               </Button>
             </div>
           </form>

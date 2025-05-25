@@ -32,7 +32,7 @@ export default function PriceListsPage() {
 
   const handleActivatePriceList = (priceListId: string) => {
     // Implement price list activation logic
-    if (confirm('Are you sure you want to activate this price list? It will affect product prices.')) {
+    if (confirm('Bạn có chắc chắn muốn kích hoạt bảng giá này không? Nó sẽ ảnh hưởng đến giá sản phẩm.')) {
       // Call API to activate price list
     }
   };
@@ -45,14 +45,14 @@ export default function PriceListsPage() {
   });
 
   const handleDeletePriceList = (priceListId: string) => {
-    if (confirm('Are you sure you want to delete this price list?')) {
+    if (confirm('Bạn có chắc chắn muốn xóa bảng giá này không?')) {
       deleteMutation.mutate(priceListId);
     }
   };
 
   const columns = [
     {
-      header: 'Name',
+      header: 'Tên',
       accessorKey: 'name',
       cell: ({ row }: { row: any }) => (
         <div>
@@ -62,38 +62,37 @@ export default function PriceListsPage() {
       ),
     },
     {
-      header: 'Status',
+      header: 'Trạng thái',
       accessorKey: 'isActive',
       cell: ({ row }: { row: any }) => (
         <Badge variant={row.original.isActive ? 'success' : 'secondary'}>
-          {row.original.isActive ? 'Active' : 'Inactive'}
+          {row.original.isActive ? 'Đang hoạt động' : 'Không hoạt động'}
         </Badge>
       ),
     },
     {
-      header: 'Products',
+      header: 'Sản phẩm',
       accessorKey: 'productCount',
       cell: ({ row }: { row: any }) => (
         row.original.productCount || '0'
       ),
     },
     {
-      header: 'Date Created',
+      header: 'Ngày tạo',
       accessorKey: 'createdAt',
       cell: ({ row }: { row: any }) => (
         formatDate(row.original.createdAt)
       ),
     },
     {
-      header: 'Actions',
+      header: 'Thao tác',
       cell: ({ row }: { row: any }) => (
         <div className="flex space-x-2">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => handleViewPriceList(row.original.id)}
-          >
-            View
+          >            View
           </Button>
           {!row.original.isActive && (
             <Button
@@ -102,7 +101,7 @@ export default function PriceListsPage() {
               className="text-green-600 hover:text-green-800 hover:bg-green-100"
               onClick={() => handleActivatePriceList(row.original.id)}
             >
-              Activate
+              Kích hoạt
             </Button>
           )}
           <Button
@@ -111,7 +110,7 @@ export default function PriceListsPage() {
             className="text-red-600 hover:text-red-800 hover:bg-red-100"
             onClick={() => handleDeletePriceList(row.original.id)}
           >
-            Delete
+            Xóa
           </Button>
         </div>
       ),

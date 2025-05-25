@@ -45,38 +45,36 @@ export default function ProductsPage() {
     setEditingProduct(product);
     setIsProductFormOpen(true);
   };
-
   const handleBulkDelete = async () => {
     if (selectedProducts.length === 0) return;
-    if (confirm(`Are you sure you want to delete ${selectedProducts.length} products?`)) {
+    if (confirm(`Bạn có chắc chắn muốn xóa ${selectedProducts.length} sản phẩm không?`)) {
       await productsApi.bulkDeleteProducts(selectedProducts);
       setSelectedProducts([]);
     }
   };
-
   const columns = [
     {
-      header: 'Product Name',
+      header: 'Tên sản phẩm',
       accessorKey: 'name',
       cell: ({ row }: { row: any }) => (
         <div>
           <div className="font-medium">{row.original.name}</div>
-          <div className="text-sm text-gray-500">SKU: {row.original.sku}</div>
+          <div className="text-sm text-gray-500">Mã: {row.original.sku}</div>
         </div>
       ),
     },
     {
-      header: 'Category',
+      header: 'Danh mục',
       accessorKey: 'category.name',
-      cell: ({ row }: { row: any }) => row.original.category?.name || 'Uncategorized',
+      cell: ({ row }: { row: any }) => row.original.category?.name || 'Chưa phân loại',
     },
     {
-      header: 'Price',
+      header: 'Giá',
       accessorKey: 'price',
       cell: ({ row }: { row: any }) => formatCurrency(row.original.price),
     },
     {
-      header: 'Inventory',
+      header: 'Tồn kho',
       accessorKey: 'inventory',
       cell: ({ row }: { row: any }) => {
         const totalStock = row.original.inventory?.reduce((sum: number, item: any) => sum + item.quantity, 0) || 0;
@@ -85,21 +83,21 @@ export default function ProductsPage() {
         return (
           <div>
             <div className="font-medium">{totalStock} {row.original.unit}s</div>
-            {lowStock && <Badge variant="destructive">Low Stock</Badge>}
+            {lowStock && <Badge variant="destructive">Sắp hết hàng</Badge>}
           </div>
         );
       },
     },
     {
-      header: 'Status',
+      header: 'Trạng thái',
       accessorKey: 'isActive',
       cell: ({ row }: { row: any }) => (        <Badge variant={row.original.isActive ? 'success' : 'secondary'}>
-          {row.original.isActive ? 'Active' : 'Inactive'}
+          {row.original.isActive ? 'Đang bán' : 'Ngừng bán'}
         </Badge>
       ),
     },
     {
-      header: 'Actions',
+      header: 'Thao tác',
       cell: ({ row }: { row: any }) => (
         <div className="flex space-x-2">
           <Button 
@@ -107,14 +105,14 @@ export default function ProductsPage() {
             size="sm"
             onClick={() => handleEditProduct(row.original)}
           >
-            Edit
+            Sửa
           </Button>
           <Button 
             variant="link" 
             size="sm"
             onClick={() => window.location.href = `/admin/products/${row.original.id}`}
           >
-            View
+            Xem
           </Button>
         </div>
       ),
@@ -122,26 +120,22 @@ export default function ProductsPage() {
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Products</h1>
-        <Button onClick={handleAddProduct}>Add Product</Button>
+    <div className="space-y-6">      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Sản phẩm</h1>
+        <Button onClick={handleAddProduct}>Thêm sản phẩm</Button>
       </div>
 
       <Card>
         <div className="p-6 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">            <FormInput
-              name="search"
-              label="Search products"
-              placeholder="Search by name, SKU, barcode..."
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">            <FormInput              name="search"
+              label="Tìm kiếm sản phẩm"
+              placeholder="Tìm theo tên, mã, mã vạch..."
               value={filters.search || ''}
               onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-            />            <FormSelect
-              name="categoryId"
-              label="Category"
-              placeholder="All Categories"
-              options={
-                categories?.map(category => ({
+            />            <FormSelect              name="categoryId"
+              label="Danh mục"
+              placeholder="Tất cả danh mục"options={
+                categories?.map((category: any) => ({
                   label: category.name,
                   value: category.id
                 })) || []
@@ -149,13 +143,12 @@ export default function ProductsPage() {
               value={filters.categoryId || ''}
               onChange={(value) => setFilters({ ...filters, categoryId: value || undefined })}
               isClearable
-            />            <FormSelect
-              name="status"
-              label="Status"
-              placeholder="All Statuses"
+            />            <FormSelect              name="status"
+              label="Trạng thái"
+              placeholder="Tất cả trạng thái"
               options={[
-                { label: 'Active', value: 'true' },
-                { label: 'Inactive', value: 'false' }
+                { label: 'Đang bán', value: 'true' },
+                { label: 'Ngừng bán', value: 'false' }
               ]}
               value={filters.isActive !== undefined ? String(filters.isActive) : ''}
               onChange={(value) => setFilters({ 
@@ -171,35 +164,32 @@ export default function ProductsPage() {
       <Card>
         {selectedProducts.length > 0 && (
           <div className="p-4 border-b border-gray-200 bg-gray-50">
-            <div className="flex items-center justify-between">
-              <span className="text-sm">{selectedProducts.length} products selected</span>
+            <div className="flex items-center justify-between">              <span className="text-sm">{selectedProducts.length} sản phẩm đã chọn</span>
               <div className="flex space-x-2">
                 <Button 
                   variant="outline" 
                   size="sm"
                   onClick={() => setSelectedProducts([])}
                 >
-                  Clear Selection
+                  Bỏ chọn
                 </Button>                <Button 
                   variant="destructive" 
                   size="sm"
                   onClick={handleBulkDelete}
                 >
-                  Delete Selected
+                  Xóa đã chọn
                 </Button>
               </div>
             </div>
           </div>
-        )}
-
-        {isLoading ? (
-          <div className="p-6 text-center">Loading products...</div>
+        )}        {isLoading ? (
+          <div className="p-6 text-center">Đang tải sản phẩm...</div>
         ) : isError ? (
-          <div className="p-6 text-center text-red-500">Error loading products</div>
+          <div className="p-6 text-center text-red-500">Lỗi khi tải dữ liệu sản phẩm</div>
         ) : productsData?.data.length === 0 ? (          <EmptyState
-            title="No products found"
-            description="Create your first product to get started"
-            actionLabel="Add Product"
+            title="Không tìm thấy sản phẩm nào"
+            description="Tạo sản phẩm đầu tiên của bạn để bắt đầu"
+            actionLabel="Thêm sản phẩm"
             onAction={handleAddProduct}
           />
         ) : (

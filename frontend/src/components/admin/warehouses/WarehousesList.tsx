@@ -42,9 +42,8 @@ export function WarehousesList() {
 
   return (
     <div className="container mx-auto p-4">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Warehouse Management</h1>
-        <Button onClick={handleAddNew}>Add Warehouse</Button>
+      <div className="flex justify-between items-center mb-6">        <h1 className="text-2xl font-bold">Quản lý kho hàng</h1>
+        <Button onClick={handleAddNew}>Thêm kho hàng</Button>
       </div>
 
       {/* Loading and error handling */}
@@ -56,12 +55,12 @@ export function WarehousesList() {
                 <div className="flex justify-between items-start">
                   <div>
                     <CardTitle>{warehouse.name}</CardTitle>
-                    <CardDescription>Code: {warehouse.code}</CardDescription>
+                    <CardDescription>Mã: {warehouse.code}</CardDescription>
                   </div>
                   {warehouse.isActive ? (
-                    <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">Active</span>
+                    <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">Đang hoạt động</span>
                   ) : (
-                    <span className="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded">Inactive</span>
+                    <span className="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded">Không hoạt động</span>
                   )}
                 </div>
               </CardHeader>
@@ -72,27 +71,26 @@ export function WarehousesList() {
                       {warehouse.address}, {warehouse.city || ''} {warehouse.province || ''}
                     </p>
                   )}
-                  <p className="text-gray-500">Created: {formatDate(warehouse.createdAt)}</p>
+                  <p className="text-gray-500">Tạo lúc: {formatDate(warehouse.createdAt)}</p>
                 </div>
                 
                 {/* Quick stats per warehouse - placeholder until we fetch actual stats */}
                 <div className="grid grid-cols-2 gap-4 mt-4">
                   <div className="bg-blue-50 p-3 rounded-md">
-                    <p className="text-xs text-blue-500 font-medium">Products</p>
+                    <p className="text-xs text-blue-500 font-medium">Sản phẩm</p>
                     <p className="text-xl font-bold">--</p>
                   </div>
                   <div className="bg-green-50 p-3 rounded-md">
-                    <p className="text-xs text-green-500 font-medium">Value</p>
+                    <p className="text-xs text-green-500 font-medium">Giá trị</p>
                     <p className="text-xl font-bold">--</p>
                   </div>
                 </div>
               </CardContent>
-              <CardFooter className="flex justify-between pt-2">
-                <Button variant="outline" size="sm" onClick={() => handleEdit(warehouse)}>
-                  Edit
+              <CardFooter className="flex justify-between pt-2">                <Button variant="outline" size="sm" onClick={() => handleEdit(warehouse)}>
+                  Sửa
                 </Button>
                 <Button variant="default" size="sm" onClick={() => handleViewDetails(warehouse)}>
-                  View Details
+                  Xem chi tiết
                 </Button>
               </CardFooter>
             </Card>
@@ -102,10 +100,9 @@ export function WarehousesList() {
 
       {/* No warehouses placeholder */}
       {data?.items?.length === 0 && (
-        <div className="text-center p-8 bg-gray-50 rounded-lg">
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No warehouses found</h3>
-          <p className="text-gray-500 mb-4">Start by adding your first warehouse.</p>
-          <Button onClick={handleAddNew}>Add Warehouse</Button>
+        <div className="text-center p-8 bg-gray-50 rounded-lg">          <h3 className="text-lg font-medium text-gray-900 mb-2">Không tìm thấy kho hàng nào</h3>
+          <p className="text-gray-500 mb-4">Bắt đầu bằng cách thêm kho hàng đầu tiên của bạn.</p>
+          <Button onClick={handleAddNew}>Thêm kho hàng</Button>
         </div>
       )}
 

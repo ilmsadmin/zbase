@@ -36,40 +36,36 @@ export function ProductForm({
   }, [categories, watch]);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div className="space-y-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">      <div className="space-y-4">
         <FormInput
-          label="Product Name"
-          placeholder="Enter product name"
+          label="Tên sản phẩm"
+          placeholder="Nhập tên sản phẩm"
           {...register('name')}
         />
 
         <FormTextarea
-          label="Description"
-          placeholder="Enter product description"
+          label="Mô tả"
+          placeholder="Nhập mô tả sản phẩm"
           {...register('description')}
-        />
-
-        <div className="grid grid-cols-2 gap-4">
+        />        <div className="grid grid-cols-2 gap-4">
           <FormInput
-            label="SKU"
-            placeholder="Enter SKU"
+            label="Mã SKU"
+            placeholder="Nhập mã SKU"
             {...register('sku')}
           />
 
           <FormInput
-            label="Barcode"
-            placeholder="Enter barcode (optional)"
+            label="Mã vạch"
+            placeholder="Nhập mã vạch (tùy chọn)"
             {...register('barcode')}
           />
-        </div>        <Controller
+        </div><Controller
           name="categoryId"
           control={control}
-          render={({ field }) => (
-            <FormSelect
+          render={({ field }) => (            <FormSelect
               name={field.name}
-              label="Category"
-              placeholder="Select category"
+              label="Danh mục"
+              placeholder="Chọn danh mục"
               options={categories?.map(category => ({
                 label: category.name,
                 value: String(category.id) // Convert number to string for select
@@ -79,33 +75,29 @@ export function ProductForm({
               isClearable
             />
           )}
-        />
-
-        <div className="grid grid-cols-2 gap-4">
+        />        <div className="grid grid-cols-2 gap-4">
           <FormInput
             type="number"
             step="0.01"
-            label="Price"
-            placeholder="Enter price"
+            label="Giá bán"
+            placeholder="Nhập giá bán"
             {...register('price', { valueAsNumber: true })}
           />
 
           <FormInput
             type="number"
             step="0.01"
-            label="Cost Price (optional)"
-            placeholder="Enter cost price"
+            label="Giá vốn (tùy chọn)"
+            placeholder="Nhập giá vốn"
             {...register('costPrice', { 
               valueAsNumber: true, 
               setValueAs: v => v === '' ? undefined : Number(v) 
             })}
           />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
+        </div>        <div className="grid grid-cols-2 gap-4">
           <FormInput
-            label="Unit"
-            placeholder="e.g., piece, kg, liter"
+            label="Đơn vị tính"
+            placeholder="VD: cái, kg, lít"
             {...register('unit')}
           />
 
@@ -122,7 +114,7 @@ export function ProductForm({
                   className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
                 <label htmlFor="isActive" className="ml-2 block text-sm text-gray-700">
-                  Active Product
+                  Đang bán
                 </label>
               </div>
             )}
@@ -130,12 +122,11 @@ export function ProductForm({
         </div>
       </div>
 
-      <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
+      <div className="space-y-4">        <div className="grid grid-cols-2 gap-4">
           <FormInput
             type="number"
-            label="Min Stock Level"
-            placeholder="Enter min stock"
+            label="Tồn kho tối thiểu"
+            placeholder="Nhập tồn kho tối thiểu"
             {...register('minStockLevel', { 
               valueAsNumber: true, 
               setValueAs: v => v === '' ? undefined : Number(v) 
@@ -144,8 +135,8 @@ export function ProductForm({
 
           <FormInput
             type="number"
-            label="Max Stock Level"
-            placeholder="Enter max stock"
+            label="Tồn kho tối đa"
+            placeholder="Nhập tồn kho tối đa"
             {...register('maxStockLevel', { 
               valueAsNumber: true, 
               setValueAs: v => v === '' ? undefined : Number(v) 
@@ -155,20 +146,18 @@ export function ProductForm({
 
         <FormInput
           type="number"
-          label="Reorder Level"
-          placeholder="Enter reorder level"
+          label="Mức đặt lại"
+          placeholder="Nhập mức đặt lại"
           {...register('reorderLevel', { 
             valueAsNumber: true, 
             setValueAs: v => v === '' ? undefined : Number(v) 
           })}
-        />
-
-        <div className="grid grid-cols-2 gap-4">
+        />        <div className="grid grid-cols-2 gap-4">
           <FormInput
             type="number"
             step="0.01"
-            label="Weight (kg, optional)"
-            placeholder="Enter weight"
+            label="Trọng lượng (kg, tùy chọn)"
+            placeholder="Nhập trọng lượng"
             {...register('weight', { 
               valueAsNumber: true, 
               setValueAs: v => v === '' ? undefined : Number(v) 
@@ -176,28 +165,26 @@ export function ProductForm({
           />
 
           <FormInput
-            label="Dimensions (optional)"
-            placeholder="e.g., 10x20x30 cm"
+            label="Kích thước (tùy chọn)"
+            placeholder="VD: 10x20x30 cm"
             {...register('dimensions')}
           />
         </div>
 
         <FormFileUpload
-          label="Product Image"
+          label="Hình ảnh sản phẩm"
           onChange={onImageChange}
           initialPreview={imageUrl}
-        />
-
-        <div className="mt-6">
+        />        <div className="mt-6">
           <div className="flex items-center justify-between mb-2">
-            <label className="block text-sm font-medium text-gray-700">Attributes</label>
+            <label className="block text-sm font-medium text-gray-700">Thuộc tính</label>
             <Button
               type="button"
               size="sm"
               variant="outline"
               onClick={onAddAttribute}
             >
-              Add Attribute
+              Thêm thuộc tính
             </Button>
           </div>
 
@@ -208,14 +195,14 @@ export function ProductForm({
                   type="text"
                   value={attr.name || ''}
                   onChange={(e) => onAttributeChange(index, 'name', e.target.value)}
-                  placeholder="Name"
+                  placeholder="Tên"
                   className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                 />
                 <input
                   type="text"
                   value={attr.value || ''}
                   onChange={(e) => onAttributeChange(index, 'value', e.target.value)}
-                  placeholder="Value"
+                  placeholder="Giá trị"
                   className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                 />
                 <Button
@@ -224,7 +211,7 @@ export function ProductForm({
                   variant="ghost"
                   onClick={() => onRemoveAttribute(index)}
                 >
-                  Remove
+                  Xóa
                 </Button>
               </div>
             ))}

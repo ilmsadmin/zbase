@@ -43,17 +43,16 @@ export function WarehouseInventoryTable({ inventory }: WarehouseInventoryTablePr
       <div className="p-4 border-b">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-2 md:space-y-0">
           <div className="text-sm">
-            <p>
-              <span className="font-medium">{totalItems}</span> products | 
-              <span className="font-medium ml-1">{totalQuantity}</span> total qty |
-              <span className="font-medium ml-1">{formatCurrency(totalValue)}</span> value
+            <p>              <span className="font-medium">{totalItems}</span> sản phẩm | 
+              <span className="font-medium ml-1">{totalQuantity}</span> tổng số lượng |
+              <span className="font-medium ml-1">{formatCurrency(totalValue)}</span> giá trị
             </p>
           </div>
           
           <div className="relative w-full md:w-64">
             <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Search products..."
+              placeholder="Tìm sản phẩm..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9"
@@ -65,13 +64,12 @@ export function WarehouseInventoryTable({ inventory }: WarehouseInventoryTablePr
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              <th className="px-6 py-3">Product</th>
-              <th className="px-6 py-3">SKU</th>
-              <th className="px-6 py-3">Location</th>
-              <th className="px-6 py-3 text-right">Quantity</th>
-              <th className="px-6 py-3 text-right">Unit Cost</th>
-              <th className="px-6 py-3 text-right">Total Value</th>
+            <tr className="bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">              <th className="px-6 py-3">Sản phẩm</th>
+              <th className="px-6 py-3">Mã SKU</th>
+              <th className="px-6 py-3">Vị trí</th>
+              <th className="px-6 py-3 text-right">Số lượng</th>
+              <th className="px-6 py-3 text-right">Đơn giá</th>
+              <th className="px-6 py-3 text-right">Tổng giá trị</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -86,7 +84,7 @@ export function WarehouseInventoryTable({ inventory }: WarehouseInventoryTablePr
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-500">
-                      {item.locationName ? `${item.locationName} (${item.locationCode})` : 'Unassigned'}
+                      {item.locationName ? `${item.locationName} (${item.locationCode})` : 'Chưa gán vị trí'}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right">
@@ -107,7 +105,7 @@ export function WarehouseInventoryTable({ inventory }: WarehouseInventoryTablePr
             ) : (
               <tr>
                 <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">
-                  {inventory.length === 0 ? 'No inventory items found in this warehouse.' : 'No items matching your search.'}
+                  {inventory.length === 0 ? 'Không tìm thấy sản phẩm nào trong kho hàng này.' : 'Không có sản phẩm nào phù hợp với tìm kiếm của bạn.'}
                 </td>
               </tr>
             )}
@@ -117,7 +115,7 @@ export function WarehouseInventoryTable({ inventory }: WarehouseInventoryTablePr
       
       {filteredItems.length > 10 && (
         <div className="px-4 py-3 bg-gray-50 text-right sm:px-6">
-          <Button variant="outline" size="sm">Load More</Button>
+          <Button variant="outline" size="sm">Tải thêm</Button>
         </div>
       )}
     </Card>
