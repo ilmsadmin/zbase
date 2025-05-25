@@ -49,12 +49,11 @@ export function CategoryFormModal({ isOpen, onClose, category, categories }: Cat
     const prefix = level > 0 ? `${indent} ` : '';
     return `${prefix}${category.name}`;
   };
-
   // Build flattened category options with proper hierarchy
   const buildFlatOptions = (
     categories: ProductCategory[],
     currentPath: string[] = [],
-    exclude: string[] = []
+    exclude: number[] = []
   ): { value: string; label: string; isDisabled: boolean }[] => {
     const options: { value: string; label: string; isDisabled: boolean }[] = [];
 
@@ -84,12 +83,11 @@ export function CategoryFormModal({ isOpen, onClose, category, categories }: Cat
 
     return options;
   };
-
   // Tạo mảng ID categories cần loại trừ (category hiện tại và con cháu)
   const excludeIds = category ? [category.id] : [];
   if (category) {
-    const getDescendantIds = (cat: ProductCategory): string[] => {
-      let ids: string[] = [];
+    const getDescendantIds = (cat: ProductCategory): number[] => {
+      let ids: number[] = [];
       cat.children?.forEach(child => {
         ids.push(child.id);
         ids = [...ids, ...getDescendantIds(child)];
@@ -98,10 +96,9 @@ export function CategoryFormModal({ isOpen, onClose, category, categories }: Cat
     };
     excludeIds.push(...getDescendantIds(category));
   }
-
   const parentOptions = [
     { value: '', label: '(No parent - Root category)' },
-    ...buildFlatOptions(categories, 0, excludeIds)
+    ...buildFlatOptions(categories, [], excludeIds)
   ];
 
   const methods = useForm<CategoryFormData>({
@@ -112,12 +109,11 @@ export function CategoryFormModal({ isOpen, onClose, category, categories }: Cat
       parentId: category?.parentId ? String(category.parentId) : '', // Empty string represents "None"
     },
   });
-
   const createMutation = useMutation({
     mutationFn: async (data: CategoryFormData) => {
       const payload = {
         ...data,
-        parentId: data.parentId ? Number(data.parentId) : null,
+        parentId: data.parentId ? data.parentId : undefined,
       };
       return productsApi.createCategory(payload);
     },
@@ -131,9 +127,9 @@ export function CategoryFormModal({ isOpen, onClose, category, categories }: Cat
     mutationFn: async ({ id, data }: { id: number; data: CategoryFormData }) => {
       const payload = {
         ...data,
-        parentId: data.parentId ? Number(data.parentId) : null,
+        parentId: data.parentId ? data.parentId : undefined,
       };
-      return productsApi.updateCategory(id, payload);
+      return productsApi.updateCategory(String(id), payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['productCategories'] });

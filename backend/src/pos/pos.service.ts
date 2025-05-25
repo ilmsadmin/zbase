@@ -89,10 +89,8 @@ export class PosService {
 
       if (!inventory) {
         throw new BadRequestException(`Insufficient inventory for product ID ${item.productId}`);
-      }
-
-      // Calculate item totals
-      const unitPrice = item.unitPrice || product.basePrice;
+      }      // Calculate item totals
+      const unitPrice = item.unitPrice || product.price;
       const itemTaxAmount = Number(unitPrice) * Number(item.quantity) * (Number(product.taxRate) / 100);
       const itemSubtotal = Number(unitPrice) * Number(item.quantity);
       const itemTotal = itemSubtotal + itemTaxAmount;
@@ -248,12 +246,11 @@ export class PosService {
     for (const item of inventoryCheckDto.items) {
       // Get product details
       const product = await this.prisma.product.findUnique({
-        where: { id: item.productId },
-        select: {
+        where: { id: item.productId },        select: {
           id: true,
           name: true,
-          code: true,
-          basePrice: true,
+          sku: true,
+          price: true,
           unit: true,
         },
       });
@@ -390,11 +387,10 @@ export class PosService {
               quantity: true,
               unitPrice: true,
               totalAmount: true,
-              product: {
-                select: {
+              product: {                select: {
                   id: true,
                   name: true,
-                  code: true,
+                  sku: true,
                 },
               },
             },
@@ -425,10 +421,9 @@ export class PosService {
     // Build where clause based on search query
     const where: Prisma.ProductWhereInput = {};
 
-    if (query) {
-      where.OR = [
+    if (query) {      where.OR = [
         { name: { contains: query, mode: 'insensitive' } },
-        { code: { contains: query, mode: 'insensitive' } },
+        { sku: { contains: query, mode: 'insensitive' } },
         { barcode: { contains: query, mode: 'insensitive' } },
       ];
     }
@@ -441,14 +436,13 @@ export class PosService {
         take: limit,
         orderBy: {
           name: 'asc',
-        },
-        select: {
+        },        select: {
           id: true,
-          code: true,
+          sku: true,
           name: true,
           description: true,
           barcode: true,
-          basePrice: true,
+          price: true,
           unit: true,
           taxRate: true,
           inventory: {

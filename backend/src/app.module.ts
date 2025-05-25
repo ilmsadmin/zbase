@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ConfigModule } from './config/config.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { PostsModule } from './posts/posts.module';
@@ -30,35 +30,43 @@ import { WarrantiesModule } from './warranties/warranties.module';
 import { ReportsModule } from './reports/reports.module';
 import { ReportTemplatesModule } from './report-templates/report-templates.module';
 import { MailModule } from './mail/mail.module';
+import { JwtModule } from '@nestjs/jwt';
+import { FacebookModule } from './facebook/facebook.module';
 
-@Module({  imports: [
+@Module({  
+  imports: [
     ConfigModule, 
     PrismaModule,
     RedisModule,
     MongoModule,
+    JwtModule.register({
+      global: true,
+      secret: process.env.APP_JWT_SECRET || 'super-secret',
+      signOptions: { expiresIn: '24h' },
+    }),
     UsersModule, 
     RolesModule,
     PermissionsModule,
     AuthModule, 
     PostsModule, 
     CommentsModule,
-    WarehousesModule,
-    WarehouseLocationsModule,
-    ProductsModule,
     ProductCategoriesModule,
     ProductAttributesModule,
-    InventoryModule,
-    CustomersModule,
+    ProductsModule,
+    InventoryModule,    CustomersModule,
     CustomerGroupsModule,
+    WarehousesModule,
+    WarehouseLocationsModule,
     PartnersModule,
     InvoicesModule,
     ShiftsModule,
     PosModule,
-    PriceListsModule,    TransactionsModule,
-    WarrantiesModule,
-    ReportsModule,
+    PriceListsModule,
+    TransactionsModule,
+    WarrantiesModule,    ReportsModule,
     ReportTemplatesModule,
     MailModule,
+    FacebookModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService, HealthService],

@@ -74,12 +74,11 @@ export class WarehouseLocationsService {
           },
         },
         inventory: {
-          include: {
-            product: {
+          include: {            product: {
               select: {
                 id: true,
                 name: true,
-                code: true,
+                sku: true,
               },
             },
           },

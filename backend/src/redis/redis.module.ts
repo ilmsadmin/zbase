@@ -5,7 +5,6 @@ import { SessionCacheService } from './session-cache.service';
 import { CustomerCacheService } from './customer-cache.service';
 import { WarehouseCacheService } from './warehouse-cache.service';
 import { ReportCacheService } from './report-cache.service';
-import { ConfigService } from '@nestjs/config';
 
 @Module({
   providers: [
@@ -17,11 +16,10 @@ import { ConfigService } from '@nestjs/config';
     ReportCacheService,
     {
       provide: 'REDIS_OPTIONS',
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        host: configService.get<string>('app.redisHost', 'localhost'),
-        port: configService.get<number>('app.redisPort', 6379),
-      }),
+      useValue: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT || '6379', 10),
+      },
     },
   ],
   exports: [

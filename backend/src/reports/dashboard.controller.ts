@@ -215,14 +215,13 @@ export class DashboardController {
               lte: now,
             },
           },
-        },
-        include: {
+        },        include: {
           product: {
             select: {
               id: true,
               name: true,
-              basePrice: true,
-              code: true,
+              price: true,
+              sku: true,
             },
           },
         },
@@ -233,12 +232,11 @@ export class DashboardController {
       
       for (const item of invoiceItems) {
         const productId = item.productId;
-        if (!productMap.has(productId)) {
-          productMap.set(productId, {
+        if (!productMap.has(productId)) {          productMap.set(productId, {
             id: item.product.id,
             name: item.product.name,
             price: item.unitPrice, // Use the price from invoice item
-            code: item.product.code,
+            code: item.product.sku,
             totalQuantity: 0,
             totalRevenue: 0,
           });
@@ -302,14 +300,13 @@ export class DashboardController {
           quantity: {
             lt: threshold,
           },
-        },
-        include: {
+        },        include: {
           product: {
             select: {
               id: true,
               name: true,
-              basePrice: true,
-              code: true,
+              price: true,
+              sku: true,
               category: {
                 select: {
                   name: true,
@@ -327,14 +324,12 @@ export class DashboardController {
           quantity: 'asc',
         },
         take: limit,
-      });
-
-      return lowStockInventory.map(inventory => ({
+      });      return lowStockInventory.map(inventory => ({
         id: inventory.product.id,
         name: inventory.product.name,
-        price: inventory.product.basePrice,
+        price: inventory.product.price,
         quantity: inventory.quantity,
-        code: inventory.product.code,
+        code: inventory.product.sku,
         category: inventory.product.category?.name || 'Uncategorized',
         warehouse: inventory.warehouse.name,
       }));

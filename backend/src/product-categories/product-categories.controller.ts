@@ -26,13 +26,10 @@ export class ProductCategoriesController {
   create(@Body() createProductCategoryDto: CreateProductCategoryDto) {
     return this.productCategoriesService.create(createProductCategoryDto);
   }
-
   @Get()
   @RequirePermissions('product-categories.read')
-  findAll(@Query('parentId') parentId?: string) {
-    return this.productCategoriesService.findAll(
-      parentId ? parseInt(parentId, 10) : undefined
-    );
+  findAll() {
+    return this.productCategoriesService.findAll();
   }
 
   @Get(':id')

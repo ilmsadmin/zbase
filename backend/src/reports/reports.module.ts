@@ -9,7 +9,6 @@ import { extname } from 'path';
 import { AuthModule } from '../auth/auth.module';
 import { PermissionsModule } from '../permissions/permissions.module';
 import { PrismaModule } from '../prisma/prisma.module';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 
 @Module({
@@ -18,16 +17,9 @@ import { JwtModule } from '@nestjs/jwt';
     AuthModule,
     PermissionsModule,
     PrismaModule,
-    ConfigModule,
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('app.jwtSecret'),
-        signOptions: {
-          expiresIn: configService.get<string>('app.jwtExpiresIn', '1d'),
-        },
-      }),
+    JwtModule.register({
+      secret: process.env.APP_JWT_SECRET || 'super-secret',
+      signOptions: { expiresIn: '24h' },
     }),
     MulterModule.register({
       storage: diskStorage({

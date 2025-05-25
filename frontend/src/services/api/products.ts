@@ -1,58 +1,74 @@
-// This file provides backward compatibility for components still importing from @/services/api/products
-// It re-exports the services from @/lib/services/productsService
+// File to re-export the productsService for backward compatibility
+// This is part of the migration from old API structure to new lib/services structure
 
-import { productsService } from '@/lib/services/productsService';
+import { 
+  productsService, 
+  Product, 
+  ProductCategory, 
+  ProductAttribute, 
+  ProductQueryParams, 
+  CreateProductDto, 
+  UpdateProductDto, 
+  ProductFilters, 
+  PaginatedResponse 
+} from '@/lib/services/productsService';
 
-export const productsApi = {
-  // Get all products with filters
-  getProducts: async (filters = {}) => {
-    const data = await productsService.getProducts(filters);
-    return { data: data.items || [], meta: data.meta };
-  },
-
-  // Get a single product by ID
-  getProduct: async (id) => {
-    return productsService.getProductById(id);
-  },
-
-  // Create a new product
-  createProduct: async (productData) => {
-    return productsService.createProduct(productData);
-  },
-
-  // Update an existing product
-  updateProduct: async (id, productData) => {
-    return productsService.updateProduct(id, productData);
-  },
-
-  // Delete a product
-  deleteProduct: async (id) => {
-    return productsService.deleteProduct(id);
-  },
-
-  // Bulk delete products
-  bulkDeleteProducts: async (ids) => {
-    return productsService.bulkDeleteProducts(ids);
-  },
-  // Get product categories
-  getCategories: async () => {
-    const response = await productsService.getCategories();
-    // The response is already an array, no need to access .items
-    return response || [];
-  },
-
-  // Create a product category
-  createCategory: async (categoryData) => {
-    return productsService.createCategory(categoryData);
-  },
-
-  // Update a product category
-  updateCategory: async (id, categoryData) => {
-    return productsService.updateCategory(id, categoryData);
-  },
-
-  // Delete a product category
-  deleteCategory: async (id) => {
-    return productsService.deleteCategory(id);
-  }
+// Re-export the types
+export type {
+  Product,
+  ProductCategory,
+  ProductAttribute,
+  ProductQueryParams,
+  CreateProductDto,
+  UpdateProductDto,
+  ProductFilters,
+  PaginatedResponse
 };
+
+// Re-export the API functions
+export const productsApi = {
+  getProducts: async (filters = {}) => {
+    console.log("API Request - getProducts:", filters);
+    const data = await productsService.getProducts(filters);
+    console.log("API Response:", data);
+    
+    // Transform the response to match the expected format
+    return {
+      data: data.items || [],
+      meta: data.meta || { total: 0, page: 1, limit: 20, totalPages: 0 }
+    };
+  },
+  getProduct: productsService.getProductById,
+  createProduct: productsService.createProduct,
+  updateProduct: productsService.updateProduct,
+  deleteProduct: productsService.deleteProduct,
+  bulkDeleteProducts: productsService.bulkDeleteProducts,
+  getCategories: async () => {
+    const data = await productsService.getCategories();
+    // Transform the response to match the expected format if needed
+    if (data.items) {
+      return { data: data.items, meta: data.meta };
+    }
+    return data;
+  },
+  getCategory: productsService.getCategory,
+  createCategory: productsService.createCategory,
+  updateCategory: productsService.updateCategory,
+  deleteCategory: productsService.deleteCategory,
+  reorderCategories: productsService.reorderCategories,
+  getProductAttributes: async () => {
+    const data = await productsService.getAttributes();
+    // Transform the response to match the expected format if needed
+    if (data.items) {
+      return { data: data.items, meta: data.meta };
+    }
+    return data;
+  },
+  getProductAttribute: productsService.getAttribute,
+  createProductAttribute: productsService.createAttribute,
+  updateProductAttribute: productsService.updateAttribute,
+  deleteProductAttribute: productsService.deleteAttribute
+};
+
+// Default export for backward compatibility
+export default productsApi;

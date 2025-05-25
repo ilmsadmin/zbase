@@ -257,16 +257,15 @@ export class PriceListsService {
         discountType: addPriceListItemDto.discountType || 'percentage',
         discountValue: addPriceListItemDto.discountValue || 0,
         discountRate: addPriceListItemDto.discountRate || 0,
-        specialConditions: addPriceListItemDto.specialConditions,
-        isActive: addPriceListItemDto.isActive ?? true,
+        specialConditions: addPriceListItemDto.specialConditions,      isActive: addPriceListItemDto.isActive ?? true,
       },
       include: {
         product: {
           select: {
             id: true,
             name: true,
-            code: true,
-            basePrice: true,
+            sku: true,
+            price: true,
           },
         },
       },
@@ -291,12 +290,11 @@ export class PriceListsService {
           { minQuantity: 'asc' },
         ],
         include: {
-          product: {
-            select: {
+          product: {            select: {
               id: true,
               name: true,
-              code: true,
-              basePrice: true,
+              sku: true,
+              price: true,
               unit: true,
             },
           },
@@ -358,13 +356,12 @@ export class PriceListsService {
     return this.prisma.priceListItem.update({
       where: { id: itemId },
       data: updatePriceListItemDto,
-      include: {
-        product: {
+      include: {        product: {
           select: {
             id: true,
             name: true,
-            code: true,
-            basePrice: true,
+            sku: true,
+            price: true,
           },
         },
       },
@@ -468,15 +465,14 @@ export class PriceListsService {
       ],
       include: {
         items: {
-          include: {
-            product: {
-              select: {
-                id: true,
-                name: true,
-                code: true,
-                basePrice: true,
+          include: {              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  sku: true,
+                  price: true,
+                },
               },
-            },
           },
         },
       },

@@ -3,7 +3,6 @@ import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
-import { ConfigService } from '@nestjs/config';
 import { User } from '@prisma/client';
 import { RedisService } from '../redis/redis.service';
 import { PosCacheService } from '../redis/pos-cache.service';
@@ -18,7 +17,6 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-    private configService: ConfigService,
     private redisService: RedisService,
     private posCacheService: PosCacheService,
     @Inject(forwardRef(() => PermissionsService))
@@ -40,7 +38,8 @@ export class AuthService {
     
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
-    }    // Get user roles
+    }    
+    // Get user roles
     const roleNames = await this.usersService.getUserRoles(user.id);
     
     // Create JWT payload
@@ -51,8 +50,8 @@ export class AuthService {
     };
     
     // JWT configuration
-    const jwtSecret = this.configService.get<string>('app.jwtSecret');
-    const expiresIn = parseInt(this.configService.get<string>('app.jwtExpiresIn', '86400'), 10);
+    const jwtSecret = process.env.APP_JWT_SECRET || 'super-secret';
+    const expiresIn = parseInt(process.env.APP_JWT_EXPIRES_IN || '86400', 10);
     
     // Generate token
     const token = this.jwtService.sign(payload, { 
@@ -216,8 +215,8 @@ export class AuthService {
     };
     
     // JWT configuration
-    const jwtSecret = this.configService.get<string>('app.jwtSecret');
-    const expiresIn = parseInt(this.configService.get<string>('app.jwtExpiresIn', '86400'), 10);
+    const jwtSecret = process.env.APP_JWT_SECRET || 'super-secret';
+    const expiresIn = parseInt(process.env.APP_JWT_EXPIRES_IN || '86400', 10);
     
     // Generate token
     const token = this.jwtService.sign(payload, { 
@@ -244,7 +243,7 @@ export class AuthService {
   decodeToken(token: string): any {
     try {
       return this.jwtService.verify(token, {
-        secret: this.configService.get<string>('app.jwtSecret'),
+        secret: process.env.APP_JWT_SECRET || 'super-secret',
       });
     } catch (error) {
       throw new UnauthorizedException('Invalid token');

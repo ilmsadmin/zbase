@@ -14,13 +14,10 @@ import { ForecastingModel, ForecastingModelSchema } from './schemas/forecasting-
 import { Report, ReportSchema } from './schemas/report.schema';
 import { ReportTemplate, ReportTemplateSchema } from './schemas/report-template.schema';
 
-@Module({  imports: [    MongooseModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        uri: configService.get<string>('app.mongoUri'),
-        dbName: 'zbase'
-      }),
-    }),    MongooseModule.forFeature([
+@Module({
+  imports: [
+    MongooseModule.forRoot('mongodb://zbase:zbasepassword@localhost:27017/zbase?authSource=admin'),
+    MongooseModule.forFeature([
       { name: Log.name, schema: LogSchema },
       { name: InventoryLog.name, schema: InventoryLogSchema },
       { name: SalesAnalytics.name, schema: SalesAnalyticsSchema },

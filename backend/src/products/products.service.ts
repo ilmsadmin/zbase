@@ -12,32 +12,71 @@ export class ProductsService {
   ) {}
 
   async create(createProductDto: CreateProductDto) {
-    // Check if product with same code already exists
+    // Create a copy of the DTO to modify
+    const dto = { ...createProductDto };
+    
+    // Ensure numeric fields are converted from strings if needed
+    const numericFields = ['price', 'costPrice', 'categoryId', 'minStockLevel', 
+                          'maxStockLevel', 'reorderLevel', 'weight'];
+    
+    numericFields.forEach(field => {
+      if (field in dto && typeof dto[field] === 'string') {
+        dto[field] = Number(dto[field]);
+      }
+    });
+    
+    // Make sure all boolean fields are properly converted
+    if ('isActive' in dto && typeof dto.isActive === 'string') {
+      dto.isActive = dto.isActive === 'true';
+    }
+    
+    // Check if product with same sku already exists
     const existingProduct = await this.prisma.product.findUnique({
-      where: { code: createProductDto.code },
+      where: { sku: dto.sku },
     });
 
     if (existingProduct) {
-      throw new BadRequestException(`Product with code ${createProductDto.code} already exists`);
+      throw new BadRequestException(`Product with SKU ${dto.sku} already exists`);
     }
 
     // Check if category exists when categoryId is provided
-    if (createProductDto.categoryId) {
+    if (dto.categoryId) {
       const category = await this.prisma.productCategory.findUnique({
-        where: { id: createProductDto.categoryId },
+        where: { id: dto.categoryId },
       });
       
       if (!category) {
-        throw new BadRequestException(`Category with ID ${createProductDto.categoryId} not found`);
+        throw new BadRequestException(`Category with ID ${dto.categoryId} not found`);
       }
-    }    // Extract attributes from DTO
-    const { attributes, ...productData } = createProductDto;
+    }
+
+    // Extract attributes from DTO and structure the data properly for Prisma
+    const { attributes, categoryId, ...productData } = dto;
+
+    // Prepare the product data with proper Decimal conversion for numeric fields
+    const finalProductData = {
+      ...productData,
+      price: new Prisma.Decimal(productData.price),
+      unit: productData.unit || 'unit',
+      warrantyMonths: productData.warrantyMonths || 0,
+      taxRate: productData.taxRate !== undefined ? new Prisma.Decimal(productData.taxRate) : new Prisma.Decimal(0),
+      isActive: productData.isActive !== undefined ? productData.isActive : true,
+      // Handle optional Prisma.Decimal fields
+      ...(productData.costPrice !== undefined ? { costPrice: new Prisma.Decimal(productData.costPrice) } : {}),
+      ...(productData.minStockLevel !== undefined ? { minStockLevel: new Prisma.Decimal(productData.minStockLevel) } : {}),
+      ...(productData.maxStockLevel !== undefined ? { maxStockLevel: new Prisma.Decimal(productData.maxStockLevel) } : {}),
+      ...(productData.reorderLevel !== undefined ? { reorderLevel: new Prisma.Decimal(productData.reorderLevel) } : {}),
+      ...(productData.weight !== undefined ? { weight: new Prisma.Decimal(productData.weight) } : {}),
+    };
 
     // Use transaction to create product and attributes
     return this.prisma.$transaction(async (prisma) => {
-      // Create product
+      // Create product with proper data structure
       const product = await prisma.product.create({
-        data: productData,
+        data: {
+          ...finalProductData,
+          ...(categoryId ? { category: { connect: { id: categoryId } } } : {}),
+        },
       });
 
       // Create attributes if provided
@@ -73,7 +112,7 @@ export class ProductsService {
     if (search) {
       where.OR = [
         { name: { contains: search, mode: 'insensitive' } },
-        { code: { contains: search, mode: 'insensitive' } },
+        { sku: { contains: search, mode: 'insensitive' } },
         { barcode: { contains: search, mode: 'insensitive' } },
       ];
     }
@@ -98,12 +137,12 @@ export class ProductsService {
     ]);
     
     return {
-      data: products,
+      items: products,
       meta: {
         total,
         page,
         limit,
-        pages: Math.ceil(total / limit),
+        totalPages: Math.ceil(total / limit),
       },
     };
   }
@@ -131,60 +170,108 @@ export class ProductsService {
   }
 
   async update(id: number, updateProductDto: UpdateProductDto) {
+    // Create a copy of the DTO to modify
+    const dto = { ...updateProductDto };
+    
+    // Ensure numeric fields are converted from strings if needed
+    const numericFields = ['price', 'costPrice', 'categoryId', 'minStockLevel', 
+                          'maxStockLevel', 'reorderLevel', 'weight'];
+    
+    numericFields.forEach(field => {
+      if (field in dto && typeof dto[field] === 'string') {
+        dto[field] = Number(dto[field]);
+      }
+    });
+    
+    // Make sure all boolean fields are properly converted
+    if ('isActive' in dto && typeof dto.isActive === 'string') {
+      dto.isActive = dto.isActive === 'true';
+    }
+    
     // Check if product exists
     await this.findOne(id);
     
-    // Check if code is being changed and if new code already exists
-    if (updateProductDto.code) {
+    // Check if sku is being changed and if new sku already exists
+    if (dto.sku) {
       const existingProduct = await this.prisma.product.findFirst({
         where: { 
-          code: updateProductDto.code,
+          sku: dto.sku,
           id: { not: id },
         },
       });
       
       if (existingProduct) {
-        throw new BadRequestException(`Product with code ${updateProductDto.code} already exists`);
+        throw new BadRequestException(`Product with SKU ${dto.sku} already exists`);
       }
     }
 
     // Check if category exists when categoryId is provided
-    if (updateProductDto.categoryId) {
+    if (dto.categoryId) {
       const category = await this.prisma.productCategory.findUnique({
-        where: { id: updateProductDto.categoryId },
+        where: { id: dto.categoryId },
       });
       
       if (!category) {
-        throw new BadRequestException(`Category with ID ${updateProductDto.categoryId} not found`);
+        throw new BadRequestException(`Category with ID ${dto.categoryId} not found`);
       }
     }
 
     // Extract attributes from DTO
-    const { attributes, ...productData } = updateProductDto;
+    const { attributes, categoryId, ...productData } = dto;
+
+    // Prepare update data with proper Decimal conversion
+    const updateData: any = {};
+    
+    // Handle simple fields
+    const simpleFields = ['sku', 'name', 'description', 'barcode', 'unit', 'manufacturer', 'warrantyMonths', 'dimensions', 'imageUrl', 'isActive'];
+    simpleFields.forEach(field => {
+      if (productData[field] !== undefined) {
+        updateData[field] = productData[field];
+      }
+    });
+    
+    // Handle Decimal fields
+    const decimalFields = ['price', 'costPrice', 'taxRate', 'minStockLevel', 'maxStockLevel', 'reorderLevel', 'weight'];
+    decimalFields.forEach(field => {
+      if (productData[field] !== undefined) {
+        updateData[field] = new Prisma.Decimal(productData[field]);
+      }
+    });
+    
+    // Handle category relationship
+    if (categoryId !== undefined) {
+      if (categoryId) {
+        updateData.category = { connect: { id: categoryId } };
+      } else {
+        updateData.category = { disconnect: true };
+      }
+    }
 
     // Use transaction to update product and attributes
     return this.prisma.$transaction(async (prisma) => {
       // Update product
       const product = await prisma.product.update({
         where: { id },
-        data: productData,
+        data: updateData,
       });
 
       // Update attributes if provided
-      if (attributes && attributes.length > 0) {
+      if (attributes !== undefined) {
         // Delete existing attributes
         await prisma.productAttribute.deleteMany({
           where: { productId: id },
         });
         
-        // Create new attributes
-        await prisma.productAttribute.createMany({
-          data: attributes.map(attr => ({
-            productId: id,
-            attributeName: attr.attributeName,
-            attributeValue: attr.attributeValue,
-          })),
-        });
+        // Create new attributes if any
+        if (attributes.length > 0) {
+          await prisma.productAttribute.createMany({
+            data: attributes.map(attr => ({
+              productId: id,
+              attributeName: attr.attributeName,
+              attributeValue: attr.attributeValue,
+            })),
+          });
+        }
       }
 
       // Return updated product with attributes

@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,119 +7,113 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Người dùng hệ thống
 model User {
   id                    Int                    @id @default(autoincrement())
   email                 String                 @unique
   password              String
   name                  String
-  role                  Role?                  @relation(fields: [roleId], references: [id])
   roleId                Int?
-  userRoles             UserRole[]
-  posts                 Post[]
-  comments              Comment[]
-  managedWarehouses     Warehouse[]            @relation("WarehouseManager")
-  invoices              Invoice[]
-  shifts                Shift[]
-  createdWarranties     Warranty[]             @relation("WarrantyCreator")
-  handledWarranties     Warranty[]             @relation("WarrantyTechnician")
-  transactions          Transaction[]
-  inventoryTransactions InventoryTransaction[]
-  reportTemplates       ReportTemplate[]
-  invoiceTemplates      InvoiceTemplate[]
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
+  comments              Comment[]
+  inventoryTransactions InventoryTransaction[]
+  invoices              Invoice[]
+  invoiceTemplates      InvoiceTemplate[]
+  posts                 Post[]
+  reportTemplates       ReportTemplate[]
+  shifts                Shift[]
+  transactions          Transaction[]
+  role                  Role?                  @relation(fields: [roleId], references: [id])
+  userRoles             UserRole[]
+  managedWarehouses     Warehouse[]            @relation("WarehouseManager")
+  createdWarranties     Warranty[]             @relation("WarrantyCreator")
+  handledWarranties     Warranty[]             @relation("WarrantyTechnician")
+  facebookActivities    FacebookActivityLog[]
+  facebookComments      FacebookComment[]
+  facebookMessages      FacebookMessage[]
+  facebookUser          FacebookUser?
 }
 
-// Vai trò người dùng
 model Role {
   id              Int              @id @default(autoincrement())
   name            String           @unique
   description     String?
+  createdAt       DateTime         @default(now())
+  rolePermissions RolePermission[]
   users           User[]
   userRoles       UserRole[]
-  rolePermissions RolePermission[]
-  createdAt       DateTime         @default(now())
 }
 
-// Quyền hạn
 model Permission {
   id              Int              @id @default(autoincrement())
   action          String           @unique
   description     String?
-  rolePermissions RolePermission[]
   createdAt       DateTime         @default(now())
+  rolePermissions RolePermission[]
 }
 
-// Quan hệ nhiều-nhiều giữa vai trò và quyền hạn
 model RolePermission {
   id           Int        @id @default(autoincrement())
-  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
   roleId       Int
-  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
   permissionId Int
   createdAt    DateTime   @default(now())
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
   @@unique([roleId, permissionId])
 }
 
-// Quan hệ nhiều-nhiều giữa người dùng và vai trò
 model UserRole {
   id        Int      @id @default(autoincrement())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    Int
-  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
   roleId    Int
   createdAt DateTime @default(now())
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, roleId])
 }
 
-// Bài viết
 model Post {
   id        Int       @id @default(autoincrement())
   title     String
   content   String
-  published Boolean   @default(false)
-  author    User      @relation(fields: [authorId], references: [id])
   authorId  Int
-  comments  Comment[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+  published Boolean   @default(false)
+  comments  Comment[]
+  author    User      @relation(fields: [authorId], references: [id])
 }
 
-// Bình luận
 model Comment {
   id        Int      @id @default(autoincrement())
   content   String
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   postId    Int
-  author    User     @relation(fields: [authorId], references: [id])
   authorId  Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  author    User     @relation(fields: [authorId], references: [id])
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 }
 
-// Kho hàng
 model Warehouse {
   id                    Int                    @id @default(autoincrement())
   name                  String
   address               String?
-  manager               User?                  @relation("WarehouseManager", fields: [managerId], references: [id])
   managerId             Int?
-  locations             WarehouseLocation[]
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
   inventory             Inventory[]
   inventoryTransactions InventoryTransaction[]
   invoices              Invoice[]
   shifts                Shift[]
-  createdAt             DateTime               @default(now())
-  updatedAt             DateTime               @updatedAt
+  manager               User?                  @relation("WarehouseManager", fields: [managerId], references: [id])
+  locations             WarehouseLocation[]
 }
 
-// Vị trí lưu trữ trong kho
 model WarehouseLocation {
   id                    Int                    @id @default(autoincrement())
-  warehouse             Warehouse              @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
   warehouseId           Int
   zone                  String
   aisle                 String
@@ -130,84 +121,87 @@ model WarehouseLocation {
   shelf                 String
   position              String
   description           String?
-  status                String                 @default("active") // 'active', 'inactive', 'maintenance'
+  status                String                 @default("active")
   maxCapacity           Decimal?               @db.Decimal(10, 2)
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
   inventory             Inventory[]
   inventoryTransactions InventoryTransaction[]
   invoiceItems          InvoiceItem[]
-  createdAt             DateTime               @default(now())
-  updatedAt             DateTime               @updatedAt
+  warehouse             Warehouse              @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
 
   @@unique([warehouseId, zone, aisle, rack, shelf, position])
 }
 
-// Danh mục sản phẩm
 model ProductCategory {
   id          Int               @id @default(autoincrement())
   name        String
-  description String?
-  parent      ProductCategory?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
   parentId    Int?
-  children    ProductCategory[] @relation("CategoryHierarchy")
-  products    Product[]
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
+  description String?
+  products    Product[]
+  parent      ProductCategory?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children    ProductCategory[] @relation("CategoryHierarchy")
 }
 
-// Sản phẩm
 model Product {
   id                    Int                    @id @default(autoincrement())
-  code                  String                 @unique
   name                  String
   description           String?
-  category              ProductCategory?       @relation(fields: [categoryId], references: [id])
   categoryId            Int?
-  basePrice             Decimal                @db.Decimal(15, 2)
   costPrice             Decimal?               @db.Decimal(15, 2)
   taxRate               Decimal                @default(0) @db.Decimal(5, 2)
   barcode               String?
   unit                  String?
   manufacturer          String?
   warrantyMonths        Int                    @default(0)
-  attributes            ProductAttribute[]
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  dimensions            String?
+  imageUrl              String?
+  isActive              Boolean                @default(true)
+  maxStockLevel         Decimal?               @db.Decimal(10, 2)
+  minStockLevel         Decimal?               @db.Decimal(10, 2)
+  price                 Decimal                @db.Decimal(15, 2)
+  reorderLevel          Decimal?               @db.Decimal(10, 2)
+  sku                   String                 @unique
+  weight                Decimal?               @db.Decimal(10, 3)
   inventory             Inventory[]
   inventoryTransactions InventoryTransaction[]
   invoiceItems          InvoiceItem[]
   priceListItems        PriceListItem[]
+  category              ProductCategory?       @relation(fields: [categoryId], references: [id])
+  attributes            ProductAttribute[]
   warranties            Warranty[]
-  createdAt             DateTime               @default(now())
-  updatedAt             DateTime               @updatedAt
 }
 
-// Thuộc tính sản phẩm
 model ProductAttribute {
   id             Int      @id @default(autoincrement())
-  product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   productId      Int
   attributeName  String
   attributeValue String
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+  product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([productId])
 }
 
-// Nhóm khách hàng
 model CustomerGroup {
   id           Int         @id @default(autoincrement())
   name         String
   description  String?
   discountRate Decimal     @default(0) @db.Decimal(5, 2)
   creditLimit  Decimal?    @db.Decimal(15, 2)
-  paymentTerms Int? // Số ngày được phép trả chậm
+  paymentTerms Int?
   priority     Int         @default(0)
-  customers    Customer[]
-  priceLists   PriceList[]
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
+  customers    Customer[]
+  priceLists   PriceList[]
 }
 
-// Khách hàng
 model Customer {
   id           Int            @id @default(autoincrement())
   code         String?        @unique
@@ -215,16 +209,15 @@ model Customer {
   phone        String?
   email        String?
   address      String?
-  group        CustomerGroup? @relation(fields: [groupId], references: [id])
   groupId      Int?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  group        CustomerGroup? @relation(fields: [groupId], references: [id])
   invoices     Invoice[]
   transactions Transaction[]
   warranties   Warranty[]
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
 }
 
-// Đối tác/nhà cung cấp
 model Partner {
   id            Int           @id @default(autoincrement())
   code          String?       @unique
@@ -234,86 +227,78 @@ model Partner {
   email         String?
   address       String?
   taxCode       String?
-  paymentTerms  Int? // Số ngày trả chậm mặc định
+  paymentTerms  Int?
   creditBalance Decimal       @default(0) @db.Decimal(15, 2)
-  transactions  Transaction[]
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
+  transactions  Transaction[]
 }
 
-// Ca làm việc
 model Shift {
   id           Int           @id @default(autoincrement())
-  user         User          @relation(fields: [userId], references: [id])
   userId       Int
-  warehouse    Warehouse     @relation(fields: [warehouseId], references: [id])
   warehouseId  Int
   startTime    DateTime
   endTime      DateTime?
   startAmount  Decimal       @db.Decimal(15, 2)
   endAmount    Decimal?      @db.Decimal(15, 2)
-  status       String        @default("open") // 'open', 'closed'
+  status       String        @default("open")
   notes        String?
-  invoices     Invoice[]
-  transactions Transaction[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+  invoices     Invoice[]
+  user         User          @relation(fields: [userId], references: [id])
+  warehouse    Warehouse     @relation(fields: [warehouseId], references: [id])
+  transactions Transaction[]
 }
 
-// Tồn kho
 model Inventory {
   id            Int                @id @default(autoincrement())
-  product       Product            @relation(fields: [productId], references: [id])
   productId     Int
-  warehouse     Warehouse          @relation(fields: [warehouseId], references: [id])
   warehouseId   Int
-  location      WarehouseLocation? @relation(fields: [locationId], references: [id])
   locationId    Int?
   quantity      Decimal            @default(0) @db.Decimal(10, 2)
   minStockLevel Decimal            @default(0) @db.Decimal(10, 2)
   maxStockLevel Decimal?           @db.Decimal(10, 2)
   createdAt     DateTime           @default(now())
   updatedAt     DateTime           @updatedAt
+  location      WarehouseLocation? @relation(fields: [locationId], references: [id])
+  product       Product            @relation(fields: [productId], references: [id])
+  warehouse     Warehouse          @relation(fields: [warehouseId], references: [id])
 
   @@unique([productId, warehouseId, locationId])
   @@index([warehouseId])
   @@index([productId])
 }
 
-// Giao dịch xuất/nhập kho
 model InventoryTransaction {
   id              Int                @id @default(autoincrement())
-  product         Product            @relation(fields: [productId], references: [id])
   productId       Int
-  warehouse       Warehouse          @relation(fields: [warehouseId], references: [id])
   warehouseId     Int
-  location        WarehouseLocation? @relation(fields: [locationId], references: [id])
   locationId      Int?
-  transactionType String // 'in', 'out', 'transfer', 'adjustment'
+  transactionType String
   quantity        Decimal            @db.Decimal(10, 2)
-  referenceType   String? // 'order', 'return', 'internal', etc.
+  referenceType   String?
   referenceId     Int?
-  user            User?              @relation(fields: [userId], references: [id])
   userId          Int?
   notes           String?
   createdAt       DateTime           @default(now())
+  location        WarehouseLocation? @relation(fields: [locationId], references: [id])
+  product         Product            @relation(fields: [productId], references: [id])
+  user            User?              @relation(fields: [userId], references: [id])
+  warehouse       Warehouse          @relation(fields: [warehouseId], references: [id])
 
   @@index([productId])
   @@index([warehouseId])
   @@index([referenceType, referenceId])
 }
 
-// Hóa đơn
 model Invoice {
   id             Int              @id @default(autoincrement())
   code           String           @unique
-  customer       Customer?        @relation(fields: [customerId], references: [id])
   customerId     Int?
-  user           User             @relation(fields: [userId], references: [id])
   userId         Int
-  shift          Shift?           @relation(fields: [shiftId], references: [id])
   shiftId        Int?
-  warehouse      Warehouse        @relation(fields: [warehouseId], references: [id])
   warehouseId    Int
   invoiceDate    DateTime         @default(now())
   subtotal       Decimal          @db.Decimal(15, 2)
@@ -321,15 +306,19 @@ model Invoice {
   discountAmount Decimal          @default(0) @db.Decimal(15, 2)
   totalAmount    Decimal          @db.Decimal(15, 2)
   paidAmount     Decimal          @default(0) @db.Decimal(15, 2)
-  paymentMethod  String? // 'cash', 'card', 'bank_transfer', etc.
-  status         String           @default("pending") // 'pending', 'paid', 'canceled'
+  paymentMethod  String?
+  status         String           @default("pending")
   notes          String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  customer       Customer?        @relation(fields: [customerId], references: [id])
+  shift          Shift?           @relation(fields: [shiftId], references: [id])
+  user           User             @relation(fields: [userId], references: [id])
+  warehouse      Warehouse        @relation(fields: [warehouseId], references: [id])
   items          InvoiceItem[]
   payments       InvoicePayment[]
   transactions   Transaction[]
   warranties     Warranty[]
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
 
   @@index([customerId])
   @@index([userId])
@@ -337,12 +326,9 @@ model Invoice {
   @@index([warehouseId])
 }
 
-// Chi tiết hóa đơn
 model InvoiceItem {
   id                 Int                @id @default(autoincrement())
-  invoice            Invoice            @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
   invoiceId          Int
-  product            Product            @relation(fields: [productId], references: [id])
   productId          Int
   quantity           Decimal            @db.Decimal(10, 2)
   unitPrice          Decimal            @db.Decimal(15, 2)
@@ -351,115 +337,113 @@ model InvoiceItem {
   taxRate            Decimal            @default(0) @db.Decimal(5, 2)
   taxAmount          Decimal            @default(0) @db.Decimal(15, 2)
   totalAmount        Decimal            @db.Decimal(15, 2)
-  location           WarehouseLocation? @relation(fields: [locationId], references: [id])
   locationId         Int?
-  serialNumbers      String? // Có thể lưu dưới dạng JSON string hoặc array
-  serialNumber       String? // Số serial riêng
+  serialNumbers      String?
+  serialNumber       String?
   warrantyExpiration DateTime?
   notes              String?
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
+  invoice            Invoice            @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  location           WarehouseLocation? @relation(fields: [locationId], references: [id])
+  product            Product            @relation(fields: [productId], references: [id])
 
   @@index([invoiceId])
   @@index([productId])
   @@index([locationId])
 }
 
-// Thanh toán hóa đơn
 model InvoicePayment {
   id              Int      @id @default(autoincrement())
-  invoice         Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
   invoiceId       Int
   amount          Decimal  @db.Decimal(15, 2)
-  paymentMethod   String // 'cash', 'card', 'bank_transfer', etc.
+  paymentMethod   String
   referenceNumber String?
   notes           String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  invoice         Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 
   @@index([invoiceId])
 }
 
-// Bảng giá theo nhóm khách hàng
 model PriceList {
   id              Int             @id @default(autoincrement())
   name            String
   code            String          @unique
   description     String?
-  customerGroup   CustomerGroup   @relation(fields: [customerGroupId], references: [id])
   customerGroupId Int
   startDate       DateTime?
   endDate         DateTime?
-  priority        Int             @default(0) // Ưu tiên cao sẽ được áp dụng trước
-  discountType    String          @default("percentage") // 'percentage', 'fixed_amount'
-  status          String          @default("active") // 'active', 'inactive', 'expired'
-  applicableOn    String          @default("all") // 'all', 'selected_products', 'product_categories'  applyToAll       Boolean           @default(false)
+  priority        Int             @default(0)
+  discountType    String          @default("percentage")
+  status          String          @default("active")
+  applicableOn    String          @default("all")
   isDefault       Boolean         @default(false)
-  items           PriceListItem[]
-  createdBy       Int? // ID người tạo
+  createdBy       Int?
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
+  customerGroup   CustomerGroup   @relation(fields: [customerGroupId], references: [id])
+  items           PriceListItem[]
 
   @@unique([customerGroupId, isDefault], name: "unique_price_list_default_per_customer_group")
   @@index([customerGroupId])
   @@index([status])
 }
 
-// Chi tiết giá sản phẩm trong bảng giá
 model PriceListItem {
   id                Int       @id @default(autoincrement())
-  priceList         PriceList @relation(fields: [priceListId], references: [id], onDelete: Cascade)
   priceListId       Int
-  product           Product   @relation(fields: [productId], references: [id])
   productId         Int
   price             Decimal   @db.Decimal(15, 2)
   minQuantity       Decimal   @default(1) @db.Decimal(10, 2)
   maxQuantity       Decimal?  @db.Decimal(10, 2)
-  discountType      String    @default("percentage") // 'percentage', 'fixed_amount'
+  discountType      String    @default("percentage")
   discountValue     Decimal   @default(0) @db.Decimal(10, 2)
   discountRate      Decimal   @default(0) @db.Decimal(5, 2)
-  specialConditions String? // Điều kiện đặc biệt áp dụng (JSON string)
+  specialConditions String?
   isActive          Boolean   @default(true)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
+  priceList         PriceList @relation(fields: [priceListId], references: [id], onDelete: Cascade)
+  product           Product   @relation(fields: [productId], references: [id])
 
   @@unique([priceListId, productId, minQuantity])
   @@index([productId])
   @@index([priceListId])
 }
 
-// Phiếu thu/chi
 model Transaction {
   id                Int       @id @default(autoincrement())
   code              String    @unique
-  transactionType   String // 'receipt', 'payment'
-  transactionMethod String    @default("cash") // 'cash', 'bank_transfer', 'credit_card', 'e_wallet', etc.
+  transactionType   String
+  transactionMethod String    @default("cash")
   amount            Decimal   @db.Decimal(15, 2)
   transactionDate   DateTime  @default(now())
   dueDate           DateTime?
-  status            String    @default("completed") // 'pending', 'completed', 'canceled', 'failed'
-  category          String? // 'sale', 'purchase', 'expense', 'income', 'refund', etc.
+  status            String    @default("completed")
+  category          String?
   reference         String?
-  customer          Customer? @relation(fields: [customerId], references: [id])
   customerId        Int?
-  partner           Partner?  @relation(fields: [partnerId], references: [id])
   partnerId         Int?
-  invoice           Invoice?  @relation(fields: [invoiceId], references: [id])
   invoiceId         Int?
-  referenceType     String? // 'invoice', 'purchase_order', 'expense', etc.
+  referenceType     String?
   referenceId       Int?
-  user              User      @relation(fields: [userId], references: [id])
   userId            Int
-  shift             Shift?    @relation(fields: [shiftId], references: [id])
   shiftId           Int?
-  paymentMethod     String? // 'cash', 'bank_transfer', 'credit_card', etc.
-  accountNumber     String? // Số tài khoản ngân hàng nếu chuyển khoản
-  bankName          String? // Tên ngân hàng nếu chuyển khoản
-  receiptNumber     String? // Số chứng từ
-  attachments       String? // Đường dẫn đến tệp đính kèm (có thể là JSON string)
+  paymentMethod     String?
+  accountNumber     String?
+  bankName          String?
+  receiptNumber     String?
+  attachments       String?
   notes             String?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
+  customer          Customer? @relation(fields: [customerId], references: [id])
+  invoice           Invoice?  @relation(fields: [invoiceId], references: [id])
+  partner           Partner?  @relation(fields: [partnerId], references: [id])
+  shift             Shift?    @relation(fields: [shiftId], references: [id])
+  user              User      @relation(fields: [userId], references: [id])
 
   @@index([customerId])
   @@index([partnerId])
@@ -472,33 +456,32 @@ model Transaction {
   @@index([referenceType, referenceId])
 }
 
-// Yêu cầu bảo hành
 model Warranty {
   id                 Int       @id @default(autoincrement())
   code               String    @unique
-  customer           Customer  @relation(fields: [customerId], references: [id])
   customerId         Int
-  product            Product   @relation(fields: [productId], references: [id])
   productId          Int
-  invoice            Invoice?  @relation(fields: [invoiceId], references: [id])
   invoiceId          Int?
   serialNumber       String?
   issueDescription   String?
   receivedDate       DateTime  @default(now())
   expectedReturnDate DateTime?
   actualReturnDate   DateTime?
-  status             String    @default("pending") // 'pending', 'processing', 'completed', 'rejected'
+  status             String    @default("pending")
   diagnosis          String?
   solution           String?
   cost               Decimal   @default(0) @db.Decimal(15, 2)
   charged            Boolean   @default(false)
   notes              String?
-  creator            User      @relation("WarrantyCreator", fields: [creatorId], references: [id])
   creatorId          Int
-  technician         User?     @relation("WarrantyTechnician", fields: [technicianId], references: [id])
   technicianId       Int?
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
+  creator            User      @relation("WarrantyCreator", fields: [creatorId], references: [id])
+  customer           Customer  @relation(fields: [customerId], references: [id])
+  invoice            Invoice?  @relation(fields: [invoiceId], references: [id])
+  product            Product   @relation(fields: [productId], references: [id])
+  technician         User?     @relation("WarrantyTechnician", fields: [technicianId], references: [id])
 
   @@index([customerId])
   @@index([productId])
@@ -506,30 +489,222 @@ model Warranty {
   @@index([serialNumber])
 }
 
-// Mẫu báo cáo tùy chỉnh
 model ReportTemplate {
   id            Int      @id @default(autoincrement())
   name          String
   description   String?
-  reportType    String // 'sales', 'inventory', 'financial', etc.
+  reportType    String
   queryTemplate String
   parameters    Json?
-  createdBy     User     @relation(fields: [createdById], references: [id])
   createdById   Int
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  createdBy     User     @relation(fields: [createdById], references: [id])
 }
 
-// Mẫu hóa đơn
 model InvoiceTemplate {
   id          Int      @id @default(autoincrement())
   name        String
   description String?
   content     String
-  type        String // 'default', 'thermal', 'a4', etc.
+  type        String
   isDefault   Boolean  @default(false)
-  createdBy   User     @relation(fields: [createdById], references: [id])
   createdById Int
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  createdBy   User     @relation(fields: [createdById], references: [id])
+}
+
+model FacebookUser {
+  id             String                @id
+  email          String?
+  name           String?
+  profilePicture String?
+  accessToken    String
+  refreshToken   String?
+  tokenExpiresAt DateTime?
+  scopes         String[]
+  isActive       Boolean               @default(true)
+  userId         Int                   @unique
+  connectedAt    DateTime              @default(now())
+  lastSyncAt     DateTime?
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  activityLogs   FacebookActivityLog[]
+  pages          FacebookPage[]
+  user           User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("facebook_users")
+}
+
+model FacebookPage {
+  id             String                @id
+  facebookPageId String                @unique
+  name           String
+  category       String?
+  profilePicture String?
+  pictureUrl     String?
+  coverPhoto     String?
+  about          String?
+  website        String?
+  phone          String?
+  email          String?
+  fanCount       Int                   @default(0)
+  accessToken    String
+  permissions    String[]
+  isConnected    Boolean               @default(true)
+  isActive       Boolean               @default(true)
+  settings       Json?
+  facebookUserId String
+  connectedAt    DateTime              @default(now())
+  lastSyncAt     DateTime?
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  activityLogs   FacebookActivityLog[]
+  comments       FacebookComment[]
+  messages       FacebookMessage[]
+  facebookUser   FacebookUser          @relation(fields: [facebookUserId], references: [id], onDelete: Cascade)
+
+  @@map("facebook_pages")
+}
+
+model FacebookMessage {
+  id                String            @id
+  facebookMessageId String?
+  facebookPageId    String
+  conversationId    String
+  fromId            String
+  fromName          String
+  fromEmail         String?
+  message           String
+  content           String?
+  messageType       MessageType       @default(TEXT)
+  type              MessageType       @default(TEXT)
+  attachments       Json?
+  isFromPage        Boolean           @default(false)
+  isRead            Boolean           @default(false)
+  readAt            DateTime?
+  replyToId         String?
+  pageId            String
+  status            MessageStatus     @default(PENDING)
+  processedAt       DateTime?
+  processedBy       Int?
+  sentAt            DateTime
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  page              FacebookPage      @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  processor         User?             @relation(fields: [processedBy], references: [id])
+  replyTo           FacebookMessage?  @relation("MessageReplies", fields: [replyToId], references: [id])
+  replies           FacebookMessage[] @relation("MessageReplies")
+
+  @@index([pageId, sentAt])
+  @@index([conversationId])
+  @@index([status])
+  @@map("facebook_messages")
+}
+
+model FacebookComment {
+  id                String            @id
+  facebookCommentId String            @unique
+  facebookPageId    String
+  postId            String
+  fromId            String
+  fromName          String
+  message           String
+  content           String?
+  attachmentType    String?
+  attachmentUrl     String?
+  isHidden          Boolean           @default(false)
+  canRemove         Boolean           @default(false)
+  canHide           Boolean           @default(false)
+  canReply          Boolean           @default(true)
+  hasReply          Boolean           @default(false)
+  parentId          String?
+  parentCommentId   String?
+  pageId            String
+  status            CommentStatus     @default(PENDING)
+  type              CommentType       @default(COMMENT)
+  processedAt       DateTime?
+  processedBy       Int?
+  replyText         String?
+  repliedAt         DateTime?
+  hiddenAt          DateTime?
+  deletedAt         DateTime?
+  approvedAt        DateTime?
+  likeCount         Int               @default(0)
+  createdTime       DateTime
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  page              FacebookPage      @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  parent            FacebookComment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies           FacebookComment[] @relation("CommentReplies")
+  processor         User?             @relation(fields: [processedBy], references: [id])
+
+  @@index([pageId, createdTime])
+  @@index([postId])
+  @@index([status])
+  @@map("facebook_comments")
+}
+
+model FacebookActivityLog {
+  id             Int           @id @default(autoincrement())
+  action         String
+  entityType     String
+  entityId       String?
+  facebookUserId String?
+  pageId         String?
+  systemUserId   Int?
+  details        Json?
+  ipAddress      String?
+  userAgent      String?
+  status         String        @default("success")
+  errorMessage   String?
+  createdAt      DateTime      @default(now())
+  facebookUser   FacebookUser? @relation(fields: [facebookUserId], references: [id])
+  page           FacebookPage? @relation(fields: [pageId], references: [id])
+  systemUser     User?         @relation(fields: [systemUserId], references: [id])
+
+  @@index([facebookUserId, createdAt])
+  @@index([pageId, createdAt])
+  @@index([action, createdAt])
+  @@map("facebook_activity_logs")
+}
+
+enum CommentStatus {
+  PENDING
+  REPLIED
+  HIDDEN
+  DELETED
+  IGNORED
+  APPROVED
+  PUBLISHED
+}
+
+enum CommentType {
+  COMMENT
+  REPLY
+  MENTION
+  REVIEW
+}
+
+enum MessageStatus {
+  PENDING
+  READ
+  UNREAD
+  REPLIED
+  ARCHIVED
+  PROCESSED
+  SENT
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  VIDEO
+  AUDIO
+  FILE
+  STICKER
+  REACTION
+  SENT
+  RECEIVED
 }

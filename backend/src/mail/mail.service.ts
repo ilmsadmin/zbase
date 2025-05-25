@@ -1,23 +1,25 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
 import Mail from 'nodemailer/lib/mailer';
 
 @Injectable()
 export class MailService {
   private transporter: nodemailer.Transporter;
+  private mailFrom: string;
 
-  constructor(private configService: ConfigService) {
+  constructor() {
     // Create a nodemailer transporter
     this.transporter = nodemailer.createTransport({
-      host: this.configService.get<string>('mail.host'),
-      port: this.configService.get<number>('mail.port'),
-      secure: this.configService.get<boolean>('mail.secure'),
+      host: process.env.MAIL_HOST || 'smtp.example.com',
+      port: process.env.MAIL_PORT ? parseInt(process.env.MAIL_PORT, 10) : 587,
+      secure: process.env.MAIL_SECURE === 'true' || false,
       auth: {
-        user: this.configService.get<string>('mail.user'),
-        pass: this.configService.get<string>('mail.password'),
+        user: process.env.MAIL_USER || 'user@example.com',
+        pass: process.env.MAIL_PASSWORD || 'password',
       },
     });
+    
+    this.mailFrom = process.env.MAIL_FROM || 'ZBase <noreply@zbase.example.com>';
   }
 
   /**
@@ -28,7 +30,7 @@ export class MailService {
   async sendMail(options: Mail.Options) {
     try {
       const mailOptions = {
-        from: this.configService.get<string>('mail.from'),
+        from: this.mailFrom,
         ...options,
       };
       

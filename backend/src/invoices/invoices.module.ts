@@ -5,7 +5,6 @@ import { InvoiceTemplatesService } from './invoice-templates.service';
 import { InvoiceTemplatesController } from './invoice-templates.controller';
 import { PrismaModule } from '../prisma/prisma.module';
 import { JwtModule } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
 import { InventoryModule } from '../inventory/inventory.module';
 import { MailModule } from '../mail/mail.module';
 
@@ -14,12 +13,9 @@ import { MailModule } from '../mail/mail.module';
     PrismaModule,
     InventoryModule,
     MailModule,
-    JwtModule.registerAsync({
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        secret: configService.get('JWT_SECRET'),
-        signOptions: { expiresIn: '24h' },
-      }),
+    JwtModule.register({
+      secret: process.env.APP_JWT_SECRET || 'super-secret',
+      signOptions: { expiresIn: '24h' },
     }),
   ],
   providers: [InvoicesService, InvoiceTemplatesService],

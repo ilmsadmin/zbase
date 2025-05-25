@@ -61,15 +61,13 @@ export class ProductAttributesService {
       // Check if product exists
       const products = await this.prisma.$queryRaw`
         SELECT id FROM "Product" WHERE id = ${productId}
-      `;
-
-      if (!products || (products as any[]).length === 0) {
+      `;      if (!products || (products as any[]).length === 0) {
         throw new BadRequestException(`Product with ID ${productId} not found`);
       }
 
       // Get attributes for this product
       return this.prisma.$queryRaw`
-        SELECT pa.*, p.name as "productName", p.code as "productCode" 
+        SELECT pa.*, p.name as "productName", p.sku as "productCode" 
         FROM "ProductAttribute" pa
         JOIN "Product" p ON pa."productId" = p.id
         WHERE pa."productId" = ${productId}
@@ -79,16 +77,15 @@ export class ProductAttributesService {
 
     // Get all attributes with product info
     return this.prisma.$queryRaw`
-      SELECT pa.*, p.name as "productName", p.code as "productCode" 
+      SELECT pa.*, p.name as "productName", p.sku as "productCode" 
       FROM "ProductAttribute" pa
       JOIN "Product" p ON pa."productId" = p.id
       ORDER BY pa."productId" ASC, pa."attributeName" ASC
     `;
   }
-
   async findOne(id: number) {
     const attributes = await this.prisma.$queryRaw`
-      SELECT pa.*, p.name as "productName", p.code as "productCode" 
+      SELECT pa.*, p.name as "productName", p.sku as "productCode" 
       FROM "ProductAttribute" pa
       JOIN "Product" p ON pa."productId" = p.id
       WHERE pa.id = ${id}

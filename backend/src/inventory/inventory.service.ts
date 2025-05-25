@@ -221,11 +221,10 @@ export class InventoryService {
         where,
         skip,
         take: limit,
-        include: {
-          product: {
+        include: {          product: {
             select: {
               id: true,
-              code: true,
+              sku: true,
               name: true,
               unit: true,
             },
@@ -528,11 +527,10 @@ export class InventoryService {
         where,
         skip,
         take: limit,
-        include: {
-          product: {
+        include: {          product: {
             select: {
               id: true,
-              code: true,
+              sku: true,
               name: true,
             },
           },

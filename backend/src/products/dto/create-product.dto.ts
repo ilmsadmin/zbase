@@ -11,7 +11,7 @@ export class ProductAttributeDto {
 
 export class CreateProductDto {
   @IsString()
-  code: string;
+  sku: string; // Required field, replaces code
 
   @IsString()
   name: string;
@@ -25,7 +25,7 @@ export class CreateProductDto {
   categoryId?: number;
 
   @IsNumber()
-  basePrice: number;
+  price: number; // Required field, replaces basePrice
 
   @IsNumber()
   @IsOptional()
@@ -38,7 +38,6 @@ export class CreateProductDto {
   @IsString()
   @IsOptional()
   barcode?: string;
-
   @IsString()
   @IsOptional()
   unit?: string;
@@ -50,6 +49,34 @@ export class CreateProductDto {
   @IsInt()
   @IsOptional()
   warrantyMonths?: number = 0;
+
+  @IsNumber()
+  @IsOptional()
+  minStockLevel?: number;
+
+  @IsNumber()
+  @IsOptional()
+  maxStockLevel?: number;
+
+  @IsNumber()
+  @IsOptional()
+  reorderLevel?: number;
+
+  @IsNumber()
+  @IsOptional()
+  weight?: number;
+
+  @IsString()
+  @IsOptional()
+  dimensions?: string;
+
+  @IsString()
+  @IsOptional()
+  imageUrl?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean;
 
   @IsArray()
   @ValidateNested({ each: true })

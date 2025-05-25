@@ -3,16 +3,16 @@ import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { productsApi } from '@/services/api/products';
+import { productsService } from '@/lib/services/productsService';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
-import { Product, ProductAttribute, ProductCategory } from '@/types/product';
+import { Product as ProductType, ProductAttribute, ProductCategory, CreateProductDto, UpdateProductDto } from '@/types/product';
 import { ProductForm } from './ProductForm';
 
 interface ProductFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  product?: Product | null;
+  product?: ProductType | null;
 }
 
 const productSchema = z.object({
@@ -46,12 +46,11 @@ export function ProductFormModal({ isOpen, onClose, product }: ProductFormModalP
   const queryClient = useQueryClient();
   const [attributes, setAttributes] = useState<Array<Partial<ProductAttribute>>>([]);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  
-  // Fetch categories for select
+    // Fetch categories for select
   const categoriesQuery = useQuery<ProductCategory[]>({
     queryKey: ['productCategories'],
     queryFn: async () => {
-      return await productsApi.getCategories();
+      return await productsService.getCategories();
     },
     initialData: [],
   });
@@ -77,17 +76,18 @@ export function ProductFormModal({ isOpen, onClose, product }: ProductFormModalP
       attributes: [],
     },
   });
-
   // Update form when product changes
   useEffect(() => {
     if (product) {
       const formData = {
         name: product.name,
         description: product.description || '',
-        sku: product.sku,
+        // Handle backend field mapping: use sku if available, otherwise use code
+        sku: product.sku || (product as any).code || '',
         barcode: product.barcode || '',
         categoryId: String(product.categoryId), // Convert to string for form
-        price: product.price,
+        // Handle backend field mapping: use price if available, otherwise use basePrice
+        price: product.price || (product as any).basePrice || 0,
         costPrice: product.costPrice,
         unit: product.unit,
         minStockLevel: product.minStockLevel,
@@ -98,14 +98,21 @@ export function ProductFormModal({ isOpen, onClose, product }: ProductFormModalP
         imageUrl: product.imageUrl || '',
         isActive: product.isActive ?? true,
       };
-      methods.reset(formData);
-
-      if (product.attributes) {
-        setAttributes(product.attributes.map(attr => ({
-          id: String(attr.id),
-          name: attr.name,
-          value: attr.value
-        })));
+      methods.reset(formData);if (product.attributes) {
+        // Handle both array format (from types/product.ts) and Record format (from productsService)
+        if (Array.isArray(product.attributes)) {
+          setAttributes(product.attributes.map(attr => ({
+            id: String(attr.id),
+            name: attr.name,
+            value: attr.value
+          })));
+        } else {
+          // Convert Record format to array format
+          setAttributes(Object.entries(product.attributes).map(([name, value]) => ({
+            name,
+            value: String(value)
+          })));
+        }
       }
     }
   }, [product, methods]);
@@ -126,68 +133,53 @@ export function ProductFormModal({ isOpen, onClose, product }: ProductFormModalP
 
   const handleImageChange = (file: File | null) => {
     setImageFile(file);
-  };
-
-  // Create mutation
+  };  // Create mutation
   const createMutation = useMutation({
     mutationFn: (data: ProductFormData) => {
-      const formData = new FormData();
-      if (imageFile) {
-        formData.append('image', imageFile);
-      }
-      
-      // Add all form fields except attributes
-      Object.entries(data).forEach(([key, value]) => {
-        if (key !== 'attributes' && value !== undefined) {
-          formData.append(key, String(value));
-        }
-      });
-      
-      // Add attributes
-      attributes.forEach((attr, index) => {
-        if (attr.name && attr.value) {
-          formData.append(`attributes[${index}].name`, attr.name);
-          formData.append(`attributes[${index}].value`, attr.value);
-        }
-      });
+      // Convert attributes array to Record format
+      const attributesRecord: Record<string, string> = {};
+      attributes
+        .filter(attr => attr.name && attr.value)
+        .forEach(attr => {
+          if (attr.name && attr.value) {
+            attributesRecord[attr.name] = attr.value;
+          }
+        });
 
-      return productsApi.createProduct(formData);
+      // Prepare product data object
+      const productData = {
+        ...data,
+        attributes: Object.keys(attributesRecord).length > 0 ? attributesRecord : undefined
+      };
+
+      return productsService.createProduct(productData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       onClose();
     },
-  });
-
-  // Update mutation
+  });  // Update mutation
   const updateMutation = useMutation({
     mutationFn: (data: ProductFormData) => {
       if (!product) return Promise.reject(new Error('No product to update'));
       
-      const formData = new FormData();
-      if (imageFile) {
-        formData.append('image', imageFile);
-      }
-      
-      // Add all form fields except attributes
-      Object.entries(data).forEach(([key, value]) => {
-        if (key !== 'attributes' && value !== undefined) {
-          formData.append(key, String(value));
-        }
-      });
-      
-      // Add attributes
-      attributes.forEach((attr, index) => {
-        if (attr.name && attr.value) {
-          formData.append(`attributes[${index}].name`, attr.name);
-          formData.append(`attributes[${index}].value`, attr.value);
-          if (attr.id) {
-            formData.append(`attributes[${index}].id`, attr.id);
+      // Convert attributes array to Record format
+      const attributesRecord: Record<string, string> = {};
+      attributes
+        .filter(attr => attr.name && attr.value)
+        .forEach(attr => {
+          if (attr.name && attr.value) {
+            attributesRecord[attr.name] = attr.value;
           }
-        }
-      });
+        });
 
-      return productsApi.updateProduct(product.id, formData);
+      // Prepare product data object
+      const productData = {
+        ...data,
+        attributes: Object.keys(attributesRecord).length > 0 ? attributesRecord : undefined
+      };
+
+      return productsService.updateProduct(product.id, productData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });

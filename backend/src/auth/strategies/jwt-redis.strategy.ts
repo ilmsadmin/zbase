@@ -1,7 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { ConfigService } from '@nestjs/config';
 import { PosCacheService } from '../../redis/pos-cache.service';
 import { UsersService } from '../../users/users.service';
 import { Request } from 'express';
@@ -9,14 +8,13 @@ import { Request } from 'express';
 @Injectable()
 export class JwtRedisStrategy extends PassportStrategy(Strategy, 'jwt-redis') {
   constructor(
-    private readonly configService: ConfigService,
     private readonly posCacheService: PosCacheService,
     private readonly usersService: UsersService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('app.jwtSecret'),
+      secretOrKey: process.env.APP_JWT_SECRET || 'super-secret',
       passReqToCallback: true,
     } as any); // Using 'as any' to bypass TypeScript's strict checking
   }

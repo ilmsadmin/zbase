@@ -3,7 +3,6 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { UsersModule } from '../users/users.module';
 import { JwtModule } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtRedisStrategy } from './strategies/jwt-redis.strategy';
 import { PassportModule } from '@nestjs/passport';
@@ -21,14 +20,11 @@ import { RolesGuard } from './guards/roles.guard';
     MongoModule,
     forwardRef(() => PermissionsModule),
     RolesModule,
-    JwtModule.registerAsync({
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('app.jwtSecret'),
-        signOptions: {
-          expiresIn: configService.get<string>('app.jwtExpiresIn', '1d'),
-        },
-      }),
+    JwtModule.register({
+      secret: process.env.APP_JWT_SECRET || 'super-secret',
+      signOptions: {
+        expiresIn: process.env.APP_JWT_EXPIRES_IN || '86400',
+      },
     }),
   ],
   controllers: [AuthController],
